@@ -1,39 +1,42 @@
 import { DarkTheme, DefaultTheme, type Theme } from '@react-navigation/native';
+import type { ColorSchemeName } from 'react-native';
 import { darkColors, lightColors, type SemanticColors } from './colors';
+import { createElevations, type Elevations } from './elevation';
 
 export type AppTheme = Readonly<{
   colors: SemanticColors;
+  elevations: Elevations;
+  isDark: boolean;
   navigationTheme: Theme;
 }>;
 
-export const lightTheme: AppTheme = {
-  colors: lightColors,
-  navigationTheme: {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: lightColors.background,
-      border: lightColors.border,
-      card: lightColors.surface,
-      notification: lightColors.danger,
-      primary: lightColors.accent,
-      text: lightColors.textPrimary,
+function createAppTheme(
+  colors: SemanticColors,
+  isDark: boolean,
+  navigationBase: Theme,
+): AppTheme {
+  return {
+    colors,
+    elevations: createElevations(colors.overlay),
+    isDark,
+    navigationTheme: {
+      ...navigationBase,
+      colors: {
+        ...navigationBase.colors,
+        background: colors.background,
+        border: colors.border,
+        card: colors.surface,
+        notification: colors.danger,
+        primary: colors.primary,
+        text: colors.textPrimary,
+      },
     },
-  },
-};
+  };
+}
 
-export const darkTheme: AppTheme = {
-  colors: darkColors,
-  navigationTheme: {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      background: darkColors.background,
-      border: darkColors.border,
-      card: darkColors.surface,
-      notification: darkColors.danger,
-      primary: darkColors.accent,
-      text: darkColors.textPrimary,
-    },
-  },
-};
+export const lightTheme = createAppTheme(lightColors, false, DefaultTheme);
+export const darkTheme = createAppTheme(darkColors, true, DarkTheme);
+
+export function getAppTheme(colorScheme: ColorSchemeName): AppTheme {
+  return colorScheme === 'dark' ? darkTheme : lightTheme;
+}

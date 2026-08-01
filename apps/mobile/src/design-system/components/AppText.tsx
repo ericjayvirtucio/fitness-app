@@ -31,21 +31,15 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   body: {
-    fontSize: typography.body,
-    lineHeight: 25,
+    ...typography.body,
   },
   bodySmall: {
-    fontSize: typography.bodySmall,
-    lineHeight: 22,
+    ...typography.bodySmall,
   },
   heading: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    lineHeight: 38,
+    ...typography.heading,
   },
   label: {
-    fontSize: typography.label,
-    fontWeight: '600',
-    lineHeight: 24,
+    ...typography.label,
   },
 });

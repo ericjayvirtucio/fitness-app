@@ -25,14 +25,14 @@ export function AppButton({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: theme.colors.accent,
+          backgroundColor: theme.colors.primary,
           opacity: disabled ? 0.5 : pressed ? 0.72 : 1,
         },
         typeof style === 'function' ? style({ pressed }) : style,
       ]}
       {...props}
     >
-      <AppText style={{ color: theme.colors.accentContrast }} variant="label">
+      <AppText style={{ color: theme.colors.onPrimary }} variant="label">
         {label}
       </AppText>
     </Pressable>
@@ -42,7 +42,7 @@ export function AppButton({
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    borderRadius: radii.pill,
+    borderRadius: radii.round,
     justifyContent: 'center',
     minHeight: minimumTouchTarget,
     paddingHorizontal: spacing.lg,
