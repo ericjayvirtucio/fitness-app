@@ -45,9 +45,17 @@ To add or intentionally change a primary tab, update both the route file and `sr
 
 ## Design system and appearance
 
-Semantic colors live in `src/design-system/theme/colors.ts`; spacing, type, radius, and touch-target values live in `tokens.ts`. Components consume the active theme instead of repeating color values.
+The public design-system boundary is `src/design-system/index.ts`. Mobile routes
+and features import components and tokens from `src/design-system`, not its
+internal files. Semantic colors live in `theme/colors.ts`; typography, spacing,
+radius, opacity, border, icon, motion, and touch-target values live in
+`theme/tokens.ts`; platform elevation intent lives in `theme/elevation.ts`.
+Components consume the active theme instead of repeating visual values.
 
 The application follows the device light or dark setting. There is no stored manual override. Verify both appearances in the simulator and check that larger accessibility text remains readable.
+
+Usage, accessibility guidance, and extension rules are documented in the
+[mobile design-system guide](../apps/mobile/src/design-system/README.md).
 
 ## Checks
 

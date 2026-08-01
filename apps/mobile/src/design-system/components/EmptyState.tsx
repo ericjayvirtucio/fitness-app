@@ -21,7 +21,7 @@ export function EmptyState({
   title,
 }: EmptyStateProps) {
   return (
-    <Surface accessibilityLabel={`${title}. ${description}`} accessible>
+    <Surface>
       <View style={styles.content}>
         {icon ? <AppIcon name={icon} size="extraLarge" /> : null}
         <AppText accessibilityRole="header" variant="heading">

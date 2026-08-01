@@ -7,7 +7,7 @@ export type TextVariant = keyof typeof typography;
 
 type AppTextProps = ComponentProps<typeof Text> &
   Readonly<{
-    color?: 'primary' | 'secondary' | 'disabled' | 'danger';
+    color?: 'accent' | 'primary' | 'secondary' | 'disabled' | 'danger';
     variant?: TextVariant;
   }>;
 
@@ -19,6 +19,7 @@ export function AppText({
 }: AppTextProps) {
   const theme = useAppTheme();
   const textColor = {
+    accent: theme.colors.primary,
     danger: theme.colors.danger,
     disabled: theme.colors.textDisabled,
     primary: theme.colors.textPrimary,

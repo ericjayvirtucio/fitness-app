@@ -48,6 +48,7 @@ export function Card({
     return (
       <View
         accessibilityLabel={accessibilityLabel}
+        accessible={Boolean(accessibilityLabel)}
         style={[styles.card, variantStyle, style]}
         testID={testID}
       >

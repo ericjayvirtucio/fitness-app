@@ -2,7 +2,10 @@
 
 Production-oriented foundation for an offline-first fitness platform targeting iOS, Android, and a supporting API.
 
-Phase 1 adds an accessible Expo Router mobile shell while preserving the Phase 0 engineering foundation. It intentionally contains no authentication, persistence, domain features, synchronization, analytics, notifications, or AI integration.
+The current mobile foundation includes an accessible Expo Router shell and an
+app-local semantic design system for future features. It intentionally contains
+no authentication, persistence, domain features, synchronization, analytics,
+notifications, or AI integration.
 
 ## Prerequisites
 
@@ -55,4 +58,7 @@ Mobile simulator setup, navigation conventions, testing, and troubleshooting are
 
 ## Current status
 
-Phase 1: mobile application shell. The app exposes accessible, system-themed empty destinations for Today, Nutrition, Workout, Progress, and Profile. Fitness behavior remains deferred to a separately reviewed phase.
+Sprint 2: design-system foundation. The app exposes accessible, system-themed
+empty destinations for Today, Nutrition, Workout, Progress, and Profile plus
+reusable tokens and foundational UI components. Fitness behavior remains
+deferred to a separately reviewed phase.

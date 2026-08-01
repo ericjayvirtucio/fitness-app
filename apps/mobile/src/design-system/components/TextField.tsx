@@ -1,4 +1,4 @@
-import { useId, type ComponentProps } from 'react';
+import { useId, useState, type ComponentProps } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import {
   borderWidths,
@@ -31,11 +31,14 @@ export function TextField({
   isDisabled = false,
   label,
   leadingIcon,
+  onBlur,
+  onFocus,
   style,
   trailingIcon,
   ...props
 }: TextFieldProps) {
   const theme = useAppTheme();
+  const [isFocused, setIsFocused] = useState(false);
   const inputId = useId();
   const supportingTextId = useId();
   const supportingText = error ?? helperText;
@@ -52,7 +55,12 @@ export function TextField({
             backgroundColor: isDisabled
               ? theme.colors.surfaceVariant
               : theme.colors.surface,
-            borderColor: error ? theme.colors.danger : theme.colors.border,
+            borderColor: error
+              ? theme.colors.danger
+              : isFocused
+                ? theme.colors.focus
+                : theme.colors.border,
+            borderWidth: isFocused ? borderWidths.strong : borderWidths.thin,
             opacity: isDisabled ? opacity.disabled : opacity.visible,
           },
         ]}
@@ -63,10 +71,18 @@ export function TextField({
         <TextInput
           accessibilityLabel={label}
           accessibilityLabelledBy={`${inputId}-label`}
+          accessibilityHint={error ? `Error: ${error}` : helperText}
           accessibilityState={{ disabled: isDisabled }}
-          accessibilityValue={error ? { text: `Error: ${error}` } : undefined}
           aria-describedby={supportingText ? supportingTextId : undefined}
           editable={!isDisabled}
+          onBlur={(event) => {
+            setIsFocused(false);
+            onBlur?.(event);
+          }}
+          onFocus={(event) => {
+            setIsFocused(true);
+            onFocus?.(event);
+          }}
           placeholderTextColor={theme.colors.textDisabled}
           style={[styles.input, { color: theme.colors.textPrimary }, style]}
           {...props}
@@ -102,7 +118,6 @@ const styles = StyleSheet.create({
   inputFrame: {
     alignItems: 'center',
     borderRadius: radii.medium,
-    borderWidth: borderWidths.thin,
     flexDirection: 'row',
     gap: spacing.sm,
     minHeight: minimumTouchTarget,

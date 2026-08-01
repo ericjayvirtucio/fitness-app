@@ -10,7 +10,7 @@ export default function NotFoundScreen() {
         </AppText>
         <AppText color="secondary">This destination is not available.</AppText>
         <Link accessibilityLabel="Return to Today" href="/" replace>
-          <AppText color="secondary" variant="label">
+          <AppText color="accent" variant="label">
             Return to Today
           </AppText>
         </Link>
