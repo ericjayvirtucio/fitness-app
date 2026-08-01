@@ -1,0 +1,27 @@
+{
+  "name": "@fitness/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fitness platform API.",
+  "scripts": {
+    "build": "nest build",
+    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
+    "dev": "nest start --watch",
+    "lint": "eslint . --max-warnings=0",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit --incremental false"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.1.28",
+    "@nestjs/core": "11.1.28",
+    "@nestjs/platform-express": "11.1.28",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@fitness/typescript-config": "workspace:*",
+    "@nestjs/cli": "11.0.24",
+    "@types/node": "26.1.2",
+    "rimraf": "6.1.2"
+  }
+}

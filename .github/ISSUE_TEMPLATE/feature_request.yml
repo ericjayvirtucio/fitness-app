@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a product capability or improvement.
+title: '[Feature]: '
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user need without prescribing a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should a successful experience make possible?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Optional solution, alternatives, or examples.
+  - type: textarea
+    id: offline
+    attributes:
+      label: Offline and failure behavior
+      description: How should this behave without connectivity or when an operation fails?
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Additional considerations
+      description: Note accessibility, privacy, security, performance, data, or migration concerns.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched for an existing request.
+          required: true
+        - label: This request contains no secrets or sensitive personal data.
+          required: true

@@ -1,0 +1,26 @@
+{
+  "name": "@fitness/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Offline-first fitness mobile application.",
+  "main": "index.ts",
+  "scripts": {
+    "build": "expo export --platform all",
+    "clean": "rimraf .expo dist",
+    "dev": "expo start",
+    "lint": "eslint . --max-warnings=0",
+    "start": "expo start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "57.0.9",
+    "expo-status-bar": "57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.2"
+  },
+  "devDependencies": {
+    "@fitness/typescript-config": "workspace:*",
+    "@types/react": "19.2.18",
+    "rimraf": "6.1.2"
+  }
+}
