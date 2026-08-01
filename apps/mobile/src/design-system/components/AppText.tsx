@@ -3,24 +3,34 @@ import { StyleSheet, Text } from 'react-native';
 import { typography } from '../theme/tokens';
 import { useAppTheme } from '../theme/use-app-theme';
 
-type TextVariant = 'body' | 'bodySmall' | 'heading' | 'label';
+export type TextVariant = keyof typeof typography;
 
 type AppTextProps = ComponentProps<typeof Text> &
-  Readonly<{ variant?: TextVariant }>;
+  Readonly<{
+    color?: 'accent' | 'primary' | 'secondary' | 'disabled' | 'danger';
+    variant?: TextVariant;
+  }>;
 
-export function AppText({ style, variant = 'body', ...props }: AppTextProps) {
+export function AppText({
+  color = 'primary',
+  style,
+  variant = 'body',
+  ...props
+}: AppTextProps) {
   const theme = useAppTheme();
+  const textColor = {
+    accent: theme.colors.primary,
+    danger: theme.colors.danger,
+    disabled: theme.colors.textDisabled,
+    primary: theme.colors.textPrimary,
+    secondary: theme.colors.textSecondary,
+  }[color];
 
   return (
     <Text
       allowFontScaling
       maxFontSizeMultiplier={2}
-      style={[
-        styles.base,
-        styles[variant],
-        { color: theme.colors.textPrimary },
-        style,
-      ]}
+      style={[styles.base, typography[variant], { color: textColor }, style]}
       {...props}
     />
   );
@@ -29,23 +39,5 @@ export function AppText({ style, variant = 'body', ...props }: AppTextProps) {
 const styles = StyleSheet.create({
   base: {
     flexShrink: 1,
-  },
-  body: {
-    fontSize: typography.body,
-    lineHeight: 25,
-  },
-  bodySmall: {
-    fontSize: typography.bodySmall,
-    lineHeight: 22,
-  },
-  heading: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    lineHeight: 38,
-  },
-  label: {
-    fontSize: typography.label,
-    fontWeight: '600',
-    lineHeight: 24,
   },
 });

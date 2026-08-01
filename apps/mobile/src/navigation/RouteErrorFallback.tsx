@@ -1,23 +1,14 @@
 import type { ErrorBoundaryProps } from 'expo-router';
-import {
-  AppButton,
-  AppText,
-  Screen,
-  Surface,
-  useAppTheme,
-} from '../design-system';
-import { spacing } from '../design-system/theme/tokens';
+import { AppButton, AppText, Screen, spacing, Surface } from '../design-system';
 
 export function RouteErrorFallback({ retry }: ErrorBoundaryProps) {
-  const theme = useAppTheme();
-
   return (
-    <Screen accessibilityLabel="Application error">
+    <Screen accessibilityLabel="Application error" isCentered>
       <Surface style={{ gap: spacing.md }}>
         <AppText accessibilityRole="header" variant="heading">
           Something went wrong
         </AppText>
-        <AppText style={{ color: theme.colors.textSecondary }}>
+        <AppText color="secondary">
           The app could not display this screen. Your information has not been
           changed.
         </AppText>

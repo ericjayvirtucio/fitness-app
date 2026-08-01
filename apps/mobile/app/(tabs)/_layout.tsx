@@ -1,7 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { minimumTouchTarget } from '../../src/design-system/theme/tokens';
-import { useAppTheme } from '../../src/design-system';
+import {
+  AppIcon,
+  minimumTouchTarget,
+  typography,
+  useAppTheme,
+} from '../../src/design-system';
 import { tabDestinations } from '../../src/navigation/tab-destinations';
 
 export default function TabLayout() {
@@ -12,7 +15,7 @@ export default function TabLayout() {
       initialRouteName="index"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.accent,
+        tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
@@ -20,7 +23,7 @@ export default function TabLayout() {
           minHeight: 60,
         },
         tabBarItemStyle: { minHeight: minimumTouchTarget },
-        tabBarLabelStyle: { fontSize: 12 },
+        tabBarLabelStyle: typography.caption,
       }}
     >
       {tabDestinations.map((destination) => (
@@ -30,11 +33,10 @@ export default function TabLayout() {
           options={{
             tabBarAccessibilityLabel: `${destination.title} tab`,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons
-                accessibilityElementsHidden
+              <AppIcon
                 color={color}
                 name={destination.icon}
-                size={size}
+                size={size <= 20 ? 'medium' : 'large'}
               />
             ),
             title: destination.title,

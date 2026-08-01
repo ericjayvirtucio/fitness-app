@@ -1,9 +1,8 @@
-import type { ComponentProps } from 'react';
-import type Ionicons from '@expo/vector-icons/Ionicons';
+import type { AppIconName } from '../design-system';
 
 export type TabDestination = Readonly<{
   description: string;
-  icon: ComponentProps<typeof Ionicons>['name'];
+  icon: AppIconName;
   route: 'index' | 'nutrition' | 'profile' | 'progress' | 'workout';
   title: string;
 }>;

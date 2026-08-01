@@ -10,7 +10,7 @@ export function ApplicationShellScreen({
   title,
 }: ApplicationShellScreenProps) {
   return (
-    <Screen accessibilityLabel={`${title} screen`}>
+    <Screen accessibilityLabel={`${title} screen`} isCentered>
       <EmptyState description={description} title={title} />
     </Screen>
   );
