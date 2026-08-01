@@ -1,0 +1,30 @@
+{
+  "name": "@fitness/domain",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure domain language for the fitness platform.",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "tsc -b tsconfig.build.json --clean",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@fitness/typescript-config": "workspace:*",
+    "typescript": "6.0.3",
+    "vitest": "4.0.18"
+  }
+}
