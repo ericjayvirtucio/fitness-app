@@ -1,21 +1,16 @@
 import { Link } from 'expo-router';
-import { AppText, Screen, Surface, useAppTheme } from '../src/design-system';
-import { spacing } from '../src/design-system/theme/tokens';
+import { AppText, Screen, spacing, Surface } from '../src/design-system';
 
 export default function NotFoundScreen() {
-  const theme = useAppTheme();
-
   return (
-    <Screen accessibilityLabel="Page not found">
+    <Screen accessibilityLabel="Page not found" isCentered>
       <Surface style={{ gap: spacing.md }}>
         <AppText accessibilityRole="header" variant="heading">
           Page not found
         </AppText>
-        <AppText style={{ color: theme.colors.textSecondary }}>
-          This destination is not available.
-        </AppText>
+        <AppText color="secondary">This destination is not available.</AppText>
         <Link accessibilityLabel="Return to Today" href="/" replace>
-          <AppText style={{ color: theme.colors.accent }} variant="label">
+          <AppText color="secondary" variant="label">
             Return to Today
           </AppText>
         </Link>

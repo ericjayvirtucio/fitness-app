@@ -1,11 +1,12 @@
 import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { radii, spacing } from '../theme/tokens';
+import { borderWidths, radii, spacing } from '../theme/tokens';
 import { useAppTheme } from '../theme/use-app-theme';
 
-type SurfaceProps = ComponentProps<typeof View>;
+type SurfaceProps = ComponentProps<typeof View> &
+  Readonly<{ tone?: 'default' | 'variant' }>;
 
-export function Surface({ style, ...props }: SurfaceProps) {
+export function Surface({ tone = 'default', style, ...props }: SurfaceProps) {
   const theme = useAppTheme();
 
   return (
@@ -13,7 +14,10 @@ export function Surface({ style, ...props }: SurfaceProps) {
       style={[
         styles.surface,
         {
-          backgroundColor: theme.colors.surface,
+          backgroundColor:
+            tone === 'variant'
+              ? theme.colors.surfaceVariant
+              : theme.colors.surface,
           borderColor: theme.colors.border,
         },
         style,
@@ -25,13 +29,8 @@ export function Surface({ style, ...props }: SurfaceProps) {
 
 const styles = StyleSheet.create({
   surface: {
-    borderRadius: radii.large,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radii.extraLarge,
+    borderWidth: borderWidths.thin,
     padding: spacing.xl,
-    shadowColor: '#000000',
-    shadowOffset: { height: 2, width: 0 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
   },
 });
