@@ -2,7 +2,8 @@
 
 ## Status
 
-Current engineering foundation, extended by the approved Phase 1 mobile shell.
+Current engineering foundation, extended by the approved mobile shell, design
+system, and pure domain foundation.
 
 ## Context
 
@@ -10,11 +11,13 @@ The product requires an offline-first React Native client and a future authorita
 
 ## System shape
 
-The pnpm workspace contains two deployable applications and one configuration package:
+The pnpm workspace contains two deployable applications and two shared packages:
 
 - `@fitness/mobile` is an Expo Router application shell. It owns future offline interaction and device integration.
 - `@fitness/api` is a route-free NestJS application. It will own future cloud business authority.
 - `@fitness/typescript-config` centralizes strict compiler policy with platform-specific extensions.
+- `@fitness/domain` defines dependency-free values and invariants shared by future
+  mobile and API capabilities.
 
 Turborepo coordinates `dev`, `build`, `lint`, `typecheck`, `test`, and `clean` tasks. It does not define runtime coupling between applications.
 
@@ -29,9 +32,14 @@ the system adds no theme provider or UI-framework dependency.
 
 ## Boundaries
 
-The mobile and API applications do not import each other. Phase 0 contains no shared domain, UI, validation, persistence, API client, or synchronization package because no approved feature demonstrates those boundaries yet.
+The mobile and API applications do not import each other. The pure domain package
+is their future shared business-language boundary, but neither application consumes
+it until an approved feature demonstrates the integration. There is no shared UI,
+persistence, API client, or synchronization package.
 
-When business rules arrive, they should remain pure and have one canonical implementation. How that code is packaged and consumed must be established by the first domain specification, including the server's authority and mobile's offline requirements.
+Foundational business values remain pure and have one canonical implementation in
+`@fitness/domain`. Capability modules depend only on its narrow shared kernel. See
+[the domain architecture](domain-foundation.md) and [ADR 0003](../decisions/0003-pure-domain-package.md).
 
 ## Quality controls
 
@@ -42,13 +50,19 @@ When business rules arrive, they should remain pure and have one canonical imple
 - GitHub Actions performs clean-install formatting, linting, type checks, and tests.
 - Jest Expo and React Native Testing Library verify mobile component behavior,
   theme selection, interaction states, and accessibility contracts.
+- Vitest verifies pure domain behavior independently of application frameworks.
 - Builds are available locally and through the root task but are not yet a required CI gate.
 
 ## Deliberate omissions
 
-The repository has no business routes, database, authentication, environment secrets, domain models, deployment workflow, cloud infrastructure, worker, or state-management library. Mobile navigation and component testing are limited to the approved application shell.
+The repository has no business routes, database, authentication, environment
+secrets, entities, aggregates, deployment workflow, cloud infrastructure, worker,
+or state-management library. Its domain scope is limited to approved foundational
+values and measurements.
 
-API and domain testing tools remain deferred until their first meaningful behavior. End-to-end device testing and deployment configuration require an approved critical journey or runtime target and operational owner.
+API testing tools remain deferred until the API has meaningful behavior. End-to-end
+device testing and deployment configuration require an approved critical journey
+or runtime target and operational owner.
 
 ## Evolution rules
 

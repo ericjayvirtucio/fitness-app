@@ -2,10 +2,10 @@
 
 Production-oriented foundation for an offline-first fitness platform targeting iOS, Android, and a supporting API.
 
-The current mobile foundation includes an accessible Expo Router shell and an
-app-local semantic design system for future features. It intentionally contains
-no authentication, persistence, domain features, synchronization, analytics,
-notifications, or AI integration.
+The current foundation includes an accessible Expo Router shell, an app-local
+semantic design system, and a pure shared domain language for future features. It
+intentionally contains no authentication, persistence, product workflows,
+synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
 
@@ -46,6 +46,7 @@ The API reads `PORT` when it is supplied and otherwise listens on port `3000`. P
 
 - `apps/mobile`: Expo and React Native application shell
 - `apps/api`: NestJS API shell
+- `packages/domain`: pure, framework-independent domain values and invariants
 - `packages/typescript-config`: shared strict compiler policies
 - `docs`: architecture and durable engineering decisions
 - `specs`: rules for future approved specifications
@@ -55,10 +56,12 @@ The API reads `PORT` when it is supplied and otherwise listens on port `3000`. P
 Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.md) before making engineering changes. Contribution requirements are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
+Domain boundaries, value-object conventions, and extension guidance are documented
+in [docs/architecture/domain-foundation.md](docs/architecture/domain-foundation.md).
 
 ## Current status
 
-Sprint 2: design-system foundation. The app exposes accessible, system-themed
-empty destinations for Today, Nutrition, Workout, Progress, and Profile plus
-reusable tokens and foundational UI components. Fitness behavior remains
-deferred to a separately reviewed phase.
+Sprint 3: domain foundation. The repository provides immutable identifiers,
+results, errors, measurements, energy, and duration through `@fitness/domain`,
+with independent unit tests. Fitness workflows and application integration remain
+deferred to separately reviewed phases.

@@ -13,4 +13,5 @@ minimumReleaseAgeExclude:
   - turbo@2.10.8
 
 allowBuilds:
+  esbuild: true
   unrs-resolver: true
