@@ -2,7 +2,7 @@
 
 ## Status
 
-Current architecture for Phase 0.
+Current engineering foundation, extended by the approved Phase 1 mobile shell.
 
 ## Context
 
@@ -12,11 +12,13 @@ The product requires an offline-first React Native client and a future authorita
 
 The pnpm workspace contains two deployable applications and one configuration package:
 
-- `@fitness/mobile` is a minimal Expo application. It owns future offline interaction and device integration.
+- `@fitness/mobile` is an Expo Router application shell. It owns future offline interaction and device integration.
 - `@fitness/api` is a route-free NestJS application. It will own future cloud business authority.
 - `@fitness/typescript-config` centralizes strict compiler policy with platform-specific extensions.
 
-Turborepo coordinates `dev`, `build`, `lint`, `typecheck`, and `clean` tasks. It does not define runtime coupling between applications.
+Turborepo coordinates `dev`, `build`, `lint`, `typecheck`, `test`, and `clean` tasks. It does not define runtime coupling between applications.
+
+The mobile application composes a root stack and five bottom-tab destinations. File-based route modules remain thin; shell UI, typed semantic tokens, and navigation metadata live under `apps/mobile/src`. See [ADR 0002](../decisions/0002-expo-router-mobile-shell.md).
 
 ## Boundaries
 
@@ -30,14 +32,15 @@ When business rules arrive, they should remain pure and have one canonical imple
 - ESLint applies shared semantic checks and type-aware TypeScript rules. Platform-specific lint rules should be added only when platform code requires them.
 - Prettier owns formatting.
 - lint-staged provides focused pre-commit checks.
-- GitHub Actions performs clean-install formatting, linting, and type checks.
+- GitHub Actions performs clean-install formatting, linting, type checks, and tests.
+- Jest Expo and React Native Testing Library verify mobile component behavior and accessibility contracts.
 - Builds are available locally and through the root task but are not yet a required CI gate.
 
 ## Deliberate omissions
 
-Phase 0 has no business routes, database, authentication, environment secrets, domain models, testing framework, deployment workflow, cloud infrastructure, worker, navigation library, or state-management library.
+The repository has no business routes, database, authentication, environment secrets, domain models, deployment workflow, cloud infrastructure, worker, or state-management library. Mobile navigation and component testing are limited to the approved application shell.
 
-Testing tools will be selected with the first meaningful behavior so unit, integration, and device-test choices respond to real boundaries. Deployment configuration will be introduced only with an approved runtime target and operational owner.
+API and domain testing tools remain deferred until their first meaningful behavior. End-to-end device testing and deployment configuration require an approved critical journey or runtime target and operational owner.
 
 ## Evolution rules
 

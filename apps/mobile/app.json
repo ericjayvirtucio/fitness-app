@@ -2,16 +2,20 @@
   "expo": {
     "name": "Fitness App",
     "slug": "fitness-app",
+    "scheme": "fitness-app",
     "version": "0.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "plugins": ["expo-router"],
     "ios": {
+      "bundleIdentifier": "com.fitnessapp.dev",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.fitnessapp.dev",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": true
     }
   }
 }

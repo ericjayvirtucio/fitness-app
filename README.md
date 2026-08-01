@@ -2,7 +2,7 @@
 
 Production-oriented foundation for an offline-first fitness platform targeting iOS, Android, and a supporting API.
 
-Phase 0 establishes repository standards and runnable application shells. It intentionally contains no authentication, persistence, domain features, synchronization, analytics, notifications, or AI integration.
+Phase 1 adds an accessible Expo Router mobile shell while preserving the Phase 0 engineering foundation. It intentionally contains no authentication, persistence, domain features, synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
 
@@ -26,6 +26,7 @@ pnpm dev           # Run all development servers
 pnpm build         # Build/export all applications
 pnpm format:check  # Verify formatting
 pnpm lint          # Run lint checks
+pnpm test          # Run automated tests
 pnpm typecheck     # Run strict TypeScript checks
 ```
 
@@ -50,6 +51,8 @@ The API reads `PORT` when it is supplied and otherwise listens on port `3000`. P
 
 Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.md) before making engineering changes. Contribution requirements are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
+
 ## Current status
 
-Phase 0: engineering foundation. The next phase must be reviewed and approved before feature implementation begins.
+Phase 1: mobile application shell. The app exposes accessible, system-themed empty destinations for Today, Nutrition, Workout, Progress, and Profile. Fitness behavior remains deferred to a separately reviewed phase.

@@ -1,0 +1,55 @@
+import type { ComponentProps } from 'react';
+import type Ionicons from '@expo/vector-icons/Ionicons';
+
+export type TabDestination = Readonly<{
+  description: string;
+  icon: ComponentProps<typeof Ionicons>['name'];
+  route: 'index' | 'nutrition' | 'profile' | 'progress' | 'workout';
+  title: string;
+}>;
+
+export const tabDestinations = [
+  {
+    description: 'Your daily overview will appear here in a later phase.',
+    icon: 'today-outline',
+    route: 'index',
+    title: 'Today',
+  },
+  {
+    description: 'Nutrition logging will be introduced in a later phase.',
+    icon: 'nutrition-outline',
+    route: 'nutrition',
+    title: 'Nutrition',
+  },
+  {
+    description:
+      'Workout planning and sessions will be introduced in a later phase.',
+    icon: 'barbell-outline',
+    route: 'workout',
+    title: 'Workout',
+  },
+  {
+    description: 'Progress insights will be introduced in a later phase.',
+    icon: 'trending-up-outline',
+    route: 'progress',
+    title: 'Progress',
+  },
+  {
+    description: 'Profile settings will be introduced in a later phase.',
+    icon: 'person-outline',
+    route: 'profile',
+    title: 'Profile',
+  },
+] as const satisfies readonly TabDestination[];
+
+export function getTabDestination(
+  route: TabDestination['route'],
+): TabDestination {
+  const destination = tabDestinations.find((item) => item.route === route);
+
+  if (!destination) {
+    throw new Error(`Unknown tab destination: ${route}`);
+  }
+
+  return destination;
+}
