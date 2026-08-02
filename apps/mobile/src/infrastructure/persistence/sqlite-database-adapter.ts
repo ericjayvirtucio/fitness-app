@@ -46,6 +46,19 @@ export class SqliteDatabaseAdapter implements DatabaseConnection {
     }
   }
 
+  async getAll<TResult>(
+    statement: string,
+    parameters: DatabaseParameters = [],
+  ): Promise<readonly TResult[]> {
+    try {
+      return await this.database.getAllAsync<TResult>(statement, [
+        ...parameters,
+      ]);
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
   async run(
     statement: string,
     parameters: DatabaseParameters = [],

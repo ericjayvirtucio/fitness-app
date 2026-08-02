@@ -7,6 +7,7 @@ class TransactionDatabase implements DatabaseConnection {
   didRollback = false;
   readonly transactionContext: DatabaseConnection = {
     exec: () => Promise.resolve(),
+    getAll: () => Promise.resolve([]),
     getFirst: () => Promise.resolve(null),
     getVersion: () => Promise.resolve(0),
     run: () => Promise.resolve(),
@@ -23,6 +24,10 @@ class TransactionDatabase implements DatabaseConnection {
 
   getFirst<TResult>(): Promise<TResult | null> {
     return Promise.resolve(null);
+  }
+
+  getAll<TResult>(): Promise<readonly TResult[]> {
+    return Promise.resolve([]);
   }
 
   run(): Promise<void> {
