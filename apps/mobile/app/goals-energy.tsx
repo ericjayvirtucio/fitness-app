@@ -4,6 +4,7 @@ import { GoalsEnergyScreen } from '../src/features/goals-energy/presentation/Goa
 export default function GoalsEnergyRoute() {
   return (
     <GoalsEnergyScreen
+      onBack={() => router.back()}
       onEditProfile={() => router.replace('/(tabs)/profile')}
     />
   );

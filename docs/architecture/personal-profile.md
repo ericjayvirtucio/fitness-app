@@ -19,6 +19,12 @@ canonical measurements, calendar-date checks, and capability ranges. The save us
 case parses boundary strings, converts display units, and supplies the current date
 explicitly. Presentation displays returned errors and does not duplicate rules.
 
+Goals & Energy now consumes the validated profile through its repository contract
+and recalculates on screen focus. This resolves the prior deferral of BMI and TDEE
+without adding calculated columns to `personal_profile` or coupling formulas to
+its SQLite representation. Unsupported formula coefficients do not invalidate or
+rewrite inclusive profile selections.
+
 ## Storage mapping
 
 Migration 2 creates one row in `personal_profile`, enforced by

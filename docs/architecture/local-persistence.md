@@ -66,6 +66,9 @@ fresh version-zero database.
 
 Version 2 adds the single `personal_profile` row. Its mapping and privacy
 constraints are documented in [personal profile architecture](personal-profile.md).
+Version 3 adds the singleton `goal_configuration` row containing only goal type
+and whole-kilocalorie adjustment. BMI, age, energy estimates, and targets are
+derived and never stored. See [Goals and energy architecture](goals-and-energy.md).
 
 ## Transactions
 

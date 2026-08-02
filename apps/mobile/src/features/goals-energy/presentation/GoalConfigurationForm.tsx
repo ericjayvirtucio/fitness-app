@@ -118,7 +118,7 @@ export function GoalConfigurationForm({
         </Card>
       ) : goalType ? (
         <AppText accessibilityLiveRegion="polite" color="secondary">
-          Enter a valid adjustment to preview your target.
+          {previewTarget.error.message}
         </AppText>
       ) : null}
       {successMessage ? (

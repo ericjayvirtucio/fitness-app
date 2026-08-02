@@ -42,6 +42,7 @@ type ScreenState =
 
 type GoalsEnergyScreenProps = Readonly<{
   loadUseCases?: () => Promise<GoalsEnergyUseCases>;
+  onBack: () => void;
   onEditProfile: () => void;
 }>;
 
@@ -62,6 +63,7 @@ function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
 
 export function GoalsEnergyScreen({
   loadUseCases = createGoalsEnergyUseCases,
+  onBack,
   onEditProfile,
 }: GoalsEnergyScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -129,6 +131,7 @@ export function GoalsEnergyScreen({
           Your information could not be loaded. Nothing was changed.
         </AppText>
         <AppButton label="Try again" onPress={load} />
+        <AppButton label="Back to profile" onPress={onBack} variant="ghost" />
       </Screen>
     );
   }
@@ -146,6 +149,7 @@ export function GoalsEnergyScreen({
           required. No defaults will be assumed.
         </AppText>
         <AppButton label="Set up profile" onPress={onEditProfile} />
+        <AppButton label="Back to profile" onPress={onBack} variant="ghost" />
       </Screen>
     );
   }
@@ -180,6 +184,7 @@ export function GoalsEnergyScreen({
           onPress={onEditProfile}
           variant="outline"
         />
+        <AppButton label="Back to profile" onPress={onBack} variant="ghost" />
       </Screen>
     );
   }
@@ -191,6 +196,7 @@ export function GoalsEnergyScreen({
       contentContainerStyle={{ gap: spacing.xl }}
       isKeyboardAware
     >
+      <AppButton label="Back to profile" onPress={onBack} variant="ghost" />
       <View style={{ gap: spacing.sm }}>
         <AppText accessibilityRole="header" variant="display">
           Goals & energy

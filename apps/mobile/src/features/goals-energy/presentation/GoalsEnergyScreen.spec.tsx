@@ -70,6 +70,7 @@ describe('GoalsEnergyScreen', () => {
         loadUseCases={() =>
           Promise.resolve(useCases({ status: 'profile-required' }))
         }
+        onBack={jest.fn()}
         onEditProfile={onEditProfile}
       />,
     );
@@ -84,6 +85,7 @@ describe('GoalsEnergyScreen', () => {
     await render(
       <GoalsEnergyScreen
         loadUseCases={() => Promise.resolve(useCases(readyOutcome()))}
+        onBack={jest.fn()}
         onEditProfile={jest.fn()}
       />,
     );
@@ -101,6 +103,7 @@ describe('GoalsEnergyScreen', () => {
     await render(
       <GoalsEnergyScreen
         loadUseCases={() => Promise.resolve(loaded)}
+        onBack={jest.fn()}
         onEditProfile={jest.fn()}
       />,
     );
@@ -148,6 +151,7 @@ describe('GoalsEnergyScreen', () => {
     const first = await render(
       <GoalsEnergyScreen
         loadUseCases={() => Promise.resolve(useCases(unavailable))}
+        onBack={jest.fn()}
         onEditProfile={jest.fn()}
       />,
     );
@@ -159,6 +163,7 @@ describe('GoalsEnergyScreen', () => {
     await render(
       <GoalsEnergyScreen
         loadUseCases={() => Promise.reject(new Error('sensitive details'))}
+        onBack={jest.fn()}
         onEditProfile={jest.fn()}
       />,
     );
