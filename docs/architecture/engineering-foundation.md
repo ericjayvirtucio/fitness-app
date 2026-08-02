@@ -3,7 +3,7 @@
 ## Status
 
 Current engineering foundation, extended by the approved mobile shell, design
-system, and pure domain foundation.
+system, pure domain foundation, and mobile local-persistence foundation.
 
 ## Context
 
@@ -35,7 +35,14 @@ the system adds no theme provider or UI-framework dependency.
 The mobile and API applications do not import each other. The pure domain package
 is their future shared business-language boundary, but neither application consumes
 it until an approved feature demonstrates the integration. There is no shared UI,
-persistence, API client, or synchronization package.
+API client, or synchronization package. Mobile-local persistence remains inside
+`apps/mobile` because there is no second SQLite consumer.
+
+The mobile composition root opens Expo SQLite and runs ordered, forward-only
+migrations before routes render. The driver is hidden behind infrastructure
+contracts; future capability-owned repository interfaces remain
+application-facing. See [the local persistence architecture](local-persistence.md)
+and [ADR 0004](../decisions/0004-expo-sqlite-local-persistence.md).
 
 Foundational business values remain pure and have one canonical implementation in
 `@fitness/domain`. Capability modules depend only on its narrow shared kernel. See
@@ -55,7 +62,7 @@ Foundational business values remain pure and have one canonical implementation i
 
 ## Deliberate omissions
 
-The repository has no business routes, database, authentication, environment
+The repository has no business routes, feature tables, authentication, environment
 secrets, entities, aggregates, deployment workflow, cloud infrastructure, worker,
 or state-management library. Its domain scope is limited to approved foundational
 values and measurements.

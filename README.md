@@ -3,9 +3,9 @@
 Production-oriented foundation for an offline-first fitness platform targeting iOS, Android, and a supporting API.
 
 The current foundation includes an accessible Expo Router shell, an app-local
-semantic design system, and a pure shared domain language for future features. It
-intentionally contains no authentication, persistence, product workflows,
-synchronization, analytics, notifications, or AI integration.
+semantic design system, a pure shared domain language, and versioned mobile SQLite
+infrastructure. It intentionally contains no authentication, product records or
+workflows, synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
 
@@ -58,10 +58,14 @@ Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.m
 Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
 Domain boundaries, value-object conventions, and extension guidance are documented
 in [docs/architecture/domain-foundation.md](docs/architecture/domain-foundation.md).
+Local database initialization, migrations, transactions, and troubleshooting are
+documented in
+[docs/architecture/local-persistence.md](docs/architecture/local-persistence.md).
 
 ## Current status
 
-Sprint 3: domain foundation. The repository provides immutable identifiers,
-results, errors, measurements, energy, and duration through `@fitness/domain`,
-with independent unit tests. Fitness workflows and application integration remain
-deferred to separately reviewed phases.
+Sprint 4: local persistence foundation. The mobile app initializes an app-local
+Expo SQLite database, applies forward-only migrations, gates routes until storage
+is ready, and exposes testable transaction and error boundaries. Version 1 creates
+no product tables; fitness workflows remain deferred to separately reviewed
+phases.
