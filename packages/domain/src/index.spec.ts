@@ -8,6 +8,7 @@ import {
   GoalConfiguration,
   Length,
   Mass,
+  NutritionFacts,
   UserProfile,
   Volume,
   activityMultipliers,
@@ -21,7 +22,9 @@ import {
   goalTypes,
   isErr,
   isOk,
+  nutritionProvenances,
   ok,
+  scaleNutritionFacts,
 } from './index';
 
 describe('@fitness/domain public API', () => {
@@ -34,6 +37,7 @@ describe('@fitness/domain public API', () => {
       GoalConfiguration,
       Length,
       Mass,
+      NutritionFacts,
       UserProfile,
       Volume,
       activityMultipliers,
@@ -47,7 +51,9 @@ describe('@fitness/domain public API', () => {
       goalTypes,
       isErr,
       isOk,
+      nutritionProvenances,
       ok,
+      scaleNutritionFacts,
     ]).not.toContain(undefined);
   });
 });
