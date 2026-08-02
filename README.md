@@ -3,9 +3,10 @@
 Production-oriented foundation for an offline-first fitness platform targeting iOS, Android, and a supporting API.
 
 The current foundation includes an accessible Expo Router shell, an app-local
-semantic design system, a pure shared domain language, and versioned mobile SQLite
-infrastructure. It intentionally contains no authentication, product records or
-workflows, synchronization, analytics, notifications, or AI integration.
+semantic design system, a pure shared domain language, versioned mobile SQLite
+infrastructure, and a device-local personal profile vertical slice. It
+intentionally contains no authentication, synchronization, analytics,
+notifications, or AI integration.
 
 ## Prerequisites
 
@@ -64,8 +65,8 @@ documented in
 
 ## Current status
 
-Sprint 4: local persistence foundation. The mobile app initializes an app-local
-Expo SQLite database, applies forward-only migrations, gates routes until storage
-is ready, and exposes testable transaction and error boundaries. Version 1 creates
-no product tables; fitness workflows remain deferred to separately reviewed
-phases.
+Sprint 5: personal profile and application-layer foundation. The Profile tab can
+create and update one offline profile through UI, application use cases, a
+capability-owned repository, and schema version 2. See
+[the capability architecture](docs/architecture/personal-profile.md). Derived
+fitness calculations and all cloud behavior remain deferred.

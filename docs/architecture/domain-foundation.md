@@ -19,6 +19,11 @@ Nutrition owns `Energy`; workout owns `Duration`. Hydration currently uses
 modules are not created. A new concept belongs in the capability whose language
 defines it unless at least two real capabilities need the same invariant.
 
+Personal profile owns `UserProfile`, its supported activity, biological-sex, and
+unit-system vocabularies, calendar-date rule, and reasonable height and weight
+ranges. It composes shared `Length` and `Mass` values rather than duplicating
+measurement conversion.
+
 Dependencies point inward:
 
 ```text

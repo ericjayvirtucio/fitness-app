@@ -75,6 +75,17 @@ renders routes. Migration and transaction conventions are documented in the
 [local persistence architecture](architecture/local-persistence.md). A startup
 failure displays a safe retry screen and does not clear local data.
 
+## Personal profile
+
+The Profile tab reads and saves one device-local profile through application use
+cases. Domain rules and storage mappings are documented in
+[personal-profile architecture](architecture/personal-profile.md). Metric fields
+use centimeters and kilograms; imperial fields use inches and pounds. Date of
+birth uses `YYYY-MM-DD`. Decimal parsing is not localized in this sprint.
+
+Uninstalling the app from a disposable development environment removes the profile
+with the app database. The application itself provides no delete or reset action.
+
 ## Troubleshooting
 
 ### Expo or Metro does not start

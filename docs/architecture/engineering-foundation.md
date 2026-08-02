@@ -62,10 +62,14 @@ Foundational business values remain pure and have one canonical implementation i
 
 ## Deliberate omissions
 
-The repository has no business routes, feature tables, authentication, environment
-secrets, entities, aggregates, deployment workflow, cloud infrastructure, worker,
-or state-management library. Its domain scope is limited to approved foundational
-values and measurements.
+The personal profile is the first business route and feature table. It establishes
+capability-owned application, infrastructure, and presentation roles while reusing
+the domain and persistence foundations. See
+[the personal-profile architecture](personal-profile.md) and
+[ADR 0005](../decisions/0005-capability-application-slices.md).
+
+The repository still has no authentication, backend business endpoint, cloud
+infrastructure, worker, synchronization, or state-management library.
 
 API testing tools remain deferred until the API has meaningful behavior. End-to-end
 device testing and deployment configuration require an approved critical journey

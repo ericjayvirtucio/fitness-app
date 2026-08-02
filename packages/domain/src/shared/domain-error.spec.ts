@@ -26,9 +26,13 @@ describe('DomainError', () => {
 
   it('publishes the stable error-code vocabulary', () => {
     expect(domainErrorCodes).toEqual([
+      'invalid-date',
       'invalid-identifier',
       'invalid-number',
       'negative-measurement',
+      'out-of-range',
+      'required-field',
+      'unsupported-option',
       'unsupported-unit',
     ]);
     expect(Object.isFrozen(domainErrorCodes)).toBe(true);

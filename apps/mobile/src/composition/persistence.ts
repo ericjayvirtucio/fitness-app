@@ -9,7 +9,7 @@ const databaseName = 'fitness-app.db';
 let databasePromise: Promise<DatabaseConnection> | undefined;
 let initializationPromise: Promise<void> | undefined;
 
-function getDatabase(): Promise<DatabaseConnection> {
+export function getDatabase(): Promise<DatabaseConnection> {
   databasePromise ??= openDatabaseAsync(databaseName)
     .then((database) => new SqliteDatabaseAdapter(database))
     .catch((error: unknown) => {
