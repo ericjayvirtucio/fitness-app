@@ -20,6 +20,24 @@ export type {
   UserProfileValidationErrors,
 } from './personal-profile/user-profile';
 
+export { calculateAge } from './goals-energy/age';
+export { bmiCategories, calculateBmi, classifyBmi } from './goals-energy/bmi';
+export type { BmiCategory, BmiResult } from './goals-energy/bmi';
+export {
+  activityMultipliers,
+  energyCalculationAgeRange,
+  estimateMaintenanceEnergy,
+  estimateRestingEnergy,
+} from './goals-energy/energy-estimates';
+export type { RestingEnergyInput } from './goals-energy/energy-estimates';
+export {
+  calorieAdjustmentPolicy,
+  calculateDailyCalorieTarget,
+  GoalConfiguration,
+  goalTypes,
+} from './goals-energy/goal-configuration';
+export type { GoalType } from './goals-energy/goal-configuration';
+
 export { Length, lengthUnits } from './shared/measurement/length';
 export type { LengthUnit } from './shared/measurement/length';
 export { Mass, massUnits } from './shared/measurement/mass';

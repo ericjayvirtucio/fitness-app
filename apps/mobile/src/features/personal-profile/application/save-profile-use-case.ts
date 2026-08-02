@@ -5,6 +5,7 @@ import {
   type UserProfileValidationErrors,
 } from '@fitness/domain';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
+import { formatLocalCalendarDate } from '../../../application/date/local-calendar-date';
 import type { PersonalProfileTransactionContext } from './personal-profile-repository';
 
 export type SaveProfileInput = Readonly<{
@@ -19,14 +20,6 @@ export type SaveProfileInput = Readonly<{
 function parseNumber(value: unknown): number {
   if (typeof value !== 'string' || value.trim().length === 0) return Number.NaN;
   return Number(value.trim());
-}
-
-function currentIsoDate(getCurrentDate: () => Date): string {
-  const date = getCurrentDate();
-  const year = String(date.getFullYear()).padStart(4, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 export class SaveProfileUseCase {
@@ -50,7 +43,7 @@ export class SaveProfileUseCase {
         preferredUnitSystem: input.preferredUnitSystem,
         weightGrams: weight * (isImperial ? 453.59237 : 1_000),
       },
-      currentIsoDate(this.getCurrentDate),
+      formatLocalCalendarDate(this.getCurrentDate()),
     );
 
     if (isErr(profile)) return profile;

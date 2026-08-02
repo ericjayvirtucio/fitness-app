@@ -4,7 +4,8 @@ Production-oriented foundation for an offline-first fitness platform targeting i
 
 The current foundation includes an accessible Expo Router shell, an app-local
 semantic design system, a pure shared domain language, versioned mobile SQLite
-infrastructure, and a device-local personal profile vertical slice. It
+infrastructure, a device-local personal profile, and profile-derived Goals &
+Energy calculations. It
 intentionally contains no authentication, synchronization, analytics,
 notifications, or AI integration.
 
@@ -62,11 +63,13 @@ in [docs/architecture/domain-foundation.md](docs/architecture/domain-foundation.
 Local database initialization, migrations, transactions, and troubleshooting are
 documented in
 [docs/architecture/local-persistence.md](docs/architecture/local-persistence.md).
+Goals, formula evidence, eligibility, precision, and derived-data behavior are
+documented in
+[docs/architecture/goals-and-energy.md](docs/architecture/goals-and-energy.md).
 
 ## Current status
 
-Sprint 5: personal profile and application-layer foundation. The Profile tab can
-create and update one offline profile through UI, application use cases, a
-capability-owned repository, and schema version 2. See
-[the capability architecture](docs/architecture/personal-profile.md). Derived
-fitness calculations and all cloud behavior remain deferred.
+Sprint 6: Goals & Energy. Eligible adults can view profile-derived BMI, resting
+energy, estimated maintenance calories, and a validated daily calorie target.
+One lose, maintain, or gain configuration persists locally in schema version 3;
+derived values remain unstored. All cloud behavior remains deferred.

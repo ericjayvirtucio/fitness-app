@@ -24,6 +24,14 @@ unit-system vocabularies, calendar-date rule, and reasonable height and weight
 ranges. It composes shared `Length` and `Mass` values rather than duplicating
 measurement conversion.
 
+Goals & Energy owns adult age derivation, BMI screening categories, Mifflin-St
+Jeor resting-energy estimates, activity multipliers, goal configuration, and
+daily calorie target guardrails. It depends one way on Personal Profile's option
+vocabulary so supported values cannot drift; see
+[ADR 0006](../decisions/0006-goals-energy-domain-dependency.md). Calculation
+sources, limitations, and precision are documented in
+[Goals and energy architecture](goals-and-energy.md).
+
 Dependencies point inward:
 
 ```text

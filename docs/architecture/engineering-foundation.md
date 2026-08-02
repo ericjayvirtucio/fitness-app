@@ -68,6 +68,10 @@ the domain and persistence foundations. See
 [the personal-profile architecture](personal-profile.md) and
 [ADR 0005](../decisions/0005-capability-application-slices.md).
 
+Goals & Energy is the second local vertical slice and the first capability to
+derive deterministic values from Personal Profile. It adds one nested mobile
+route and schema version 3 without adding a state library or backend behavior.
+
 The repository still has no authentication, backend business endpoint, cloud
 infrastructure, worker, synchronization, or state-management library.
 

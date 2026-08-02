@@ -40,4 +40,26 @@ export const migrations: readonly Migration[] = [
       `),
     version: 2,
   },
+  {
+    description: 'Add the single goals and energy configuration.',
+    up: (transaction) =>
+      transaction.exec(`
+        CREATE TABLE goal_configuration (
+          singleton_id INTEGER PRIMARY KEY CHECK (singleton_id = 1),
+          goal_type TEXT NOT NULL CHECK (
+            goal_type IN ('lose-weight', 'maintain-weight', 'gain-weight')
+          ),
+          adjustment_kilocalories INTEGER NOT NULL CHECK (
+            adjustment_kilocalories >= 0 AND adjustment_kilocalories <= 500
+          ),
+          CHECK (
+            (goal_type = 'maintain-weight' AND adjustment_kilocalories = 0)
+            OR
+            (goal_type IN ('lose-weight', 'gain-weight')
+              AND adjustment_kilocalories >= 100)
+          )
+        )
+      `),
+    version: 3,
+  },
 ];
