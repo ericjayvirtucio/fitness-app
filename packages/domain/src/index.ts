@@ -48,6 +48,16 @@ export type { VolumeUnit } from './shared/measurement/volume';
 export { Energy, energyUnits } from './nutrition/energy';
 export type { EnergyUnit } from './nutrition/energy';
 export {
+  ConsumptionEntry,
+  consumptionEntryKinds,
+} from './nutrition/consumption-entry';
+export type {
+  ConsumptionEntryInput,
+  ConsumptionEntryKind,
+} from './nutrition/consumption-entry';
+export { summarizeConsumptionEntries } from './nutrition/daily-nutrition-summary';
+export type { DailyNutritionSummary } from './nutrition/daily-nutrition-summary';
+export {
   NutritionFacts,
   nutritionProvenances,
   scaleNutritionFacts,
