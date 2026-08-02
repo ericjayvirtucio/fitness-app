@@ -86,6 +86,16 @@ birth uses `YYYY-MM-DD`. Decimal parsing is not localized in this sprint.
 Uninstalling the app from a disposable development environment removes the profile
 with the app database. The application itself provides no delete or reset action.
 
+## Offline nutrition logging
+
+The Nutrition tab lists entry-owned food and caloric beverage snapshots for a
+captured local calendar day. Create and edit screens accept only grams or
+milliliters, `YYYY-MM-DD`, and 24-hour `HH:MM`. Blank optional nutrients remain
+unknown; zero must be entered only when known. See
+[offline nutrition logging architecture](architecture/offline-nutrition-logging.md),
+the [manual QA checklist](manual-testing/sprint-8-offline-nutrition-logging.md),
+and [troubleshooting guidance](troubleshooting/offline-nutrition-logging.md).
+
 ## Troubleshooting
 
 ### Expo or Metro does not start
