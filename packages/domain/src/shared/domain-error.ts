@@ -1,7 +1,11 @@
 export const domainErrorCodes = Object.freeze([
+  'invalid-date',
   'invalid-identifier',
   'invalid-number',
   'negative-measurement',
+  'out-of-range',
+  'required-field',
+  'unsupported-option',
   'unsupported-unit',
 ] as const);
 

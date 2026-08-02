@@ -64,12 +64,16 @@ Each migration's `up` operation and `user_version` update are atomic. There are 
 down migrations. Test upgrading from the immediately previous schema and from a
 fresh version-zero database.
 
+Version 2 adds the single `personal_profile` row. Its mapping and privacy
+constraints are documented in [personal profile architecture](personal-profile.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about
-SQLite. Future capability composition can define a context containing the exact
-repositories needed by a use case. The SQLite implementation runs that context
-against Expo's exclusive transaction-scoped connection.
+SQLite. Capability composition defines a context containing the exact repositories
+needed by a use case. The SQLite implementation creates that context against
+Expo's exclusive transaction-scoped connection. Personal profile is the first
+concrete context and exposes its repository rather than a database connection.
 
 Keep transaction callbacks short. Do not wait for network requests, user input,
 or unrelated work while holding a transaction. A thrown error rolls the work back

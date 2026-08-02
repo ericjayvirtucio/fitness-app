@@ -10,6 +10,10 @@ export { Divider } from './components/Divider';
 export { EmptyState } from './components/EmptyState';
 export { LoadingIndicator } from './components/LoadingIndicator';
 export { Screen } from './components/Screen';
+export {
+  SelectionField,
+  type SelectionOption,
+} from './components/SelectionField';
 export { SectionHeader } from './components/SectionHeader';
 export { Surface } from './components/Surface';
 export { TextField } from './components/TextField';

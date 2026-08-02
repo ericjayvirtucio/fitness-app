@@ -1,6 +1,5 @@
-import { ApplicationShellScreen } from '../../src/features/application-shell/ApplicationShellScreen';
-import { getTabDestination } from '../../src/navigation/tab-destinations';
+import { PersonalProfileScreen } from '../../src/features/personal-profile/presentation/PersonalProfileScreen';
 
 export default function ProfileScreen() {
-  return <ApplicationShellScreen {...getTabDestination('profile')} />;
+  return <PersonalProfileScreen />;
 }

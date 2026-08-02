@@ -39,6 +39,8 @@ reviewed need rather than a one-off visual preference.
   keyboard-aware. Scrollable is the safe default for large text.
 - `Divider`, `LoadingIndicator`, `EmptyState`, and `SectionHeader` cover their
   named presentation consistently without adding feature behavior.
+- `SelectionField` presents a labeled set of mutually exclusive radio options,
+  selected state, wrapping layout, and validation feedback.
 
 Example:
 

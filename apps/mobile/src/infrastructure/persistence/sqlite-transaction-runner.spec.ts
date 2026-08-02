@@ -7,7 +7,9 @@ class TransactionDatabase implements DatabaseConnection {
   didRollback = false;
   readonly transactionContext: DatabaseConnection = {
     exec: () => Promise.resolve(),
+    getFirst: () => Promise.resolve(null),
     getVersion: () => Promise.resolve(0),
+    run: () => Promise.resolve(),
     runExclusive: (operation) => operation(this.transactionContext),
   };
 
@@ -17,6 +19,14 @@ class TransactionDatabase implements DatabaseConnection {
 
   getVersion(): Promise<number> {
     return Promise.resolve(0);
+  }
+
+  getFirst<TResult>(): Promise<TResult | null> {
+    return Promise.resolve(null);
+  }
+
+  run(): Promise<void> {
+    return Promise.resolve();
   }
 
   async runExclusive<TResult>(
@@ -36,7 +46,7 @@ class TransactionDatabase implements DatabaseConnection {
 describe('SqliteTransactionRunner', () => {
   it('wires the scoped context and commits a successful operation', async () => {
     const database = new TransactionDatabase();
-    const runner = new SqliteTransactionRunner(database);
+    const runner = new SqliteTransactionRunner(database, (context) => context);
 
     const result = await runner.run((context) => {
       expect(context).toBe(database.transactionContext);
@@ -50,7 +60,7 @@ describe('SqliteTransactionRunner', () => {
 
   it('rolls back and translates a failed operation', async () => {
     const database = new TransactionDatabase();
-    const runner = new SqliteTransactionRunner(database);
+    const runner = new SqliteTransactionRunner(database, (context) => context);
 
     const result = runner.run(() => Promise.reject(new Error('raw failure')));
 

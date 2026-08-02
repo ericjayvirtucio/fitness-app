@@ -17,7 +17,7 @@ type TextFieldProps = Omit<
   'accessibilityLabel' | 'editable'
 > &
   Readonly<{
-    error?: string;
+    error?: string | undefined;
     helperText?: string;
     isDisabled?: boolean;
     label: string;

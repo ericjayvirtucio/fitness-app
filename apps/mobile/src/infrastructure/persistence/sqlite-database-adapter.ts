@@ -1,5 +1,9 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import type { DatabaseConnection, DatabaseVersionRow } from './database';
+import type {
+  DatabaseConnection,
+  DatabaseParameters,
+  DatabaseVersionRow,
+} from './database';
 import { PersistenceError, toPersistenceError } from './persistence-error';
 
 export class SqliteDatabaseAdapter implements DatabaseConnection {
@@ -24,6 +28,30 @@ export class SqliteDatabaseAdapter implements DatabaseConnection {
       }
 
       return row.user_version;
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
+  async getFirst<TResult>(
+    statement: string,
+    parameters: DatabaseParameters = [],
+  ): Promise<TResult | null> {
+    try {
+      return await this.database.getFirstAsync<TResult>(statement, [
+        ...parameters,
+      ]);
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
+  async run(
+    statement: string,
+    parameters: DatabaseParameters = [],
+  ): Promise<void> {
+    try {
+      await this.database.runAsync(statement, [...parameters]);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
