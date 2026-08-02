@@ -36,6 +36,7 @@ type ScreenState =
 
 type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
+  onOpenGoals?: () => void;
 }>;
 
 function formValues(profile: UserProfile | null): ProfileFormValues {
@@ -68,6 +69,7 @@ function formValues(profile: UserProfile | null): ProfileFormValues {
 
 export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
+  onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
   const [useCases, setUseCases] = useState<ProfileUseCases>();
@@ -158,6 +160,14 @@ export function PersonalProfileScreen({
         onSave={(input) => void save(input)}
         successMessage={successMessage}
       />
+      {onOpenGoals ? (
+        <AppButton
+          label="Open goals and energy"
+          onPress={onOpenGoals}
+          style={{ marginTop: spacing.xl }}
+          variant="outline"
+        />
+      ) : null}
     </Screen>
   );
 }
