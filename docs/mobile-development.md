@@ -9,7 +9,7 @@ corepack enable
 pnpm install --frozen-lockfile
 ```
 
-No environment file, account, API, or network connection is required after dependencies are installed. The identifiers `com.fitnessapp.dev` are temporary development placeholders.
+No environment file, account, API, or network connection is required after dependencies are installed. The mobile app creates its SQLite database on-device during startup. The identifiers `com.fitnessapp.dev` are temporary development placeholders.
 
 ## Start the application
 
@@ -68,6 +68,13 @@ pnpm build
 pnpm --filter @fitness/mobile exec expo install --check
 ```
 
+## Local persistence
+
+The root layout waits for the local database to initialize and migrate before it
+renders routes. Migration and transaction conventions are documented in the
+[local persistence architecture](architecture/local-persistence.md). A startup
+failure displays a safe retry screen and does not clear local data.
+
 ## Troubleshooting
 
 ### Expo or Metro does not start
@@ -101,3 +108,10 @@ Check the filenames beneath `apps/mobile/app`, confirm every declared tab has a 
 ### Installation fails
 
 Confirm registry access and the pinned Node/pnpm versions. Do not bypass peer-dependency or engine errors. Expo-managed packages should be checked with `expo install --check`; investigate mismatches before updating the lockfile.
+
+### Local storage does not initialize
+
+Use the in-app retry once. If it fails again, inspect the underlying development
+error without logging database contents, SQL values, or identifiers. Confirm the
+installed app is not older than the database schema. Do not clear app data unless
+the environment is disposable and losing its development records is intentional.
