@@ -14,10 +14,13 @@ consumer:
 - `Result`, `DomainError`, and `DomainId` provide boundary-safe foundations.
 - `Mass`, `Volume`, and `Length` span multiple product capabilities.
 
-Nutrition owns `Energy`; workout owns `Duration`. Hydration currently uses
-`Volume`, and body measurements will use `Mass` and `Length`. Empty capability
-modules are not created. A new concept belongs in the capability whose language
-defines it unless at least two real capabilities need the same invariant.
+Nutrition owns `Energy`, canonical nutrition composition, and deterministic
+mass- or volume-based scaling; see
+[Nutrition domain architecture](nutrition-domain.md). Workout owns `Duration`.
+Hydration currently uses `Volume`, and body measurements will use `Mass` and
+`Length`. Empty capability modules are not created. A new concept belongs in the
+capability whose language defines it unless at least two real capabilities need
+the same invariant.
 
 Personal profile owns `UserProfile`, its supported activity, biological-sex, and
 unit-system vocabularies, calendar-date rule, and reasonable height and weight

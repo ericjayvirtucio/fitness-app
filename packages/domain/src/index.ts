@@ -47,5 +47,16 @@ export type { VolumeUnit } from './shared/measurement/volume';
 
 export { Energy, energyUnits } from './nutrition/energy';
 export type { EnergyUnit } from './nutrition/energy';
+export {
+  NutritionFacts,
+  nutritionProvenances,
+  scaleNutritionFacts,
+} from './nutrition/nutrition-facts';
+export type {
+  NutrientAmounts,
+  NutritionFactsInput,
+  NutritionProvenance,
+  NutritionReference,
+} from './nutrition/nutrition-facts';
 export { Duration, durationUnits } from './workout/duration';
 export type { DurationUnit } from './workout/duration';
