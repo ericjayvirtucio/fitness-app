@@ -18,6 +18,8 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="goals-energy" />
+          <Stack.Screen name="nutrition-entry/new" />
+          <Stack.Screen name="nutrition-entry/[id]" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

@@ -15,7 +15,7 @@ export const tabDestinations = [
     title: 'Today',
   },
   {
-    description: 'Nutrition logging will be introduced in a later phase.',
+    description: 'Record food and caloric beverages while offline.',
     icon: 'nutrition-outline',
     route: 'nutrition',
     title: 'Nutrition',
