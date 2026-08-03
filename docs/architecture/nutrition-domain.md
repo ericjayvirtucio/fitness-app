@@ -83,11 +83,11 @@ measurements, mark provenance as `estimated`, and then call
 `NutritionFacts.create`. Provider transport JSON must remain in that adapter and
 must not redefine the domain model.
 
-A future local catalog may persist its own versioned representation of canonical
-facts and reconstruct `NutritionFacts` after validating stored data. Matching,
-reliability policy, identifiers, serialization, migrations, caching, and cloud
-reconciliation remain outside the domain. Reused facts can be scaled locally
-without another provider request.
+The mobile reusable catalog persists its own versioned canonical facts and
+reconstructs `NutritionFacts` after validating stored data. Catalog identity,
+matching, favorites, usage, serialization, and migration remain outside the pure
+domain. Reused facts scale locally without another provider request; see
+[Reusable nutrition catalog architecture](reusable-nutrition-catalog.md).
 
 ## Failure and privacy behavior
 
@@ -106,6 +106,6 @@ information. The domain logs, persists, and transmits nothing.
 - Density and mass-to-volume conversion are absent.
 - Quantity parsing and household-unit resolution are absent.
 - Serving metadata is absent.
-- Consumption-event identity, a local diary, and entry persistence are now
-  implemented. There is still no reusable food identity, catalog, meal model, or
-  provider integration.
+- Consumption-event identity, a local diary, entry persistence, and a device-local
+  reusable catalog are implemented. There is still no meal model, household
+  quantity resolution, external provider, or synchronization.

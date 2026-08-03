@@ -31,6 +31,11 @@ Source facts and consumed quantity are persisted. Scaled consumed facts are
 derived through `scaleNutritionFacts` after reconstruction. This supports accurate
 quantity edits without introducing a catalog or duplicated scaled columns.
 
+The reusable catalog can supply facts for a new entry, but the resulting row
+still owns the complete snapshot and stores no catalog ID. Catalog edits and
+deletion cannot change diary history; see
+[Reusable nutrition catalog architecture](reusable-nutrition-catalog.md).
+
 ## Time and daily membership
 
 An entry stores epoch milliseconds, a captured `YYYY-MM-DD` local calendar date,
@@ -75,6 +80,6 @@ never clear existing data or expose SQL, descriptions, identifiers, dates, or
 nutrition values. Food history remains in the OS-protected application sandbox
 and is neither logged nor transmitted.
 
-The capability has no catalog, household measure, density, meal category,
-hydration workflow, external provider, AI, authentication, synchronization,
-export, backup, bulk reset, or application-level SQLite encryption.
+The capability has no household measure, density, meal category, hydration
+workflow, external provider, AI, authentication, synchronization, export, backup,
+bulk reset, or application-level SQLite encryption.
