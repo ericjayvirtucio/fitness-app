@@ -6,6 +6,18 @@ import { GetConsumptionEntryUseCase } from '../features/nutrition-logging/applic
 import { GetDailyNutritionUseCase } from '../features/nutrition-logging/application/get-daily-nutrition-use-case';
 import { UpdateConsumptionEntryUseCase } from '../features/nutrition-logging/application/update-consumption-entry-use-case';
 import { ConsumptionEntrySqliteRepository } from '../features/nutrition-logging/infrastructure/consumption-entry-sqlite-repository';
+import { LogFromNutritionCatalogUseCase } from '../features/nutrition-logging/application/log-from-nutrition-catalog-use-case';
+import {
+  BrowseNutritionCatalogUseCase,
+  CreateNutritionCatalogItemUseCase,
+  DeleteNutritionCatalogItemUseCase,
+  GetNutritionCatalogItemUseCase,
+  SaveConsumptionEntryAsCatalogItemUseCase,
+  SetNutritionCatalogFavoriteUseCase,
+  UpdateNutritionCatalogItemUseCase,
+  type NutritionCatalogTransactionContext,
+} from '../features/nutrition-logging/application/nutrition-catalog-use-cases';
+import { NutritionCatalogSqliteRepository } from '../features/nutrition-logging/infrastructure/nutrition-catalog-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import { getDatabase, initializePersistence } from './persistence';
 
@@ -13,6 +25,7 @@ export async function createNutritionLoggingUseCases() {
   await initializePersistence();
   const database = await getDatabase();
   const repository = new ConsumptionEntrySqliteRepository(database);
+  const catalogRepository = new NutritionCatalogSqliteRepository(database);
   const transactionRunner =
     new SqliteTransactionRunner<ConsumptionEntryTransactionContext>(
       database,
@@ -23,19 +36,52 @@ export async function createNutritionLoggingUseCases() {
       }),
     );
   const getCurrentTime = () => Date.now();
+  const catalogTransactionRunner =
+    new SqliteTransactionRunner<NutritionCatalogTransactionContext>(
+      database,
+      (transaction) => ({
+        consumptionEntryRepository: new ConsumptionEntrySqliteRepository(
+          transaction,
+        ),
+        nutritionCatalogRepository: new NutritionCatalogSqliteRepository(
+          transaction,
+        ),
+      }),
+    );
 
   return Object.freeze({
+    browseCatalog: new BrowseNutritionCatalogUseCase(catalogRepository),
+    createCatalogItem: new CreateNutritionCatalogItemUseCase(
+      catalogRepository,
+      randomUUID,
+    ),
     createEntry: new CreateConsumptionEntryUseCase(
       transactionRunner,
       randomUUID,
       getCurrentTime,
     ),
     deleteEntry: new DeleteConsumptionEntryUseCase(transactionRunner),
+    deleteCatalogItem: new DeleteNutritionCatalogItemUseCase(catalogRepository),
     getDailyNutrition: new GetDailyNutritionUseCase(repository),
     getEntry: new GetConsumptionEntryUseCase(repository),
+    getCatalogItem: new GetNutritionCatalogItemUseCase(catalogRepository),
+    logFromCatalog: new LogFromNutritionCatalogUseCase(
+      catalogTransactionRunner,
+      randomUUID,
+      getCurrentTime,
+    ),
+    saveEntryAsCatalogItem: new SaveConsumptionEntryAsCatalogItemUseCase(
+      repository,
+      catalogRepository,
+      randomUUID,
+    ),
+    setCatalogFavorite: new SetNutritionCatalogFavoriteUseCase(
+      catalogRepository,
+    ),
     updateEntry: new UpdateConsumptionEntryUseCase(
       transactionRunner,
       getCurrentTime,
     ),
+    updateCatalogItem: new UpdateNutritionCatalogItemUseCase(catalogRepository),
   });
 }
