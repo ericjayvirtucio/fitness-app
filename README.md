@@ -6,7 +6,8 @@ The current foundation includes an accessible Expo Router shell, an app-local
 semantic design system, a pure shared domain language, versioned mobile SQLite
 infrastructure, a device-local personal profile, profile-derived Goals & Energy
 calculations, canonical Nutrition rules, and offline food and caloric beverage
-logging with daily totals. It
+logging with daily totals, plus a reusable device-local Nutrition catalog with
+search, favorites, recents, and quantity-only re-entry. It
 intentionally contains no authentication, synchronization, analytics,
 notifications, or AI integration.
 
@@ -70,11 +71,14 @@ documented in
 Offline Nutrition diary boundaries, snapshots, time behavior, and aggregation are
 documented in
 [docs/architecture/offline-nutrition-logging.md](docs/architecture/offline-nutrition-logging.md).
+Reusable profile identity, search, transaction, and snapshot behavior are in
+[docs/architecture/reusable-nutrition-catalog.md](docs/architecture/reusable-nutrition-catalog.md).
 
 ## Current status
 
-Sprint 8: Offline Food & Beverage Logging. Users can create, edit, delete, and
-review device-local nutrition entries by captured calendar day. Schema version 4
-stores entry-owned canonical nutrition snapshots; deterministic totals preserve
-unknown nutrients separately from known zero. All cloud, catalog, external API,
-and AI behavior remains deferred.
+Sprint 9: Reusable Nutrition Catalog & Fast Re-entry. Users can maintain and
+search local food and beverage profiles, favorite them, see usage-based recents,
+and create immutable diary snapshots by entering only grams or milliliters.
+Schema version 5 keeps catalog templates independent from historical entries.
+Cloud, external API, household-quantity, hydration, analytics, and AI behavior
+remain deferred.

@@ -41,12 +41,14 @@ type Props = Readonly<{
   entryId?: string;
   loadUseCases?: () => Promise<UseCases>;
   onDone: () => void;
+  onSaveReusable?: (id: string) => void;
 }>;
 
 export function ConsumptionEntryScreen({
   entryId,
   loadUseCases = createNutritionLoggingUseCases,
   onDone,
+  onSaveReusable,
 }: Props) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [entry, setEntry] = useState<ConsumptionEntry | null>();
@@ -154,6 +156,9 @@ export function ConsumptionEntryScreen({
       isSaving={isSaving}
       onCancel={onDone}
       onSave={(values) => void save(values)}
+      {...(entryId && onSaveReusable
+        ? { onSaveReusable: () => onSaveReusable(entryId) }
+        : {})}
       {...(entryId ? { onDelete: requestDelete } : {})}
     />
   );

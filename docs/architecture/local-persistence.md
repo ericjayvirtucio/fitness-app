@@ -75,6 +75,11 @@ local-day query index. Source Nutrition facts and consumed physical quantity are
 stored in canonical units; scaled facts and daily totals remain derived. See
 [Offline nutrition logging architecture](offline-nutrition-logging.md).
 
+Version 5 adds reusable `nutrition_catalog_item` rows with canonical facts,
+normalized names, favorites, and usage metadata. It has no foreign key to diary
+history. Focused indexes support exact names, favorites, and recents; see
+[Reusable nutrition catalog architecture](reusable-nutrition-catalog.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about

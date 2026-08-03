@@ -20,6 +20,10 @@ export default function RootLayout() {
           <Stack.Screen name="goals-energy" />
           <Stack.Screen name="nutrition-entry/new" />
           <Stack.Screen name="nutrition-entry/[id]" />
+          <Stack.Screen name="nutrition-add" />
+          <Stack.Screen name="nutrition-catalog/new" />
+          <Stack.Screen name="nutrition-catalog/[id]/edit" />
+          <Stack.Screen name="nutrition-catalog/[id]/log" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

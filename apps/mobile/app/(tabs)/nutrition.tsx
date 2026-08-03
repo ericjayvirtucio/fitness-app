@@ -4,7 +4,7 @@ import { NutritionDiaryScreen } from '../../src/features/nutrition-logging/prese
 export default function NutritionScreen() {
   return (
     <NutritionDiaryScreen
-      onAdd={() => router.push('/nutrition-entry/new')}
+      onAdd={() => router.push('/nutrition-add')}
       onEdit={(id) => router.push(`/nutrition-entry/${id}`)}
     />
   );

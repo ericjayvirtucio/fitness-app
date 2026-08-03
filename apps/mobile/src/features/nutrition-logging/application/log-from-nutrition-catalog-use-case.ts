@@ -1,0 +1,101 @@
+import {
+  ConsumptionEntry,
+  DomainError,
+  DomainId,
+  Mass,
+  Volume,
+  err,
+  isErr,
+  type Result,
+} from '@fitness/domain';
+import { formatLocalCalendarDate } from '../../../application/date/local-calendar-date';
+import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
+import type { NutritionCatalogTransactionContext } from './nutrition-catalog-use-cases';
+
+export class LogFromNutritionCatalogUseCase {
+  constructor(
+    private readonly transactionRunner: TransactionRunner<NutritionCatalogTransactionContext>,
+    private readonly generateId: () => string,
+    private readonly getCurrentTime: () => number,
+  ) {}
+
+  async execute(
+    catalogIdValue: unknown,
+    consumedAmountInput: unknown,
+  ): Promise<Result<ConsumptionEntry, readonly DomainError[]>> {
+    const catalogId = DomainId.create(catalogIdValue);
+    if (isErr(catalogId)) return err([catalogId.error]);
+    const entryId = DomainId.create(this.generateId());
+    if (isErr(entryId)) return err([entryId.error]);
+    const now = this.getCurrentTime();
+
+    return this.transactionRunner.run(async (context) => {
+      const item = await context.nutritionCatalogRepository.getById(
+        catalogId.value,
+      );
+      if (item === null) {
+        return err([
+          DomainError.create(
+            'invalid-identifier',
+            'Saved nutrition item no longer exists.',
+            'id',
+          ),
+        ]);
+      }
+      const consumedQuantity = createConsumedQuantity(
+        item.facts.reference.kind,
+        consumedAmountInput,
+      );
+      if (isErr(consumedQuantity)) return err([consumedQuantity.error]);
+      const date = new Date(now);
+      const entry = ConsumptionEntry.create({
+        consumedQuantity: consumedQuantity.value,
+        facts: item.facts,
+        id: entryId.value,
+        kind: item.kind,
+        localCalendarDate: formatLocalCalendarDate(date),
+        occurredAtEpochMilliseconds: now,
+        utcOffsetMinutes: -date.getTimezoneOffset(),
+      });
+      if (isErr(entry)) return err([entry.error]);
+      await context.consumptionEntryRepository.insert(entry.value);
+      const recorded = await context.nutritionCatalogRepository.recordUsage(
+        catalogId.value,
+        now,
+      );
+      if (!recorded) {
+        throw new Error('Catalog item disappeared during transaction.');
+      }
+      return entry;
+    });
+  }
+}
+
+function createConsumedQuantity(kind: 'mass' | 'volume', input: unknown) {
+  const value =
+    typeof input === 'string' && input.trim() !== ''
+      ? Number(input.trim())
+      : typeof input === 'number'
+        ? input
+        : Number.NaN;
+  if (kind === 'mass') {
+    const mass = Mass.create(value, 'gram');
+    return isErr(mass)
+      ? err(withField(mass.error))
+      : ({
+          isSuccess: true,
+          value: Object.freeze({ amount: mass.value, kind }),
+        } as const);
+  }
+  const volume = Volume.create(value, 'milliliter');
+  return isErr(volume)
+    ? err(withField(volume.error))
+    : ({
+        isSuccess: true,
+        value: Object.freeze({ amount: volume.value, kind }),
+      } as const);
+}
+
+function withField(error: DomainError): DomainError {
+  return DomainError.create(error.code, error.message, 'consumedAmount');
+}
