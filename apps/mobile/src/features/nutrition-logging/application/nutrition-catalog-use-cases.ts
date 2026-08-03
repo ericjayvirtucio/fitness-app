@@ -162,6 +162,7 @@ export class SaveConsumptionEntryAsCatalogItemUseCase {
         isFavorite,
         kind: entry.kind,
         proteinGrams: entry.facts.nutrients.proteinGrams,
+        provenance: entry.facts.provenance,
         referenceAmount,
         sodiumMilligrams: entry.facts.nutrients.sodiumMilligrams,
         sugarGrams: entry.facts.nutrients.sugarGrams,

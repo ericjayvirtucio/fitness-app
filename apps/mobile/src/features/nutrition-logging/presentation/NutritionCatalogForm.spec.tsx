@@ -10,6 +10,7 @@ const values = {
   isFavorite: false,
   kind: 'food',
   proteinGrams: '8',
+  provenance: 'provided',
   referenceAmount: '100',
   sodiumMilligrams: '0',
   sugarGrams: '1',

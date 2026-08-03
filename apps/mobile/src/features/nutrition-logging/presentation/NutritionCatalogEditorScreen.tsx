@@ -204,6 +204,7 @@ function valuesFromFacts(
     isFavorite,
     kind: source.kind,
     proteinGrams: optionalString(nutrients.proteinGrams),
+    provenance: source.facts.provenance,
     referenceAmount: String(
       source.facts.reference.kind === 'mass'
         ? source.facts.reference.amount.grams
@@ -224,6 +225,7 @@ function emptyValues(): NutritionCatalogFormValues {
     isFavorite: false,
     kind: 'food',
     proteinGrams: '',
+    provenance: 'provided',
     referenceAmount: '',
     sodiumMilligrams: '',
     sugarGrams: '',

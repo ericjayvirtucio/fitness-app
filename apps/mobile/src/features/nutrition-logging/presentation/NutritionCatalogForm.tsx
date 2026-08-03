@@ -20,6 +20,7 @@ export type NutritionCatalogFormValues = Readonly<{
   isFavorite: boolean;
   kind: 'beverage' | 'food';
   proteinGrams: string;
+  provenance: 'estimated' | 'provided';
   referenceAmount: string;
   sodiumMilligrams: string;
   sugarGrams: string;

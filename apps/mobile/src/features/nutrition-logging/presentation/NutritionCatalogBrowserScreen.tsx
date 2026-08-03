@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import { createNutritionLoggingUseCases } from '../../../composition/nutrition-logging';
 import {
@@ -61,7 +62,7 @@ export function NutritionCatalogBrowserScreen({
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
 
-  useEffect(load, [load]);
+  useFocusEffect(load);
 
   useEffect(() => {
     if (state.status !== 'ready') return;

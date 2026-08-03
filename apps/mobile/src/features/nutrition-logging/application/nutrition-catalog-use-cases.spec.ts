@@ -288,6 +288,7 @@ function toInput(item: NutritionCatalogItem): SaveNutritionCatalogItemInput {
     isFavorite: item.isFavorite,
     kind: item.kind,
     proteinGrams: nutrients.proteinGrams,
+    provenance: item.facts.provenance,
     referenceAmount:
       item.facts.reference.kind === 'mass'
         ? item.facts.reference.amount.grams

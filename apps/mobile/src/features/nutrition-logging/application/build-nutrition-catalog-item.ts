@@ -20,6 +20,7 @@ export type SaveNutritionCatalogItemInput = Readonly<{
   isFavorite: unknown;
   kind: unknown;
   proteinGrams: unknown;
+  provenance?: unknown;
   referenceAmount: unknown;
   sodiumMilligrams: unknown;
   sugarGrams: unknown;
@@ -57,7 +58,7 @@ export function buildNutritionCatalogItem(
       sodiumMilligrams: parseOptionalNumber(input.sodiumMilligrams),
       sugarGrams: parseOptionalNumber(input.sugarGrams),
     },
-    provenance: existing?.facts.provenance ?? 'provided',
+    provenance: input.provenance ?? existing?.facts.provenance ?? 'provided',
     reference: reference.value,
   });
   if (isErr(facts)) return err([facts.error]);
