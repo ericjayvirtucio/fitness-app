@@ -36,6 +36,7 @@ type Props = Readonly<{
   onCancel: () => void;
   onDelete?: () => void;
   onSave: (values: ConsumptionEntryFormValues) => void;
+  onSaveReusable?: () => void;
 }>;
 
 export function ConsumptionEntryForm({
@@ -45,6 +46,7 @@ export function ConsumptionEntryForm({
   onCancel,
   onDelete,
   onSave,
+  onSaveReusable,
 }: Props) {
   const [values, setValues] = useState(initialValues);
   const set = <TKey extends keyof ConsumptionEntryFormValues>(
@@ -194,7 +196,16 @@ export function ConsumptionEntryForm({
       />
       <AppButton label="Cancel" onPress={onCancel} variant="ghost" />
       {onDelete ? (
-        <AppButton label="Delete entry" onPress={onDelete} variant="danger" />
+        <>
+          {onSaveReusable ? (
+            <AppButton
+              label="Save as reusable item"
+              onPress={onSaveReusable}
+              variant="outline"
+            />
+          ) : null}
+          <AppButton label="Delete entry" onPress={onDelete} variant="danger" />
+        </>
       ) : null}
     </Screen>
   );

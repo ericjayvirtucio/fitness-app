@@ -7,6 +7,12 @@ export default function EditNutritionEntryRoute() {
     <ConsumptionEntryScreen
       entryId={parameters.id ?? ''}
       onDone={() => router.back()}
+      onSaveReusable={(id) =>
+        router.push({
+          pathname: '/nutrition-catalog/new',
+          params: { fromEntryId: id },
+        })
+      }
     />
   );
 }
