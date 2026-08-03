@@ -14,11 +14,14 @@ describe('tab destinations', () => {
 
   it('provides future-facing copy only for unfinished destinations', () => {
     for (const destination of tabDestinations.filter(
-      ({ route }) => route !== 'nutrition',
+      ({ route }) => route !== 'nutrition' && route !== 'index',
     )) {
       expect(destination.description).toMatch(/later phase/);
     }
     expect(getTabDestination('nutrition').description).toMatch(/offline/);
+    expect(getTabDestination('index').description).toMatch(
+      /hydration.*offline/,
+    );
   });
 
   it('fails explicitly for an unknown destination', () => {

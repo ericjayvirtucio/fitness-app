@@ -1,6 +1,12 @@
-import { ApplicationShellScreen } from '../../src/features/application-shell/ApplicationShellScreen';
-import { getTabDestination } from '../../src/navigation/tab-destinations';
+import { router } from 'expo-router';
+import { HydrationDailyScreen } from '../../src/features/hydration-tracking/presentation/HydrationDailyScreen';
 
 export default function TodayScreen() {
-  return <ApplicationShellScreen {...getTabDestination('index')} />;
+  return (
+    <HydrationDailyScreen
+      onAdd={() => router.push('/hydration-entry/new')}
+      onEdit={(id) => router.push(`/hydration-entry/${id}`)}
+      onSetTarget={() => router.push('/hydration-target')}
+    />
+  );
 }

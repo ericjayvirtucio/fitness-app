@@ -1,0 +1,92 @@
+import { Volume } from '@fitness/domain';
+import { render, screen, waitFor } from '@testing-library/react-native';
+import { HydrationDailyScreen } from './HydrationDailyScreen';
+
+jest.mock('expo-router', () => {
+  const invokedCallbacks = new WeakSet<() => void>();
+  return {
+    useFocusEffect: (callback: () => void) => {
+      if (!invokedCallbacks.has(callback)) {
+        invokedCallbacks.add(callback);
+        queueMicrotask(callback);
+      }
+    },
+  };
+});
+
+function volume(amount: number) {
+  const result = Volume.create(amount, 'milliliter');
+  if (!result.isSuccess) throw new Error('Invalid fixture');
+  return result.value;
+}
+
+describe('HydrationDailyScreen', () => {
+  it('shows totals, navigation, and a no-target action', async () => {
+    await render(
+      <HydrationDailyScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getDailyHydration: {
+              execute: () =>
+                Promise.resolve({
+                  entries: [],
+                  summary: {
+                    completionPercentage: null,
+                    entryCount: 0,
+                    otherFluidVolume: volume(0),
+                    plainWaterVolume: volume(0),
+                    remainingVolume: null,
+                    targetVolume: null,
+                    totalFluidVolume: volume(0),
+                  },
+                }),
+            },
+          })
+        }
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+        onSetTarget={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByText('Nothing logged for this day')).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: 'Previous day' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add fluid' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Set daily target' }),
+    ).toBeTruthy();
+  });
+
+  it('exposes actual over-target progress in accessible text', async () => {
+    await render(
+      <HydrationDailyScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getDailyHydration: {
+              execute: () =>
+                Promise.resolve({
+                  entries: [],
+                  summary: {
+                    completionPercentage: 133.3,
+                    entryCount: 1,
+                    otherFluidVolume: volume(0),
+                    plainWaterVolume: volume(4_000),
+                    remainingVolume: volume(0),
+                    targetVolume: volume(3_000),
+                    totalFluidVolume: volume(4_000),
+                  },
+                }),
+            },
+          })
+        }
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+        onSetTarget={jest.fn()}
+      />,
+    );
+    await waitFor(() => expect(screen.getByText('133% complete')).toBeTruthy());
+    expect(screen.getByLabelText(/Fluid target progress.*133%/)).toBeTruthy();
+    expect(screen.getByText(/Target reached/)).toBeTruthy();
+  });
+});
