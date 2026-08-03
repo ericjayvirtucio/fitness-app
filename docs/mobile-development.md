@@ -96,6 +96,16 @@ unknown; zero must be entered only when known. See
 the [manual QA checklist](manual-testing/sprint-8-offline-nutrition-logging.md),
 and [troubleshooting guidance](troubleshooting/offline-nutrition-logging.md).
 
+## Offline hydration tracking
+
+The Today tab lists plain-water and explicit other-fluid volumes for a captured
+local calendar day. Entry routes accept exact presets or custom milliliters plus
+`YYYY-MM-DD` and 24-hour `HH:MM`. The optional target is user-defined in mL or L;
+progress appears only for today because target history is not versioned. See
+[offline Hydration architecture](architecture/offline-hydration-tracking.md), the
+[manual QA checklist](manual-testing/sprint-10-offline-hydration-tracking.md), and
+[troubleshooting guidance](troubleshooting/offline-hydration-tracking.md).
+
 ## Troubleshooting
 
 ### Expo or Metro does not start

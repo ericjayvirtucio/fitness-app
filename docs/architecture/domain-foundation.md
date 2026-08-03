@@ -14,10 +14,12 @@ consumer:
 - `Result`, `DomainError`, and `DomainId` provide boundary-safe foundations.
 - `Mass`, `Volume`, and `Length` span multiple product capabilities.
 
-Nutrition owns `Energy`, canonical nutrition composition, deterministic mass- or
+Hydration owns immutable fluid-intake events, a user-defined daily target, and
+deterministic daily fluid aggregation while composing shared `Volume` and
+`DomainId`. Nutrition owns `Energy`, canonical nutrition composition, deterministic mass- or
 volume-based scaling, consumption entries, and daily aggregation; see
 [Nutrition domain architecture](nutrition-domain.md). Workout owns `Duration`.
-Hydration currently uses `Volume`, and body measurements will use `Mass` and
+Body measurements will use `Mass` and
 `Length`. Empty capability modules are not created. A new concept belongs in the
 capability whose language defines it unless at least two real capabilities need
 the same invariant.
@@ -41,7 +43,7 @@ Dependencies point inward:
 nutrition ──┐
 workout ────┼──> shared kernel ──> no runtime dependencies
 future body ┤
-future hydration ┘
+hydration ────────┘
 ```
 
 The shared kernel never imports a capability. Capability-to-capability imports

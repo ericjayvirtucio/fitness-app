@@ -7,7 +7,9 @@ semantic design system, a pure shared domain language, versioned mobile SQLite
 infrastructure, a device-local personal profile, profile-derived Goals & Energy
 calculations, canonical Nutrition rules, and offline food and caloric beverage
 logging with daily totals, plus a reusable device-local Nutrition catalog with
-search, favorites, recents, and quantity-only re-entry. It
+search, favorites, recents, and quantity-only re-entry. It also includes
+dedicated offline water and other-fluid logging with a manual daily fluid target
+and stable local-day history. It
 intentionally contains no authentication, synchronization, analytics,
 notifications, or AI integration.
 
@@ -73,12 +75,15 @@ documented in
 [docs/architecture/offline-nutrition-logging.md](docs/architecture/offline-nutrition-logging.md).
 Reusable profile identity, search, transaction, and snapshot behavior are in
 [docs/architecture/reusable-nutrition-catalog.md](docs/architecture/reusable-nutrition-catalog.md).
+Offline Hydration ownership, target behavior, history, aggregation, and Nutrition
+separation are documented in
+[docs/architecture/offline-hydration-tracking.md](docs/architecture/offline-hydration-tracking.md).
 
 ## Current status
 
-Sprint 9: Reusable Nutrition Catalog & Fast Re-entry. Users can maintain and
-search local food and beverage profiles, favorite them, see usage-based recents,
-and create immutable diary snapshots by entering only grams or milliliters.
-Schema version 5 keeps catalog templates independent from historical entries.
-Cloud, external API, household-quantity, hydration, analytics, and AI behavior
-remain deferred.
+Sprint 10: Offline Hydration Tracking. The Today tab records plain water and
+explicit other-fluid volumes, preserves captured local-day history, derives daily
+totals, and tracks an optional user-defined target. Schema version 6 keeps
+Hydration independent from Nutrition history and catalog data. Cloud, automatic
+Nutrition–Hydration linking, reminders, analytics, health platforms, personalized
+recommendations, and AI behavior remain deferred.
