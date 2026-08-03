@@ -12,10 +12,13 @@ describe('tab destinations', () => {
     expect(tabDestinations[0]?.route).toBe('index');
   });
 
-  it('provides future-facing copy without fake fitness data', () => {
-    for (const destination of tabDestinations) {
+  it('provides future-facing copy only for unfinished destinations', () => {
+    for (const destination of tabDestinations.filter(
+      ({ route }) => route !== 'nutrition',
+    )) {
       expect(destination.description).toMatch(/later phase/);
     }
+    expect(getTabDestination('nutrition').description).toMatch(/offline/);
   });
 
   it('fails explicitly for an unknown destination', () => {

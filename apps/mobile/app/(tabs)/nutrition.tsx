@@ -1,6 +1,11 @@
-import { ApplicationShellScreen } from '../../src/features/application-shell/ApplicationShellScreen';
-import { getTabDestination } from '../../src/navigation/tab-destinations';
+import { router } from 'expo-router';
+import { NutritionDiaryScreen } from '../../src/features/nutrition-logging/presentation/NutritionDiaryScreen';
 
 export default function NutritionScreen() {
-  return <ApplicationShellScreen {...getTabDestination('nutrition')} />;
+  return (
+    <NutritionDiaryScreen
+      onAdd={() => router.push('/nutrition-entry/new')}
+      onEdit={(id) => router.push(`/nutrition-entry/${id}`)}
+    />
+  );
 }

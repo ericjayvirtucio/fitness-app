@@ -15,6 +15,9 @@ class FakeDatabase implements DatabaseConnection {
   getFirst<TResult>(): Promise<TResult | null> {
     return Promise.resolve(this.row as TResult | null);
   }
+  getAll<TResult>(): Promise<readonly TResult[]> {
+    return Promise.resolve([]);
+  }
   getVersion(): Promise<number> {
     return Promise.resolve(3);
   }

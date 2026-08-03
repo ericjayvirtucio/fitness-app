@@ -70,6 +70,11 @@ Version 3 adds the singleton `goal_configuration` row containing only goal type
 and whole-kilocalorie adjustment. BMI, age, energy estimates, and targets are
 derived and never stored. See [Goals and energy architecture](goals-and-energy.md).
 
+Version 4 adds UUID-identified `nutrition_consumption_entry` rows and a captured
+local-day query index. Source Nutrition facts and consumed physical quantity are
+stored in canonical units; scaled facts and daily totals remain derived. See
+[Offline nutrition logging architecture](offline-nutrition-logging.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about

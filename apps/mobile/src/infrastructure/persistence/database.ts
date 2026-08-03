@@ -11,6 +11,10 @@ export interface DatabaseConnection {
     statement: string,
     parameters?: DatabaseParameters,
   ): Promise<TResult | null>;
+  getAll<TResult>(
+    statement: string,
+    parameters?: DatabaseParameters,
+  ): Promise<readonly TResult[]>;
   getVersion(): Promise<number>;
   run(statement: string, parameters?: DatabaseParameters): Promise<void>;
   runExclusive<TResult>(

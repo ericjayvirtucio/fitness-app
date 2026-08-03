@@ -29,6 +29,10 @@ class FakeDatabase implements DatabaseConnection {
     return Promise.resolve(null);
   }
 
+  getAll<TResult>(): Promise<readonly TResult[]> {
+    return Promise.resolve([]);
+  }
+
   run(): Promise<void> {
     return Promise.resolve();
   }
@@ -56,11 +60,26 @@ const testMigrations: readonly Migration[] = [
 
 describe('initializeDatabase', () => {
   it('includes the forward-only personal profile migration', () => {
-    expect(migrations).toHaveLength(3);
+    expect(migrations).toHaveLength(4);
     expect(migrations[1]).toMatchObject({
       description: 'Add the single personal profile record.',
       version: 2,
     });
+  });
+
+  it('upgrades schema version 3 with nutrition consumption entries', async () => {
+    const database = new FakeDatabase(3);
+
+    await initializeDatabase(database, migrations);
+
+    expect(database.statements.join('\n')).toContain(
+      'CREATE TABLE nutrition_consumption_entry',
+    );
+    expect(database.statements.join('\n')).toContain(
+      'CREATE INDEX nutrition_consumption_entry_local_date_occurred_at',
+    );
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 4');
+    expect(database.transactionCount).toBe(1);
   });
 
   it('upgrades schema version 2 by creating the goal configuration table', async () => {
@@ -71,8 +90,8 @@ describe('initializeDatabase', () => {
     expect(database.statements.join('\n')).toContain(
       'CREATE TABLE goal_configuration',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 3');
-    expect(database.transactionCount).toBe(1);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 4');
+    expect(database.transactionCount).toBe(2);
   });
 
   it('upgrades schema version 1 by creating the personal profile table', async () => {
@@ -83,8 +102,8 @@ describe('initializeDatabase', () => {
     expect(database.statements.join('\n')).toContain(
       'CREATE TABLE personal_profile',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 3');
-    expect(database.transactionCount).toBe(2);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 4');
+    expect(database.transactionCount).toBe(3);
   });
   it('configures the database and applies pending migrations in order', async () => {
     const database = new FakeDatabase();

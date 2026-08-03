@@ -17,7 +17,9 @@ validated description + canonical Mass or Volume + nutrition composition
   → proportionally scaled NutritionFacts
 ```
 
-No application or infrastructure adapter consumes this behavior yet.
+Offline Nutrition logging now composes this behavior into entry-owned snapshots
+and daily totals; see
+[Offline nutrition logging architecture](offline-nutrition-logging.md).
 
 ## Physical quantity model
 
@@ -104,5 +106,6 @@ information. The domain logs, persists, and transmits nothing.
 - Density and mass-to-volume conversion are absent.
 - Quantity parsing and household-unit resolution are absent.
 - Serving metadata is absent.
-- There is no food identity, catalog, diary, meal, persistence, or provider
-  integration.
+- Consumption-event identity, a local diary, and entry persistence are now
+  implemented. There is still no reusable food identity, catalog, meal model, or
+  provider integration.

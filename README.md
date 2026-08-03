@@ -4,8 +4,9 @@ Production-oriented foundation for an offline-first fitness platform targeting i
 
 The current foundation includes an accessible Expo Router shell, an app-local
 semantic design system, a pure shared domain language, versioned mobile SQLite
-infrastructure, a device-local personal profile, and profile-derived Goals &
-Energy calculations. It
+infrastructure, a device-local personal profile, profile-derived Goals & Energy
+calculations, canonical Nutrition rules, and offline food and caloric beverage
+logging with daily totals. It
 intentionally contains no authentication, synchronization, analytics,
 notifications, or AI integration.
 
@@ -66,10 +67,14 @@ documented in
 Goals, formula evidence, eligibility, precision, and derived-data behavior are
 documented in
 [docs/architecture/goals-and-energy.md](docs/architecture/goals-and-energy.md).
+Offline Nutrition diary boundaries, snapshots, time behavior, and aggregation are
+documented in
+[docs/architecture/offline-nutrition-logging.md](docs/architecture/offline-nutrition-logging.md).
 
 ## Current status
 
-Sprint 6: Goals & Energy. Eligible adults can view profile-derived BMI, resting
-energy, estimated maintenance calories, and a validated daily calorie target.
-One lose, maintain, or gain configuration persists locally in schema version 3;
-derived values remain unstored. All cloud behavior remains deferred.
+Sprint 8: Offline Food & Beverage Logging. Users can create, edit, delete, and
+review device-local nutrition entries by captured calendar day. Schema version 4
+stores entry-owned canonical nutrition snapshots; deterministic totals preserve
+unknown nutrients separately from known zero. All cloud, catalog, external API,
+and AI behavior remains deferred.
