@@ -173,4 +173,53 @@ export const migrations: readonly Migration[] = [
     },
     version: 5,
   },
+  {
+    description: 'Add offline hydration entries and target.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE TABLE hydration_entry (
+          id TEXT PRIMARY KEY,
+          fluid_type TEXT NOT NULL CHECK (
+            fluid_type IN ('plain-water', 'other-fluid')
+          ),
+          volume_milliliters REAL NOT NULL CHECK (
+            volume_milliliters > 0 AND volume_milliliters <= 10000
+          ),
+          description TEXT CHECK (
+            description IS NULL OR (
+              length(trim(description)) > 0 AND length(trim(description)) <= 80
+            )
+          ),
+          occurred_at_epoch_ms INTEGER NOT NULL CHECK (
+            occurred_at_epoch_ms >= 0
+          ),
+          local_calendar_date TEXT NOT NULL,
+          utc_offset_minutes INTEGER NOT NULL CHECK (
+            utc_offset_minutes BETWEEN -840 AND 840
+          ),
+          CHECK (
+            (fluid_type = 'plain-water' AND description IS NULL)
+            OR fluid_type = 'other-fluid'
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX hydration_entry_local_date_occurred_at
+        ON hydration_entry (
+          local_calendar_date,
+          occurred_at_epoch_ms DESC,
+          id
+        )
+      `);
+      await transaction.exec(`
+        CREATE TABLE hydration_target (
+          singleton_id INTEGER PRIMARY KEY CHECK (singleton_id = 1),
+          target_milliliters REAL NOT NULL CHECK (
+            target_milliliters > 0 AND target_milliliters <= 20000
+          )
+        )
+      `);
+    },
+    version: 6,
+  },
 ];
