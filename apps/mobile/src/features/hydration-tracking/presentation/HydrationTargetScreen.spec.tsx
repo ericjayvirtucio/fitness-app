@@ -1,3 +1,4 @@
+import { HydrationTarget, Volume } from '@fitness/domain';
 import {
   fireEvent,
   render,
@@ -7,6 +8,27 @@ import {
 import { HydrationTargetScreen } from './HydrationTargetScreen';
 
 describe('HydrationTargetScreen', () => {
+  it('converts a persisted target when changing display unit', async () => {
+    const volume = Volume.create(3_000, 'milliliter');
+    if (!volume.isSuccess) throw new Error('Invalid fixture');
+    const target = HydrationTarget.create(volume.value);
+    if (!target.isSuccess) throw new Error('Invalid fixture');
+    await render(
+      <HydrationTargetScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getTarget: { execute: () => Promise.resolve(target.value) },
+            saveTarget: { execute: jest.fn() },
+          })
+        }
+        onDone={jest.fn()}
+      />,
+    );
+    await waitFor(() => expect(screen.getByDisplayValue('3000')).toBeTruthy());
+    await fireEvent.press(screen.getByRole('radio', { name: 'Liters (L)' }));
+    expect(screen.getByDisplayValue('3')).toBeTruthy();
+  });
+
   it('saves a user-entered liter target', async () => {
     const execute = jest.fn(() =>
       Promise.resolve({ isSuccess: true as const, value: {} as never }),

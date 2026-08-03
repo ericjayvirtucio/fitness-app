@@ -40,6 +40,19 @@ export function HydrationTargetScreen({
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Readonly<Record<string, string>>>({});
 
+  const changeUnit = (nextUnit: 'liter' | 'milliliter') => {
+    if (nextUnit === unit) return;
+    const numericAmount = Number(amount.trim());
+    if (amount.trim() !== '' && Number.isFinite(numericAmount)) {
+      setAmount(
+        String(
+          nextUnit === 'liter' ? numericAmount / 1_000 : numericAmount * 1_000,
+        ),
+      );
+    }
+    setUnit(nextUnit);
+  };
+
   useEffect(() => {
     void loadUseCases()
       .then(async (loaded) => {
@@ -100,7 +113,7 @@ export function HydrationTargetScreen({
       </AppText>
       <SelectionField
         label="Target unit"
-        onChange={setUnit}
+        onChange={changeUnit}
         options={[
           { label: 'Milliliters (mL)', value: 'milliliter' },
           { label: 'Liters (L)', value: 'liter' },
