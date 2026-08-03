@@ -5,6 +5,22 @@ export { isErr, isOk, err, ok } from './shared/result';
 export type { Result } from './shared/result';
 
 export {
+  HydrationEntry,
+  hydrationEntryPolicy,
+  hydrationFluidTypes,
+} from './hydration/hydration-entry';
+export type {
+  HydrationEntryInput,
+  HydrationFluidType,
+} from './hydration/hydration-entry';
+export {
+  HydrationTarget,
+  hydrationTargetPolicy,
+} from './hydration/hydration-target';
+export { summarizeHydrationEntries } from './hydration/daily-hydration-summary';
+export type { DailyHydrationSummary } from './hydration/daily-hydration-summary';
+
+export {
   activityLevels,
   biologicalSexes,
   unitSystems,
