@@ -45,6 +45,7 @@ describe('ExerciseDefinition', () => {
     [{ ...validInput(), primaryMuscleGroup: 'forearms' }, 'primaryMuscleGroup'],
     [{ ...validInput(), loggingMode: 'weight' }, 'loggingMode'],
     [{ ...validInput(), notes: 'x'.repeat(501) }, 'notes'],
+    [{ ...validInput(), notes: 42 }, 'notes'],
   ])('rejects invalid definition state', (input, field) => {
     const result = ExerciseDefinition.create(input);
     expect(result.isSuccess).toBe(false);

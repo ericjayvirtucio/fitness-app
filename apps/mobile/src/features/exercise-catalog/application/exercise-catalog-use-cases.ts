@@ -50,7 +50,7 @@ export class UpdateExerciseUseCase {
     if (isErr(id)) return { error: id.error, status: 'invalid' };
     const existing = await this.repository.getById(id.value);
     if (existing === null) return missing();
-    const item = buildExerciseCatalogItem(id.value.value, input, existing);
+    const item = buildExerciseCatalogItem(id.value.value, input);
     if (isErr(item)) return { error: item.error, status: 'invalid' };
     const matches = (
       await this.repository.findByNormalizedName(

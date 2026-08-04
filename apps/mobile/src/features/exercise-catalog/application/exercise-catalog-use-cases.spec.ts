@@ -114,7 +114,7 @@ describe('exercise catalog application', () => {
     });
   });
 
-  it('updates while retaining favorite metadata and excluding itself from duplicates', async () => {
+  it('updates explicit favorite metadata and excludes itself from duplicates', async () => {
     const repository = new MemoryRepository();
     const existing = item();
     const favorite = ExerciseCatalogItem.create({
@@ -128,7 +128,7 @@ describe('exercise catalog application', () => {
       input('Incline Bench Press'),
     );
     expect(result.status).toBe('saved');
-    expect(repository.values[0]?.isFavorite).toBe(true);
+    expect(repository.values[0]?.isFavorite).toBe(false);
   });
 
   it('browses without fake recents and supports favorite and deletion commands', async () => {

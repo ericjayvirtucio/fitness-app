@@ -110,6 +110,17 @@ export class ExerciseDefinition {
         'loggingMode',
       );
     }
+    if (
+      input.notes !== undefined &&
+      input.notes !== null &&
+      typeof input.notes !== 'string'
+    ) {
+      return invalid(
+        'unsupported-option',
+        'Exercise notes are invalid.',
+        'notes',
+      );
+    }
     const notes = normalizedOptionalText(input.notes);
     if (
       notes !== null &&

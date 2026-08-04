@@ -19,7 +19,6 @@ export type SaveExerciseInput = Readonly<{
 export function buildExerciseCatalogItem(
   idValue: unknown,
   input: SaveExerciseInput,
-  existing?: ExerciseCatalogItem,
 ): Result<ExerciseCatalogItem, DomainError> {
   const id = DomainId.create(idValue);
   if (isErr(id)) return id;
@@ -27,6 +26,6 @@ export function buildExerciseCatalogItem(
   if (isErr(definition)) return definition;
   return ExerciseCatalogItem.create({
     definition: definition.value,
-    isFavorite: existing?.isFavorite ?? input.isFavorite,
+    isFavorite: input.isFavorite,
   });
 }
