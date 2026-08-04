@@ -18,6 +18,9 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="goals-energy" />
+          <Stack.Screen name="hydration-entry/new" />
+          <Stack.Screen name="hydration-entry/[id]" />
+          <Stack.Screen name="hydration-target" />
           <Stack.Screen name="nutrition-entry/new" />
           <Stack.Screen name="nutrition-entry/[id]" />
           <Stack.Screen name="nutrition-add" />

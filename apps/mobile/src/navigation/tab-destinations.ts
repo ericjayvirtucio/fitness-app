@@ -9,7 +9,7 @@ export type TabDestination = Readonly<{
 
 export const tabDestinations = [
   {
-    description: 'Your daily overview will appear here in a later phase.',
+    description: 'Track daily hydration while offline.',
     icon: 'today-outline',
     route: 'index',
     title: 'Today',

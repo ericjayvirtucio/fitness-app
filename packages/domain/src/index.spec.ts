@@ -6,6 +6,8 @@ import {
   Duration,
   Energy,
   GoalConfiguration,
+  HydrationEntry,
+  HydrationTarget,
   Length,
   Mass,
   NutritionFacts,
@@ -25,6 +27,7 @@ import {
   nutritionProvenances,
   ok,
   scaleNutritionFacts,
+  summarizeHydrationEntries,
 } from './index';
 
 describe('@fitness/domain public API', () => {
@@ -35,6 +38,8 @@ describe('@fitness/domain public API', () => {
       Duration,
       Energy,
       GoalConfiguration,
+      HydrationEntry,
+      HydrationTarget,
       Length,
       Mass,
       NutritionFacts,
@@ -54,6 +59,7 @@ describe('@fitness/domain public API', () => {
       nutritionProvenances,
       ok,
       scaleNutritionFacts,
+      summarizeHydrationEntries,
     ]).not.toContain(undefined);
   });
 });

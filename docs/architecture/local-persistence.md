@@ -80,6 +80,12 @@ normalized names, favorites, and usage metadata. It has no foreign key to diary
 history. Focused indexes support exact names, favorites, and recents; see
 [Reusable nutrition catalog architecture](reusable-nutrition-catalog.md).
 
+Version 6 adds UUID-identified `hydration_entry` rows and singleton
+`hydration_target`. Entries store canonical milliliters and captured local-day
+metadata; totals and progress remain derived. No relationship connects Hydration
+to Nutrition tables. See
+[Offline Hydration architecture](offline-hydration-tracking.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about
