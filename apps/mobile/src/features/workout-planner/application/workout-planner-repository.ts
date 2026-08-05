@@ -4,6 +4,7 @@ import type {
   Weekday,
 } from '@fitness/domain';
 import type { ExercisePlanReferenceReader } from '../../exercise-catalog/application/exercise-plan-reference-reader';
+import type { ExerciseCatalogRepository } from '../../exercise-catalog/application/exercise-catalog-repository';
 
 export type PlannedExerciseDetails = Readonly<{
   definition: ExerciseDefinition;
@@ -23,5 +24,6 @@ export interface WorkoutPlannerRepository extends ExercisePlanReferenceReader {
 }
 
 export type WorkoutPlannerTransactionContext = Readonly<{
+  catalog: ExerciseCatalogRepository;
   planner: WorkoutPlannerRepository;
 }>;

@@ -6,7 +6,6 @@ import {
   weekdayValues,
 } from '@fitness/domain';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
-import type { ExerciseCatalogRepository } from '../../exercise-catalog/application/exercise-catalog-repository';
 import type {
   PlannedWorkoutDetails,
   WorkoutPlannerRepository,
@@ -60,7 +59,6 @@ export type SavePlannedWorkoutOutcome =
 
 export class SavePlannedWorkoutUseCase {
   constructor(
-    private readonly catalog: ExerciseCatalogRepository,
     private readonly transactionRunner: TransactionRunner<WorkoutPlannerTransactionContext>,
   ) {}
 
@@ -86,33 +84,35 @@ export class SavePlannedWorkoutUseCase {
         return id.value;
       }),
     );
-    const definitions = await this.catalog.getByIds(definitionIds);
-    const modes = new Map(
-      definitions.map((item) => [
-        item.definition.id.value,
-        item.definition.loggingMode,
-      ]),
-    );
-    if (
-      definitions.length !== definitionIds.length ||
-      workout.exercises.some(
-        (item) =>
-          !isPrescriptionCompatible(
-            modes.get(item.exerciseDefinitionId.value),
-            item.prescription.kind,
-          ),
+    return this.transactionRunner.run(async ({ catalog, planner }) => {
+      const definitions = await catalog.getByIds(definitionIds);
+      const modes = new Map(
+        definitions.map((item) => [
+          item.definition.id.value,
+          item.definition.loggingMode,
+        ]),
+      );
+      if (
+        definitions.length !== definitionIds.length ||
+        workout.exercises.some(
+          (item) =>
+            !isPrescriptionCompatible(
+              modes.get(item.exerciseDefinitionId.value),
+              item.prescription.kind,
+            ),
+        )
       )
-    )
-      return {
-        error: DomainError.create(
-          'unsupported-option',
-          'A planned exercise no longer supports this target.',
-          'exercises',
-        ),
-        status: 'invalid',
-      };
-    await this.transactionRunner.run(({ planner }) => planner.replace(workout));
-    return { status: 'saved' };
+        return {
+          error: DomainError.create(
+            'unsupported-option',
+            'A planned exercise no longer supports this target.',
+            'exercises',
+          ),
+          status: 'invalid' as const,
+        };
+      await planner.replace(workout);
+      return { status: 'saved' as const };
+    });
   }
 }
 

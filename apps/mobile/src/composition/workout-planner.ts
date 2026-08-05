@@ -21,6 +21,7 @@ export async function createWorkoutPlannerUseCases() {
   const transactionRunner = new SqliteTransactionRunner(
     database,
     (transaction) => ({
+      catalog: new ExerciseCatalogSqliteRepository(transaction),
       planner: new WorkoutPlannerSqliteRepository(transaction),
     }),
   );
@@ -32,7 +33,7 @@ export async function createWorkoutPlannerUseCases() {
       new PersonalProfileSqliteRepository(database),
     ),
     getWeekly: new GetWeeklyPlanUseCase(planner),
-    save: new SavePlannedWorkoutUseCase(catalog, transactionRunner),
+    save: new SavePlannedWorkoutUseCase(transactionRunner),
     setRest: new SetRestDayUseCase(transactionRunner),
   });
 }

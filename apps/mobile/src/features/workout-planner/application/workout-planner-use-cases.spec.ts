@@ -113,8 +113,9 @@ function catalog(item: ExerciseCatalogItem): ExerciseCatalogRepository {
 
 function runner(
   planner: WorkoutPlannerRepository,
+  item = fixture().item,
 ): TransactionRunner<WorkoutPlannerTransactionContext> {
-  return { run: (operation) => operation({ planner }) };
+  return { run: (operation) => operation({ catalog: catalog(item), planner }) };
 }
 
 describe('workout planner application', () => {
@@ -142,10 +143,9 @@ describe('workout planner application', () => {
     const current = fixture();
     const planner = new MemoryPlanner();
     await expect(
-      new SavePlannedWorkoutUseCase(
-        catalog(current.item),
-        runner(planner),
-      ).execute(current.workout),
+      new SavePlannedWorkoutUseCase(runner(planner, current.item)).execute(
+        current.workout,
+      ),
     ).resolves.toEqual({ status: 'saved' });
     expect(planner.replace).toHaveBeenCalledWith(current.workout);
   });
@@ -153,12 +153,15 @@ describe('workout planner application', () => {
   it('rejects a missing or incompatible Exercise Definition without writing', async () => {
     const current = fixture();
     const planner = new MemoryPlanner();
-    const missing = catalog(current.item);
-    missing.getByIds = jest.fn(() => Promise.resolve([]));
+    const missingRunner: TransactionRunner<WorkoutPlannerTransactionContext> = {
+      run: (operation) => {
+        const missing = catalog(current.item);
+        missing.getByIds = jest.fn(() => Promise.resolve([]));
+        return operation({ catalog: missing, planner });
+      },
+    };
     await expect(
-      new SavePlannedWorkoutUseCase(missing, runner(planner)).execute(
-        current.workout,
-      ),
+      new SavePlannedWorkoutUseCase(missingRunner).execute(current.workout),
     ).resolves.toMatchObject({
       status: 'invalid',
       error: { field: 'exercises' },
