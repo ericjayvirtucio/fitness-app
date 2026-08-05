@@ -30,6 +30,7 @@ export default function RootLayout() {
           <Stack.Screen name="exercise-library" />
           <Stack.Screen name="exercise-library/new" />
           <Stack.Screen name="exercise-library/[id]/edit" />
+          <Stack.Screen name="workout-plan/[weekday]" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

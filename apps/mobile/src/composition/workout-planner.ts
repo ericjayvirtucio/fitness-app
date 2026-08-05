@@ -1,5 +1,8 @@
 import { randomUUID } from 'expo-crypto';
 import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
+import { BrowseExercisesUseCase } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
+import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
+import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import {
   GetPlannedWorkoutUseCase,
   GetWeeklyPlanUseCase,
@@ -14,6 +17,7 @@ export async function createWorkoutPlannerUseCases() {
   await initializePersistence();
   const database = await getDatabase();
   const planner = new WorkoutPlannerSqliteRepository(database);
+  const catalog = new ExerciseCatalogSqliteRepository(database);
   const transactionRunner = new SqliteTransactionRunner(
     database,
     (transaction) => ({
@@ -22,12 +26,13 @@ export async function createWorkoutPlannerUseCases() {
   );
   return Object.freeze({
     generateId: randomUUID,
+    browseExercises: new BrowseExercisesUseCase(catalog),
     get: new GetPlannedWorkoutUseCase(planner),
-    getWeekly: new GetWeeklyPlanUseCase(planner),
-    save: new SavePlannedWorkoutUseCase(
-      new ExerciseCatalogSqliteRepository(database),
-      transactionRunner,
+    getProfile: new GetProfileUseCase(
+      new PersonalProfileSqliteRepository(database),
     ),
+    getWeekly: new GetWeeklyPlanUseCase(planner),
+    save: new SavePlannedWorkoutUseCase(catalog, transactionRunner),
     setRest: new SetRestDayUseCase(transactionRunner),
   });
 }
