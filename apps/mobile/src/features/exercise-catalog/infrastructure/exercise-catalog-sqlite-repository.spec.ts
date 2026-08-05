@@ -79,6 +79,9 @@ describe('ExerciseCatalogSqliteRepository', () => {
     await expect(
       repository.getById(item().definition.id),
     ).resolves.toMatchObject({ definition: { name: 'Bench Press' } });
+    await expect(
+      repository.getByIds([item().definition.id]),
+    ).resolves.toHaveLength(1);
     await expect(repository.search('bench', 50)).resolves.toHaveLength(1);
     await repository.insert(item());
     await expect(repository.update(item())).resolves.toBe(true);

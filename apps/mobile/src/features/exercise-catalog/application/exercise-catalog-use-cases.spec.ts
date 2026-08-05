@@ -1,4 +1,4 @@
-import { DomainId, ExerciseDefinition } from '@fitness/domain';
+import { DomainId, ExerciseDefinition, Weekday } from '@fitness/domain';
 import type { ExerciseCatalogRepository } from './exercise-catalog-repository';
 import { ExerciseCatalogItem } from './exercise-catalog-item';
 import {
@@ -8,6 +8,8 @@ import {
   SetExerciseFavoriteUseCase,
   UpdateExerciseUseCase,
 } from './exercise-catalog-use-cases';
+import type { ExerciseCatalogMutationContext } from './exercise-catalog-use-cases';
+import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
 import {
   escapeExerciseSearch,
   normalizeExerciseName,
@@ -62,6 +64,13 @@ class MemoryRepository implements ExerciseCatalogRepository {
   getById = jest.fn((id: DomainId) =>
     Promise.resolve(
       this.values.find((value) => value.definition.id.equals(id)) ?? null,
+    ),
+  );
+  getByIds = jest.fn((ids: readonly DomainId[]) =>
+    Promise.resolve(
+      this.values.filter((value) =>
+        ids.some((id) => value.definition.id.equals(id)),
+      ),
     ),
   );
   insert = jest.fn((value: ExerciseCatalogItem) => {
@@ -142,7 +151,7 @@ describe('exercise catalog application', () => {
     ).resolves.toBe(true);
     await expect(
       new DeleteExerciseUseCase(repository).execute(uuid),
-    ).resolves.toBe(true);
+    ).resolves.toEqual({ status: 'deleted' });
     expect('listRecent' in browse).toBe(false);
   });
 
@@ -158,4 +167,41 @@ describe('exercise catalog application', () => {
     });
     expect(repository.insert).not.toHaveBeenCalled();
   });
+
+  it('blocks referenced deletion and logging-mode changes', async () => {
+    const repository = new MemoryRepository();
+    repository.values = [item()];
+    const runner: TransactionRunner<ExerciseCatalogMutationContext> = {
+      run: (operation) =>
+        operation({
+          catalog: repository,
+          references: {
+            listUsages: () =>
+              Promise.resolve([
+                {
+                  weekday: weekday(1),
+                  workoutName: 'Push Day',
+                },
+              ]),
+          },
+        }),
+    };
+    await expect(
+      new DeleteExerciseUseCase(repository, runner).execute(uuid),
+    ).resolves.toMatchObject({ status: 'referenced' });
+    expect(repository.delete).not.toHaveBeenCalled();
+    await expect(
+      new UpdateExerciseUseCase(repository, runner).execute(uuid, {
+        ...input(),
+        loggingMode: 'repetitions',
+      }),
+    ).resolves.toMatchObject({ status: 'referenced' });
+    expect(repository.update).not.toHaveBeenCalled();
+  });
 });
+
+function weekday(value: number) {
+  const result = Weekday.create(value);
+  if (!result.isSuccess) throw new Error('Invalid fixture');
+  return result.value;
+}

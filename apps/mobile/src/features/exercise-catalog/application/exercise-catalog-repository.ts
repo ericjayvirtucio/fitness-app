@@ -7,6 +7,7 @@ export interface ExerciseCatalogRepository {
     normalizedName: string,
   ): Promise<readonly ExerciseCatalogItem[]>;
   getById(id: DomainId): Promise<ExerciseCatalogItem | null>;
+  getByIds(ids: readonly DomainId[]): Promise<readonly ExerciseCatalogItem[]>;
   insert(item: ExerciseCatalogItem): Promise<void>;
   listAll(limit: number): Promise<readonly ExerciseCatalogItem[]>;
   listFavorites(limit: number): Promise<readonly ExerciseCatalogItem[]>;
