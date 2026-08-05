@@ -106,6 +106,16 @@ progress appears only for today because target history is not versioned. See
 [manual QA checklist](manual-testing/sprint-10-offline-hydration-tracking.md), and
 [troubleshooting guidance](troubleshooting/offline-hydration-tracking.md).
 
+## Offline workout planning
+
+The Workout tab shows one recurring Sunday-to-Saturday plan and an Exercise
+Library entry. Workout editor routes store future intent only and present fields
+according to each definition's logging mode. Catalog deletion and logging-mode
+changes are blocked while referenced. See
+[Workout Planner architecture](architecture/offline-workout-planner.md), the
+[manual QA checklist](manual-testing/sprint-12-offline-workout-planner.md), and
+[troubleshooting guidance](troubleshooting/offline-workout-planner.md).
+
 ## Troubleshooting
 
 ### Expo or Metro does not start

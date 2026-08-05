@@ -1,5 +1,12 @@
 # Offline exercise catalog troubleshooting
 
+## A referenced exercise cannot be deleted or change logging mode
+
+This is expected once Workout Planner data uses the definition. Remove or replace
+the exercise in each affected weekday named by the app, save those workouts, and
+retry. Do not bypass the Planner foreign key or logging-mode trigger; see the
+[Workout Planner troubleshooting guide](offline-workout-planner.md).
+
 ## Exercise does not appear in search
 
 - **Symptoms:** A known exercise is absent from search results.

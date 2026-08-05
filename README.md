@@ -9,9 +9,9 @@ calculations, canonical Nutrition rules, and offline food and caloric beverage
 logging with daily totals, plus a reusable device-local Nutrition catalog with
 search, favorites, recents, and quantity-only re-entry. It also includes
 dedicated offline water and other-fluid logging with a manual daily fluid target
-and stable local-day history. The Workout area now includes a completely offline,
-user-created Exercise Library with controlled logging modes, search, duplicate
-warnings, and favorites. It intentionally contains no authentication,
+and stable local-day history. The Workout area now includes a completely offline
+Exercise Library plus a recurring Sunday-to-Saturday Workout Planner with Rest
+days, ordered exercises, and logging-mode-specific targets. It intentionally contains no authentication,
 synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
@@ -82,12 +82,14 @@ separation are documented in
 Exercise-definition ownership, logging modes, catalog lifecycle, persistence, and
 future Planner/Session reference rules are documented in
 [docs/architecture/offline-exercise-catalog.md](docs/architecture/offline-exercise-catalog.md).
+Recurring-plan semantics, prescriptions, ordering, catalog references, and the
+future Workout Session seam are documented in
+[docs/architecture/offline-workout-planner.md](docs/architecture/offline-workout-planner.md).
 
 ## Current status
 
-Sprint 11: Offline Exercise Catalog Foundation. The Workout tab links to a local
-Exercise Library where users create, edit, hard-delete, search, and favorite
-validated reusable exercise definitions. Schema version 7 stores no fake recents,
-session history, planner data, timestamps, or synchronization metadata. Workout
-Planner, Workout Sessions, actual measurements, analytics, exercise content,
-health platforms, cloud behavior, and AI remain deferred.
+Sprint 12: Offline Workout Planner. The Workout tab exposes one locally persisted
+recurring week and retains Exercise Library access. Schema version 8 protects
+planned references from catalog deletion and logging-mode changes. Workout
+Sessions, actual results, history, timers, analytics, calendar programming,
+cloud behavior, and AI remain deferred.
