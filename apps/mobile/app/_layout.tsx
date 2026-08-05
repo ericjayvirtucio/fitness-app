@@ -27,6 +27,9 @@ export default function RootLayout() {
           <Stack.Screen name="nutrition-catalog/new" />
           <Stack.Screen name="nutrition-catalog/[id]/edit" />
           <Stack.Screen name="nutrition-catalog/[id]/log" />
+          <Stack.Screen name="exercise-library" />
+          <Stack.Screen name="exercise-library/new" />
+          <Stack.Screen name="exercise-library/[id]/edit" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

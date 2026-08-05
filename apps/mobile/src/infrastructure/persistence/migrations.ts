@@ -222,4 +222,61 @@ export const migrations: readonly Migration[] = [
     },
     version: 6,
   },
+  {
+    description: 'Add the offline exercise catalog.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE TABLE exercise_catalog_item (
+          id TEXT PRIMARY KEY,
+          display_name TEXT NOT NULL CHECK (
+            length(trim(display_name)) BETWEEN 1 AND 80
+          ),
+          normalized_name TEXT NOT NULL CHECK (length(normalized_name) > 0),
+          equipment TEXT NOT NULL CHECK (equipment IN (
+            'none', 'bodyweight', 'barbell', 'dumbbell', 'kettlebell',
+            'machine', 'cable', 'resistance-band', 'cardio-machine', 'other'
+          )),
+          primary_muscle_group TEXT NOT NULL CHECK (primary_muscle_group IN (
+            'chest', 'back', 'shoulders', 'biceps', 'triceps', 'quadriceps',
+            'hamstrings', 'glutes', 'calves', 'core', 'full-body',
+            'conditioning', 'other'
+          )),
+          logging_mode TEXT NOT NULL CHECK (logging_mode IN (
+            'repetitions', 'external-load-and-repetitions',
+            'bodyweight-and-repetitions',
+            'bodyweight-plus-load-and-repetitions',
+            'assistance-and-repetitions', 'duration', 'distance',
+            'distance-and-duration'
+          )),
+          notes TEXT CHECK (
+            notes IS NULL OR length(trim(notes)) BETWEEN 1 AND 500
+          ),
+          is_favorite INTEGER NOT NULL DEFAULT 0 CHECK (is_favorite IN (0, 1)),
+          CHECK (
+            logging_mode NOT IN (
+              'bodyweight-and-repetitions',
+              'bodyweight-plus-load-and-repetitions'
+            ) OR equipment = 'bodyweight'
+          ),
+          CHECK (
+            logging_mode != 'assistance-and-repetitions'
+            OR equipment IN ('machine', 'resistance-band', 'other')
+          ),
+          CHECK (
+            logging_mode NOT IN ('distance', 'distance-and-duration')
+            OR equipment IN ('none', 'cardio-machine', 'other')
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX exercise_catalog_item_normalized_name
+        ON exercise_catalog_item (normalized_name, id)
+      `);
+      await transaction.exec(`
+        CREATE INDEX exercise_catalog_item_favorites
+        ON exercise_catalog_item (is_favorite, normalized_name, id)
+      `);
+    },
+    version: 7,
+  },
 ];

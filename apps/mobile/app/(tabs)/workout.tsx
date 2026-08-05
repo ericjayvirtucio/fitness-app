@@ -1,6 +1,10 @@
-import { ApplicationShellScreen } from '../../src/features/application-shell/ApplicationShellScreen';
-import { getTabDestination } from '../../src/navigation/tab-destinations';
+import { router } from 'expo-router';
+import { WorkoutScreen as WorkoutLandingScreen } from '../../src/features/exercise-catalog/presentation/WorkoutScreen';
 
 export default function WorkoutScreen() {
-  return <ApplicationShellScreen {...getTabDestination('workout')} />;
+  return (
+    <WorkoutLandingScreen
+      onOpenLibrary={() => router.push('/exercise-library')}
+    />
+  );
 }

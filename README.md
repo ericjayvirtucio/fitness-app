@@ -9,9 +9,10 @@ calculations, canonical Nutrition rules, and offline food and caloric beverage
 logging with daily totals, plus a reusable device-local Nutrition catalog with
 search, favorites, recents, and quantity-only re-entry. It also includes
 dedicated offline water and other-fluid logging with a manual daily fluid target
-and stable local-day history. It
-intentionally contains no authentication, synchronization, analytics,
-notifications, or AI integration.
+and stable local-day history. The Workout area now includes a completely offline,
+user-created Exercise Library with controlled logging modes, search, duplicate
+warnings, and favorites. It intentionally contains no authentication,
+synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
 
@@ -78,12 +79,15 @@ Reusable profile identity, search, transaction, and snapshot behavior are in
 Offline Hydration ownership, target behavior, history, aggregation, and Nutrition
 separation are documented in
 [docs/architecture/offline-hydration-tracking.md](docs/architecture/offline-hydration-tracking.md).
+Exercise-definition ownership, logging modes, catalog lifecycle, persistence, and
+future Planner/Session reference rules are documented in
+[docs/architecture/offline-exercise-catalog.md](docs/architecture/offline-exercise-catalog.md).
 
 ## Current status
 
-Sprint 10: Offline Hydration Tracking. The Today tab records plain water and
-explicit other-fluid volumes, preserves captured local-day history, derives daily
-totals, and tracks an optional user-defined target. Schema version 6 keeps
-Hydration independent from Nutrition history and catalog data. Cloud, automatic
-Nutrition–Hydration linking, reminders, analytics, health platforms, personalized
-recommendations, and AI behavior remain deferred.
+Sprint 11: Offline Exercise Catalog Foundation. The Workout tab links to a local
+Exercise Library where users create, edit, hard-delete, search, and favorite
+validated reusable exercise definitions. Schema version 7 stores no fake recents,
+session history, planner data, timestamps, or synchronization metadata. Workout
+Planner, Workout Sessions, actual measurements, analytics, exercise content,
+health platforms, cloud behavior, and AI remain deferred.

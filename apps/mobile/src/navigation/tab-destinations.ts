@@ -21,8 +21,7 @@ export const tabDestinations = [
     title: 'Nutrition',
   },
   {
-    description:
-      'Workout planning and sessions will be introduced in a later phase.',
+    description: 'Build an offline exercise library for future workouts.',
     icon: 'barbell-outline',
     route: 'workout',
     title: 'Workout',

@@ -86,3 +86,16 @@ export type {
 } from './nutrition/nutrition-facts';
 export { Duration, durationUnits } from './workout/duration';
 export type { DurationUnit } from './workout/duration';
+export {
+  ExerciseDefinition,
+  exerciseDefinitionPolicy,
+  exerciseEquipment,
+  exerciseLoggingModes,
+  exerciseMuscleGroups,
+} from './workout/exercise-definition';
+export type {
+  ExerciseDefinitionInput,
+  ExerciseEquipment,
+  ExerciseLoggingMode,
+  ExerciseMuscleGroup,
+} from './workout/exercise-definition';
