@@ -8,8 +8,10 @@ describe('Length', () => {
     ['millimeter', 1, 1],
     ['centimeter', 1, 10],
     ['meter', 1, 1_000],
+    ['kilometer', 1, 1_000_000],
     ['inch', 1, 25.4],
     ['foot', 1, 304.8],
+    ['mile', 1, 1_609_344],
   ] as const)(
     'converts %s to canonical millimeters',
     (unit, value, millimeters) => {
@@ -53,6 +55,6 @@ describe('Length', () => {
   });
 
   it('publishes supported units', () => {
-    expect(lengthUnits).toHaveLength(5);
+    expect(lengthUnits).toHaveLength(7);
   });
 });
