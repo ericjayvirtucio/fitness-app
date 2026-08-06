@@ -51,6 +51,19 @@ describe('WorkoutPlannerScreen', () => {
     await waitFor(() => expect(screen.getByText('Sunday')).toBeOnTheScreen());
     expect(screen.getByText('Saturday')).toBeOnTheScreen();
     expect(screen.getAllByText('Rest')).toHaveLength(7);
+    expect(screen.getByTestId('weekly-plan-screen')).toHaveProp(
+      'keyboardShouldPersistTaps',
+      'handled',
+    );
+    for (let value = 0; value < 7; value += 1) {
+      expect(screen.getByTestId(`weekday-card-${value}`)).toHaveStyle({
+        gap: 16,
+        minHeight: 44,
+      });
+      expect(screen.getByTestId(`weekday-card-${value}-spacing`)).toHaveStyle({
+        marginTop: 16,
+      });
+    }
     await fireEvent.press(
       screen.getByRole('button', { name: 'Configure Monday, Rest' }),
     );

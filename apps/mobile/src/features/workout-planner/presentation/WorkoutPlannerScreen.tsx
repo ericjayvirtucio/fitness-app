@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { createWorkoutPlannerUseCases } from '../../../composition/workout-planner';
 import {
   AppButton,
@@ -62,6 +62,7 @@ export function WorkoutPlannerScreen({
     <Screen
       accessibilityLabel="Workout"
       contentContainerStyle={{ gap: spacing.xl }}
+      testID="weekly-plan-screen"
     >
       <View style={{ gap: spacing.sm }}>
         <AppText accessibilityRole="header" variant="display">
@@ -71,30 +72,36 @@ export function WorkoutPlannerScreen({
           Plan your private recurring week. Everything works offline.
         </AppText>
       </View>
-      <View style={{ gap: spacing.md }}>
+      <View>
         <SectionHeader title="Weekly plan" />
         {state.days.map((day) => {
           const label = weekdayLabels[day.weekday.value];
           const isWorkout = day.kind === 'workout';
           const status = isWorkout ? day.details.workout.name : 'Rest';
           return (
-            <Card
-              accessibilityLabel={`${isWorkout ? 'Edit' : 'Configure'} ${label}, ${status}`}
+            <View
               key={day.weekday.value}
-              onPress={() => onEditDay(day.weekday.value)}
-              variant="outlined"
+              style={styles.dayCardSpacing}
+              testID={`weekday-card-${day.weekday.value}-spacing`}
             >
-              <AppText variant="heading">{label}</AppText>
-              <AppText>{status}</AppText>
-              {isWorkout ? (
-                <AppText color="secondary">
-                  {day.details.exercises.length} exercise
-                  {day.details.exercises.length === 1 ? '' : 's'}
-                </AppText>
-              ) : (
-                <AppText color="secondary">No workout planned</AppText>
-              )}
-            </Card>
+              <Card
+                accessibilityLabel={`${isWorkout ? 'Edit' : 'Configure'} ${label}, ${status}`}
+                onPress={() => onEditDay(day.weekday.value)}
+                testID={`weekday-card-${day.weekday.value}`}
+                variant="outlined"
+              >
+                <AppText variant="heading">{label}</AppText>
+                <AppText>{status}</AppText>
+                {isWorkout ? (
+                  <AppText color="secondary">
+                    {day.details.exercises.length} exercise
+                    {day.details.exercises.length === 1 ? '' : 's'}
+                  </AppText>
+                ) : (
+                  <AppText color="secondary">No workout planned</AppText>
+                )}
+              </Card>
+            </View>
           );
         })}
       </View>
@@ -108,3 +115,9 @@ export function WorkoutPlannerScreen({
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  dayCardSpacing: {
+    marginTop: spacing.md,
+  },
+});
