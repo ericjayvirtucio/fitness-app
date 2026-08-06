@@ -9,7 +9,7 @@ import {
   Screen,
   spacing,
 } from '../../../design-system';
-import type { ExerciseSaveOutcome } from '../application/exercise-catalog-use-cases';
+import type { ExerciseUpdateOutcome } from '../application/exercise-catalog-use-cases';
 import {
   ExerciseForm,
   toSaveExerciseInput,
@@ -107,11 +107,15 @@ export function ExerciseEditorScreen({
           onPress: () =>
             void useCases.delete
               .execute(exerciseId)
-              .then((deleted) =>
-                deleted
-                  ? onDone()
-                  : setErrors({ form: 'Exercise no longer exists.' }),
-              )
+              .then((outcome) => {
+                if (outcome.status === 'deleted') onDone();
+                else if (outcome.status === 'missing')
+                  setErrors({ form: 'Exercise no longer exists.' });
+                else
+                  setErrors({
+                    form: referenceMessage('Remove it from', outcome.usages),
+                  });
+              })
               .catch(() =>
                 setErrors({ form: 'Exercise could not be deleted.' }),
               ),
@@ -135,7 +139,7 @@ export function ExerciseEditorScreen({
 }
 
 function handleOutcome(
-  outcome: ExerciseSaveOutcome,
+  outcome: ExerciseUpdateOutcome,
   values: ExerciseFormValues,
   save: (values: ExerciseFormValues, allowDuplicate?: boolean) => Promise<void>,
   onDone: () => void,
@@ -143,6 +147,14 @@ function handleOutcome(
 ) {
   if (outcome.status === 'saved') onDone();
   else if (outcome.status === 'invalid') setErrors(toErrors(outcome.error));
+  else if (outcome.status === 'referenced')
+    setErrors({
+      form: referenceMessage(
+        'Remove it from',
+        outcome.usages,
+        ' before changing how it is logged.',
+      ),
+    });
   else
     Alert.alert(
       'Exercise name already exists',
@@ -152,6 +164,32 @@ function handleOutcome(
         { onPress: () => void save(values, true), text: 'Save another' },
       ],
     );
+}
+
+function referenceMessage(
+  prefix: string,
+  usages: readonly Readonly<{
+    weekday: { value: number };
+    workoutName: string;
+  }>[],
+  suffix = ' before deleting it.',
+): string {
+  const dayNames = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+  const plans = usages
+    .map(
+      (usage) =>
+        `${dayNames[usage.weekday.value] ?? 'Unknown day'} (${usage.workoutName})`,
+    )
+    .join(', ');
+  return `${prefix} ${plans}${suffix}`;
 }
 
 function toErrors(error: DomainError): Readonly<Record<string, string>> {

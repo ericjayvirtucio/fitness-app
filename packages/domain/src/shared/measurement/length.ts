@@ -9,8 +9,10 @@ export const lengthUnits = Object.freeze([
   'millimeter',
   'centimeter',
   'meter',
+  'kilometer',
   'inch',
   'foot',
+  'mile',
 ] as const);
 
 export type LengthUnit = (typeof lengthUnits)[number];
@@ -19,7 +21,9 @@ const millimetersPerUnit: Readonly<Record<LengthUnit, number>> = Object.freeze({
   centimeter: 10,
   foot: 304.8,
   inch: 25.4,
+  kilometer: 1_000_000,
   meter: 1_000,
+  mile: 1_609_344,
   millimeter: 1,
 });
 

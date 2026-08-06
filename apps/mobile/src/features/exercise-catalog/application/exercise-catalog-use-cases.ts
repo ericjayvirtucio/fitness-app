@@ -6,6 +6,11 @@ import {
 import type { ExerciseCatalogItem } from './exercise-catalog-item';
 import { normalizeExerciseName } from './exercise-catalog-name';
 import type { ExerciseCatalogRepository } from './exercise-catalog-repository';
+import type {
+  ExercisePlanReferenceReader,
+  PlannedExerciseUsage,
+} from './exercise-plan-reference-reader';
+import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
 
 export type ExerciseSaveOutcome =
   | Readonly<{ error: DomainError; status: 'invalid' }>
@@ -15,6 +20,27 @@ export type ExerciseSaveOutcome =
       status: 'duplicate';
     }>
   | Readonly<{ item: ExerciseCatalogItem; status: 'saved' }>;
+
+export type ExerciseUpdateOutcome =
+  | ExerciseSaveOutcome
+  | Readonly<{
+      item: ExerciseCatalogItem;
+      status: 'referenced';
+      usages: readonly PlannedExerciseUsage[];
+    }>;
+
+export type ExerciseDeleteOutcome =
+  | Readonly<{ status: 'deleted' }>
+  | Readonly<{ status: 'missing' }>
+  | Readonly<{
+      status: 'referenced';
+      usages: readonly PlannedExerciseUsage[];
+    }>;
+
+export type ExerciseCatalogMutationContext = Readonly<{
+  catalog: ExerciseCatalogRepository;
+  references: ExercisePlanReferenceReader;
+}>;
 
 export class CreateExerciseUseCase {
   constructor(
@@ -39,13 +65,16 @@ export class CreateExerciseUseCase {
 }
 
 export class UpdateExerciseUseCase {
-  constructor(private readonly repository: ExerciseCatalogRepository) {}
+  constructor(
+    private readonly repository: ExerciseCatalogRepository,
+    private readonly transactionRunner?: TransactionRunner<ExerciseCatalogMutationContext>,
+  ) {}
 
   async execute(
     idValue: unknown,
     input: SaveExerciseInput,
     allowDuplicate = false,
-  ): Promise<ExerciseSaveOutcome> {
+  ): Promise<ExerciseUpdateOutcome> {
     const id = DomainId.create(idValue);
     if (isErr(id)) return { error: id.error, status: 'invalid' };
     const existing = await this.repository.getById(id.value);
@@ -59,6 +88,22 @@ export class UpdateExerciseUseCase {
     ).filter((candidate) => candidate.definition.id.value !== id.value.value);
     if (!allowDuplicate && matches.length > 0)
       return { item: item.value, matches, status: 'duplicate' };
+    if (
+      this.transactionRunner &&
+      existing.definition.loggingMode !== item.value.definition.loggingMode
+    ) {
+      const outcome = await this.transactionRunner.run(
+        async ({ catalog, references }): Promise<ExerciseUpdateOutcome> => {
+          const usages = await references.listUsages(id.value);
+          if (usages.length > 0)
+            return { item: item.value, status: 'referenced', usages };
+          return (await catalog.update(item.value))
+            ? { item: item.value, status: 'saved' }
+            : missing();
+        },
+      );
+      return outcome;
+    }
     return (await this.repository.update(item.value))
       ? { item: item.value, status: 'saved' }
       : missing();
@@ -74,10 +119,24 @@ export class GetExerciseUseCase {
 }
 
 export class DeleteExerciseUseCase {
-  constructor(private readonly repository: ExerciseCatalogRepository) {}
-  async execute(idValue: unknown): Promise<boolean> {
+  constructor(
+    private readonly repository: ExerciseCatalogRepository,
+    private readonly transactionRunner?: TransactionRunner<ExerciseCatalogMutationContext>,
+  ) {}
+  async execute(idValue: unknown): Promise<ExerciseDeleteOutcome> {
     const id = DomainId.create(idValue);
-    return isErr(id) ? false : this.repository.delete(id.value);
+    if (isErr(id)) return { status: 'missing' };
+    if (!this.transactionRunner)
+      return (await this.repository.delete(id.value))
+        ? { status: 'deleted' }
+        : { status: 'missing' };
+    return this.transactionRunner.run(async ({ catalog, references }) => {
+      const usages = await references.listUsages(id.value);
+      if (usages.length > 0) return { status: 'referenced', usages };
+      return (await catalog.delete(id.value))
+        ? { status: 'deleted' }
+        : { status: 'missing' };
+    });
   }
 }
 

@@ -279,4 +279,97 @@ export const migrations: readonly Migration[] = [
     },
     version: 7,
   },
+  {
+    description: 'Add the recurring offline workout planner.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE TABLE planned_workout (
+          id TEXT PRIMARY KEY,
+          weekday INTEGER NOT NULL UNIQUE CHECK (weekday BETWEEN 0 AND 6),
+          display_name TEXT NOT NULL CHECK (
+            length(trim(display_name)) BETWEEN 1 AND 80
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE TABLE planned_exercise (
+          id TEXT PRIMARY KEY,
+          planned_workout_id TEXT NOT NULL REFERENCES planned_workout(id)
+            ON DELETE CASCADE,
+          exercise_definition_id TEXT NOT NULL REFERENCES exercise_catalog_item(id)
+            ON DELETE RESTRICT,
+          position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 99),
+          prescription_kind TEXT NOT NULL CHECK (prescription_kind IN (
+            'repetitions', 'resistance-and-repetitions', 'duration',
+            'distance', 'distance-and-duration'
+          )),
+          planned_sets INTEGER NOT NULL CHECK (planned_sets BETWEEN 1 AND 100),
+          planned_repetitions INTEGER CHECK (
+            planned_repetitions IS NULL OR planned_repetitions BETWEEN 1 AND 10000
+          ),
+          planned_resistance_grams REAL CHECK (
+            planned_resistance_grams IS NULL OR
+            planned_resistance_grams > 0 AND planned_resistance_grams <= 1000000
+          ),
+          planned_duration_seconds REAL CHECK (
+            planned_duration_seconds IS NULL OR
+            planned_duration_seconds > 0 AND planned_duration_seconds <= 604800
+          ),
+          planned_distance_millimeters REAL CHECK (
+            planned_distance_millimeters IS NULL OR
+            planned_distance_millimeters > 0 AND
+            planned_distance_millimeters <= 1000000000
+          ),
+          UNIQUE (planned_workout_id, position),
+          CHECK (
+            (prescription_kind = 'repetitions'
+              AND planned_repetitions IS NOT NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (prescription_kind = 'resistance-and-repetitions'
+              AND planned_repetitions IS NOT NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (prescription_kind = 'duration'
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NOT NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (prescription_kind = 'distance'
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NOT NULL)
+            OR
+            (prescription_kind = 'distance-and-duration'
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NOT NULL
+              AND planned_distance_millimeters IS NOT NULL)
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX planned_exercise_definition_reference
+        ON planned_exercise (exercise_definition_id, planned_workout_id)
+      `);
+      await transaction.exec(`
+        CREATE TRIGGER prevent_referenced_exercise_logging_mode_change
+        BEFORE UPDATE OF logging_mode ON exercise_catalog_item
+        WHEN OLD.logging_mode != NEW.logging_mode
+          AND EXISTS (
+            SELECT 1 FROM planned_exercise
+            WHERE exercise_definition_id = OLD.id
+          )
+        BEGIN
+          SELECT RAISE(ABORT, 'referenced exercise logging mode');
+        END
+      `);
+    },
+    version: 8,
+  },
 ];

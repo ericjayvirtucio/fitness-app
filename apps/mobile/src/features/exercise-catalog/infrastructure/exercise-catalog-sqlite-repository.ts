@@ -43,6 +43,14 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
     }
   }
 
+  getByIds(ids: readonly DomainId[]) {
+    if (ids.length === 0) return Promise.resolve(Object.freeze([]));
+    return this.readMany(
+      `SELECT ${columns} FROM exercise_catalog_item WHERE id IN (${ids.map(() => '?').join(', ')}) ORDER BY id ASC`,
+      ids.map((id) => id.value),
+    );
+  }
+
   findByNormalizedName(normalizedName: string) {
     return this.readMany(
       `SELECT ${columns} FROM exercise_catalog_item WHERE normalized_name = ? ORDER BY id ASC`,

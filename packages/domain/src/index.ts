@@ -99,3 +99,26 @@ export type {
   ExerciseLoggingMode,
   ExerciseMuscleGroup,
 } from './workout/exercise-definition';
+export { Weekday, weekdayValues } from './workout/weekday';
+export type { WeekdayValue } from './workout/weekday';
+export {
+  createPlannedPrescription,
+  DistanceDurationPrescription,
+  DistancePrescription,
+  DurationPrescription,
+  isPlannedPrescription,
+  plannedPrescriptionPolicy,
+  RepetitionPrescription,
+  ResistanceRepetitionPrescription,
+} from './workout/planned-prescription';
+export type {
+  PlannedPrescription,
+  PlannedPrescriptionInput,
+} from './workout/planned-prescription';
+export {
+  PlannedExercise,
+  plannedWorkoutPolicy,
+  PlannedWorkout,
+  WeeklyWorkoutPlan,
+} from './workout/planned-workout';
+export type { PlannedDay } from './workout/planned-workout';

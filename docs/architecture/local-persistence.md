@@ -86,6 +86,13 @@ metadata; totals and progress remain derived. No relationship connects Hydration
 to Nutrition tables. See
 [Offline Hydration architecture](offline-hydration-tracking.md).
 
+Version 7 adds device-local `exercise_catalog_item` definitions with controlled
+logging modes, favorites, and search indexes. Version 8 adds recurring
+`planned_workout` and ordered `planned_exercise` rows. Workout-owned children
+cascade only when their workout is deliberately removed; catalog deletion is
+restricted and referenced logging-mode changes are blocked. See
+[Offline Workout Planner architecture](offline-workout-planner.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about

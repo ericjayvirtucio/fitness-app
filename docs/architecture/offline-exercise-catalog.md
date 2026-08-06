@@ -71,21 +71,24 @@ exercise usage. Planner or Session must provide a real usage event first.
 
 Edits retain UUID and favorite state while replacing validated definition data.
 Deletion requires named destructive confirmation and performs a local hard
-delete. There is no tombstone, archive, undo, or synchronization behavior.
+delete only when no Workout Plan references the definition. Referenced deletion
+is blocked and reports affected days/workouts. Referenced logging modes also
+cannot change, preventing silent reinterpretation of planned targets. Renames and
+other valid edits appear in current mutable plans. There is no tombstone,
+archive, undo, or synchronization behavior.
 
-Future Workout Plans may reference a catalog UUID, but their missing/deleted
-reference behavior must be designed before implementation. Completed Workout
-Session records must copy enough exercise name and logging context to remain
-historically stable. Session history must never rely on joining mutable catalog
-definitions for historical truth.
+Completed Workout Session records must copy enough exercise name and logging
+context to remain historically stable. Session history must never rely on joining
+mutable catalog definitions or Planner rows for historical truth.
 
 ## Persistence and performance
 
 Migration 7 creates `exercise_catalog_item`. SQL checks enforce field bounds,
 controlled values, booleans, and the narrow logging-mode compatibility rules.
 Indexes cover `(normalized_name, id)` and `(is_favorite, normalized_name, id)`.
-No seed data, timestamps, use counts, recents, aggregates, foreign keys, cloud
-identity, sync clocks, or tombstones are stored.
+The catalog table itself stores no seed data, timestamps, use counts, recents,
+aggregates, cloud identity, sync clocks, or tombstones. Migration 8 introduces
+Planner-owned foreign-key references with restricted catalog deletion.
 
 All values are bound. Reads reconstruct `DomainId`, `ExerciseDefinition`, and
 `ExerciseCatalogItem`, including verifying stored normalization. Failures become
