@@ -17,6 +17,7 @@ describe('WorkoutSetForm', () => {
         loggingMode="external-load-and-repetitions"
         onCancel={jest.fn()}
         onSave={onSave}
+        unitSystem="metric"
       />,
     );
     expect(screen.getByLabelText('Weight (kg)')).toBeOnTheScreen();
@@ -38,6 +39,7 @@ describe('WorkoutSetForm', () => {
         loggingMode="assistance-and-repetitions"
         onCancel={jest.fn()}
         onSave={jest.fn()}
+        unitSystem="metric"
       />,
     );
     await fireEvent.changeText(screen.getByLabelText('Assistance (kg)'), 'bad');

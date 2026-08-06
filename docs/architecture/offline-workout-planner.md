@@ -102,6 +102,7 @@ export, backup, restore, and retention remain deferred.
 There is one recurring week, no notes, no copy-to-day, no date exceptions, no
 multi-week program, and no Planner recents. The plan records intent only.
 
-A future session flow can load today's planned aggregate, snapshot current plan
-and catalog context into a new Workout Session, and then record actual sets. No
-session table or nonfunctional Start Workout action exists in Sprint 12.
+Sprint 13 transactionally snapshots today's name, weekday, ordered exercises,
+logging modes, and prescriptions into an independent Workout Session. Later
+Planner replacement cannot rewrite execution. Completion and adherence remain
+absent from Planner.

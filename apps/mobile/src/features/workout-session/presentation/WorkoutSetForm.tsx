@@ -6,6 +6,7 @@ import {
   Mass,
   createWorkoutResult,
   type ExerciseLoggingMode,
+  type UnitSystem,
   type WorkoutResult,
 } from '@fitness/domain';
 import { AppButton, AppText, TextField, spacing } from '../../../design-system';
@@ -15,18 +16,22 @@ export function WorkoutSetForm({
   loggingMode,
   onCancel,
   onSave,
+  unitSystem,
 }: Readonly<{
   initial?: WorkoutResult;
   loggingMode: ExerciseLoggingMode;
   onCancel: () => void;
   onSave: (result: WorkoutResult) => Promise<void>;
+  unitSystem: UnitSystem;
 }>) {
   const [repetitions, setRepetitions] = useState(
     initial && 'repetitions' in initial ? String(initial.repetitions) : '',
   );
   const [resistance, setResistance] = useState(
     initial && 'resistance' in initial
-      ? String(initial.resistance.in('kilogram'))
+      ? String(
+          initial.resistance.in(unitSystem === 'metric' ? 'kilogram' : 'pound'),
+        )
       : '',
   );
   const [duration, setDuration] = useState(
@@ -36,7 +41,9 @@ export function WorkoutSetForm({
   );
   const [distance, setDistance] = useState(
     initial && 'distance' in initial
-      ? String(initial.distance.in('kilometer'))
+      ? String(
+          initial.distance.in(unitSystem === 'metric' ? 'kilometer' : 'mile'),
+        )
       : '',
   );
   const [error, setError] = useState<string>();
@@ -61,10 +68,10 @@ export function WorkoutSetForm({
           keyboardType="decimal-pad"
           label={
             loggingMode === 'assistance-and-repetitions'
-              ? 'Assistance (kg)'
+              ? `Assistance (${unitSystem === 'metric' ? 'kg' : 'lb'})`
               : loggingMode === 'bodyweight-plus-load-and-repetitions'
-                ? 'Added weight (kg)'
-                : 'Weight (kg)'
+                ? `Added weight (${unitSystem === 'metric' ? 'kg' : 'lb'})`
+                : `Weight (${unitSystem === 'metric' ? 'kg' : 'lb'})`
           }
           onChangeText={setResistance}
           value={resistance}
@@ -89,7 +96,7 @@ export function WorkoutSetForm({
       {hasDistance ? (
         <TextField
           keyboardType="decimal-pad"
-          label="Distance (km)"
+          label={`Distance (${unitSystem === 'metric' ? 'km' : 'mi'})`}
           onChangeText={setDistance}
           value={distance}
         />
@@ -104,13 +111,19 @@ export function WorkoutSetForm({
         label="Save Set"
         onPress={() => {
           const mass = hasResistance
-            ? Mass.create(Number(resistance), 'kilogram')
+            ? Mass.create(
+                Number(resistance),
+                unitSystem === 'metric' ? 'kilogram' : 'pound',
+              )
             : null;
           const seconds = hasDuration
             ? Duration.create(Number(duration), 'second')
             : null;
           const length = hasDistance
-            ? Length.create(Number(distance), 'kilometer')
+            ? Length.create(
+                Number(distance),
+                unitSystem === 'metric' ? 'kilometer' : 'mile',
+              )
             : null;
           const result = createWorkoutResult({
             ...(length?.isSuccess ? { distance: length.value } : {}),

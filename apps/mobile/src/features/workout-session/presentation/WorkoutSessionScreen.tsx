@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Alert, StyleSheet, View } from 'react-native';
 import type {
+  UnitSystem,
   WorkoutResult,
   WorkoutSession,
   WorkoutSet,
@@ -33,11 +34,17 @@ export function WorkoutSessionScreen({
   const [editor, setEditor] = useState<Editor>();
   const [isAddingExercise, setIsAddingExercise] = useState(false);
   const [error, setError] = useState<string>();
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const load = useCallback(() => {
     void loadUseCases()
       .then(async (loaded) => {
         setUseCases(loaded);
-        setSession(await loaded.getActive.execute());
+        const [active, profile] = await Promise.all([
+          loaded.getActive.execute(),
+          loaded.getProfile.execute(),
+        ]);
+        setSession(active);
+        setUnitSystem(profile?.preferredUnitSystem ?? 'metric');
       })
       .catch(() => setError('Active workout could not be loaded.'));
   }, [loadUseCases]);
@@ -137,7 +144,11 @@ export function WorkoutSessionScreen({
             </AppText>
             {exercise.plannedPrescriptionSnapshot ? (
               <AppText color="secondary">
-                Planned: {formatPlanned(exercise.plannedPrescriptionSnapshot)}
+                Planned:{' '}
+                {formatPlanned(
+                  exercise.plannedPrescriptionSnapshot,
+                  unitSystem,
+                )}
               </AppText>
             ) : null}
             {exercise.sets.length === 0 ? (
@@ -146,7 +157,7 @@ export function WorkoutSessionScreen({
             {exercise.sets.map((set) => (
               <View key={set.id.value} style={styles.setRow}>
                 <AppText>
-                  Set {set.position + 1}: {formatResult(set.result)}
+                  Set {set.position + 1}: {formatResult(set.result, unitSystem)}
                 </AppText>
                 <AppButton
                   accessibilityLabel={`Edit set ${set.position + 1} for ${exercise.exerciseNameSnapshot}`}
@@ -194,6 +205,7 @@ export function WorkoutSessionScreen({
                 loggingMode={exercise.loggingModeSnapshot}
                 onCancel={() => setEditor(undefined)}
                 onSave={saveSet}
+                unitSystem={unitSystem}
               />
             ) : (
               <AppButton
@@ -296,27 +308,36 @@ export function WorkoutSessionScreen({
   );
 }
 
-function formatResult(result: WorkoutResult): string {
+function formatResult(result: WorkoutResult, unitSystem: UnitSystem): string {
+  const massUnit = unitSystem === 'metric' ? 'kilogram' : 'pound';
+  const massLabel = unitSystem === 'metric' ? 'kg' : 'lb';
+  const distanceUnit = unitSystem === 'metric' ? 'kilometer' : 'mile';
+  const distanceLabel = unitSystem === 'metric' ? 'km' : 'mi';
   if (result.kind === 'repetitions') return `${result.repetitions} reps`;
   if (result.kind === 'resistance-and-repetitions')
-    return `${result.resistance.in('kilogram')} kg × ${result.repetitions}`;
+    return `${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}`;
   if (result.kind === 'duration') return `${result.duration.seconds} sec`;
   if (result.kind === 'distance')
-    return `${result.distance.in('kilometer')} km`;
-  return `${result.distance.in('kilometer')} km in ${result.duration.seconds} sec`;
+    return `${result.distance.in(distanceUnit)} ${distanceLabel}`;
+  return `${result.distance.in(distanceUnit)} ${distanceLabel} in ${result.duration.seconds} sec`;
 }
 
 function formatPlanned(
   planned: WorkoutSession['exercises'][number]['plannedPrescriptionSnapshot'],
+  unitSystem: UnitSystem,
 ): string {
   if (!planned) return '';
   const parts = [`${planned.sets} sets`];
   if ('repetitions' in planned) parts.push(`${planned.repetitions} reps`);
   if ('resistance' in planned && planned.resistance)
-    parts.push(`${planned.resistance.in('kilogram')} kg`);
+    parts.push(
+      `${planned.resistance.in(unitSystem === 'metric' ? 'kilogram' : 'pound')} ${unitSystem === 'metric' ? 'kg' : 'lb'}`,
+    );
   if ('duration' in planned) parts.push(`${planned.duration.seconds} sec`);
   if ('distance' in planned)
-    parts.push(`${planned.distance.in('kilometer')} km`);
+    parts.push(
+      `${planned.distance.in(unitSystem === 'metric' ? 'kilometer' : 'mile')} ${unitSystem === 'metric' ? 'km' : 'mi'}`,
+    );
   return parts.join(' · ');
 }
 

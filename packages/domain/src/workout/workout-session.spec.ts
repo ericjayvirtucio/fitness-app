@@ -49,7 +49,7 @@ describe('WorkoutSession', () => {
     sourcePlannedWorkoutId: null,
     sourceWeekday: null,
     startedAtEpochMilliseconds: 1_700_000_000_000,
-    startedLocalCalendarDate: '2026-08-06',
+    startedLocalCalendarDate: '2023-11-15',
     startedUtcOffsetMinutes: 480,
     status: 'active',
   } as const;

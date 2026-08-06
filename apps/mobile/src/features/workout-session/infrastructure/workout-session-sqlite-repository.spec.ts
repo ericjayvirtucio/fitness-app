@@ -78,7 +78,7 @@ function session() {
     sourcePlannedWorkoutId: null,
     sourceWeekday: null,
     startedAtEpochMilliseconds: 1_700_000_000_000,
-    startedLocalCalendarDate: '2026-08-06',
+    startedLocalCalendarDate: '2023-11-15',
     startedUtcOffsetMinutes: 480,
     status: 'active',
   });
@@ -114,7 +114,7 @@ describe('WorkoutSessionSqliteRepository', () => {
         source_planned_workout_id: null,
         source_weekday: null,
         started_at_epoch_ms: 1_700_000_000_000,
-        started_local_calendar_date: '2026-08-06',
+        started_local_calendar_date: '2023-11-15',
         started_utc_offset_minutes: 480,
         status: 'active',
       },

@@ -167,13 +167,24 @@ export class WorkoutSession {
         'Workout local date is invalid.',
       );
     if (
+      typeof input.startedUtcOffsetMinutes !== 'number' ||
       !Number.isInteger(input.startedUtcOffsetMinutes) ||
-      (input.startedUtcOffsetMinutes as number) < -840 ||
-      (input.startedUtcOffsetMinutes as number) > 840
+      input.startedUtcOffsetMinutes < -840 ||
+      input.startedUtcOffsetMinutes > 840
     )
       return invalid(
         'startedUtcOffsetMinutes',
         'Workout time zone offset is invalid.',
+      );
+    if (
+      localDateAtOffset(
+        input.startedAtEpochMilliseconds,
+        input.startedUtcOffsetMinutes,
+      ) !== input.startedLocalCalendarDate
+    )
+      return invalid(
+        'startedLocalCalendarDate',
+        'Workout local date does not match its start time.',
       );
     if (
       input.sourcePlannedWorkoutId !== null &&
@@ -231,7 +242,7 @@ export class WorkoutSession {
         input.status,
         input.startedAtEpochMilliseconds,
         input.startedLocalCalendarDate,
-        input.startedUtcOffsetMinutes as number,
+        input.startedUtcOffsetMinutes,
         completedAt as number | null,
         input.sourcePlannedWorkoutId,
         input.sourceWeekday,
@@ -274,6 +285,14 @@ function isLocalDate(value: unknown): value is string {
     date.getUTCMonth() === month! - 1 &&
     date.getUTCDate() === day
   );
+}
+
+function localDateAtOffset(epochMilliseconds: number, offsetMinutes: number) {
+  const shifted = new Date(epochMilliseconds + offsetMinutes * 60_000);
+  const year = String(shifted.getUTCFullYear()).padStart(4, '0');
+  const month = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(shifted.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function invalidId(field: string): Result<never, DomainError> {
