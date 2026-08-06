@@ -5,6 +5,7 @@ export default function WorkoutScreen() {
   return (
     <WorkoutPlannerScreen
       onEditDay={(weekday) => router.push(`/workout-plan/${weekday}`)}
+      onOpenActive={() => router.push('/workout-session/active')}
       onOpenLibrary={() => router.push('/exercise-library')}
     />
   );

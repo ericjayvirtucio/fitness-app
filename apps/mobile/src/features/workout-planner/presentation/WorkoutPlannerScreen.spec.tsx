@@ -31,6 +31,11 @@ describe('WorkoutPlannerScreen', () => {
     const onOpenLibrary = jest.fn();
     await render(
       <WorkoutPlannerScreen
+        loadSessionUseCases={() =>
+          Promise.resolve({
+            getActive: { execute: () => Promise.resolve(null) },
+          } as never)
+        }
         loadUseCases={() =>
           Promise.resolve({
             getWeekly: {
@@ -45,6 +50,7 @@ describe('WorkoutPlannerScreen', () => {
           } as never)
         }
         onEditDay={onEditDay}
+        onOpenActive={jest.fn()}
         onOpenLibrary={onOpenLibrary}
       />,
     );
@@ -77,8 +83,10 @@ describe('WorkoutPlannerScreen', () => {
   it('shows a safe retry state', async () => {
     await render(
       <WorkoutPlannerScreen
+        loadSessionUseCases={() => Promise.reject(new Error('failure'))}
         loadUseCases={() => Promise.reject(new Error('private details'))}
         onEditDay={jest.fn()}
+        onOpenActive={jest.fn()}
         onOpenLibrary={jest.fn()}
       />,
     );

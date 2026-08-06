@@ -1,5 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
+import { BrowseExercisesUseCase } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
 import {
   DiscardWorkoutSessionUseCase,
   FinishWorkoutSessionUseCase,
@@ -23,6 +24,9 @@ export async function createWorkoutSessionUseCases() {
   }));
   const now = () => Date.now();
   return Object.freeze({
+    browseExercises: new BrowseExercisesUseCase(
+      new ExerciseCatalogSqliteRepository(database),
+    ),
     discard: new DiscardWorkoutSessionUseCase(sessions),
     finish: new FinishWorkoutSessionUseCase(runner, now),
     getActive: new GetActiveWorkoutSessionUseCase(sessions),
