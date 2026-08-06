@@ -372,4 +372,187 @@ export const migrations: readonly Migration[] = [
     },
     version: 8,
   },
+  {
+    description: 'Add durable offline workout sessions and actual sets.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE TABLE workout_session (
+          id TEXT PRIMARY KEY,
+          display_name TEXT NOT NULL CHECK (
+            length(trim(display_name)) BETWEEN 1 AND 80
+          ),
+          status TEXT NOT NULL CHECK (status IN ('active', 'completed')),
+          started_at_epoch_ms INTEGER NOT NULL CHECK (started_at_epoch_ms >= 0),
+          started_local_calendar_date TEXT NOT NULL CHECK (
+            started_local_calendar_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+          ),
+          started_utc_offset_minutes INTEGER NOT NULL CHECK (
+            started_utc_offset_minutes BETWEEN -840 AND 840
+          ),
+          completed_at_epoch_ms INTEGER CHECK (
+            completed_at_epoch_ms IS NULL OR
+            completed_at_epoch_ms >= started_at_epoch_ms
+          ),
+          source_planned_workout_id TEXT,
+          source_weekday INTEGER CHECK (
+            source_weekday IS NULL OR source_weekday BETWEEN 0 AND 6
+          ),
+          CHECK (
+            (status = 'active' AND completed_at_epoch_ms IS NULL) OR
+            (status = 'completed' AND completed_at_epoch_ms IS NOT NULL)
+          ),
+          CHECK (
+            (source_planned_workout_id IS NULL AND source_weekday IS NULL) OR
+            (source_planned_workout_id IS NOT NULL AND source_weekday IS NOT NULL)
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE UNIQUE INDEX workout_session_single_active
+        ON workout_session(status) WHERE status = 'active'
+      `);
+      await transaction.exec(`
+        CREATE INDEX workout_session_status_started
+        ON workout_session(status, started_at_epoch_ms DESC, id)
+      `);
+      await transaction.exec(`
+        CREATE TABLE workout_session_exercise (
+          id TEXT PRIMARY KEY,
+          workout_session_id TEXT NOT NULL REFERENCES workout_session(id)
+            ON DELETE CASCADE,
+          source_exercise_definition_id TEXT NOT NULL,
+          source_planned_exercise_id TEXT,
+          position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 99),
+          exercise_name_snapshot TEXT NOT NULL CHECK (
+            length(trim(exercise_name_snapshot)) BETWEEN 1 AND 80
+          ),
+          logging_mode_snapshot TEXT NOT NULL CHECK (logging_mode_snapshot IN (
+            'repetitions', 'external-load-and-repetitions',
+            'bodyweight-and-repetitions',
+            'bodyweight-plus-load-and-repetitions',
+            'assistance-and-repetitions', 'duration', 'distance',
+            'distance-and-duration'
+          )),
+          planned_kind TEXT CHECK (planned_kind IS NULL OR planned_kind IN (
+            'repetitions', 'resistance-and-repetitions', 'duration',
+            'distance', 'distance-and-duration'
+          )),
+          planned_sets INTEGER CHECK (
+            planned_sets IS NULL OR planned_sets BETWEEN 1 AND 100
+          ),
+          planned_repetitions INTEGER CHECK (
+            planned_repetitions IS NULL OR planned_repetitions BETWEEN 1 AND 10000
+          ),
+          planned_resistance_grams REAL CHECK (
+            planned_resistance_grams IS NULL OR
+            planned_resistance_grams > 0 AND planned_resistance_grams <= 1000000
+          ),
+          planned_duration_seconds REAL CHECK (
+            planned_duration_seconds IS NULL OR
+            planned_duration_seconds > 0 AND planned_duration_seconds <= 604800
+          ),
+          planned_distance_millimeters REAL CHECK (
+            planned_distance_millimeters IS NULL OR
+            planned_distance_millimeters > 0 AND
+            planned_distance_millimeters <= 1000000000
+          ),
+          UNIQUE(workout_session_id, position),
+          CHECK (
+            (planned_kind IS NULL AND planned_sets IS NULL
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (planned_kind = 'repetitions' AND planned_sets IS NOT NULL
+              AND planned_repetitions IS NOT NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (planned_kind = 'resistance-and-repetitions'
+              AND planned_sets IS NOT NULL AND planned_repetitions IS NOT NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (planned_kind = 'duration' AND planned_sets IS NOT NULL
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NOT NULL
+              AND planned_distance_millimeters IS NULL)
+            OR
+            (planned_kind = 'distance' AND planned_sets IS NOT NULL
+              AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NULL
+              AND planned_distance_millimeters IS NOT NULL)
+            OR
+            (planned_kind = 'distance-and-duration'
+              AND planned_sets IS NOT NULL AND planned_repetitions IS NULL
+              AND planned_resistance_grams IS NULL
+              AND planned_duration_seconds IS NOT NULL
+              AND planned_distance_millimeters IS NOT NULL)
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX workout_session_exercise_order
+        ON workout_session_exercise(workout_session_id, position)
+      `);
+      await transaction.exec(`
+        CREATE TABLE workout_set (
+          id TEXT PRIMARY KEY,
+          workout_session_exercise_id TEXT NOT NULL
+            REFERENCES workout_session_exercise(id) ON DELETE CASCADE,
+          position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 99),
+          result_kind TEXT NOT NULL CHECK (result_kind IN (
+            'repetitions', 'resistance-and-repetitions', 'duration',
+            'distance', 'distance-and-duration'
+          )),
+          repetitions INTEGER CHECK (
+            repetitions IS NULL OR repetitions BETWEEN 1 AND 10000
+          ),
+          resistance_grams REAL CHECK (
+            resistance_grams IS NULL OR
+            resistance_grams > 0 AND resistance_grams <= 1000000
+          ),
+          duration_seconds REAL CHECK (
+            duration_seconds IS NULL OR
+            duration_seconds > 0 AND duration_seconds <= 604800
+          ),
+          distance_millimeters REAL CHECK (
+            distance_millimeters IS NULL OR
+            distance_millimeters > 0 AND distance_millimeters <= 1000000000
+          ),
+          UNIQUE(workout_session_exercise_id, position),
+          CHECK (
+            (result_kind = 'repetitions' AND repetitions IS NOT NULL
+              AND resistance_grams IS NULL AND duration_seconds IS NULL
+              AND distance_millimeters IS NULL)
+            OR
+            (result_kind = 'resistance-and-repetitions'
+              AND repetitions IS NOT NULL AND resistance_grams IS NOT NULL
+              AND duration_seconds IS NULL AND distance_millimeters IS NULL)
+            OR
+            (result_kind = 'duration' AND repetitions IS NULL
+              AND resistance_grams IS NULL AND duration_seconds IS NOT NULL
+              AND distance_millimeters IS NULL)
+            OR
+            (result_kind = 'distance' AND repetitions IS NULL
+              AND resistance_grams IS NULL AND duration_seconds IS NULL
+              AND distance_millimeters IS NOT NULL)
+            OR
+            (result_kind = 'distance-and-duration' AND repetitions IS NULL
+              AND resistance_grams IS NULL AND duration_seconds IS NOT NULL
+              AND distance_millimeters IS NOT NULL)
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX workout_set_order
+        ON workout_set(workout_session_exercise_id, position)
+      `);
+    },
+    version: 9,
+  },
 ];
