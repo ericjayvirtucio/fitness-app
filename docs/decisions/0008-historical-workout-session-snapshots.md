@@ -27,9 +27,9 @@ least one set and creates immutable history.
 Catalog and Planner changes cannot rewrite workout history. Snapshots duplicate a
 small amount of meaningful text and planned data while excluding notes, favorite
 and search metadata, equipment, and muscle classification. Aggregate replacement
-makes each small session mutation straightforward and atomic but rewrites that
-session's children. Completed correction and history browsing need a later
-lifecycle design.
+makes active exercise/set mutation straightforward; completion deliberately
+updates only parent lifecycle fields and never rewrites historical children.
+Completed correction and history browsing need a later lifecycle design.
 
 ## Alternatives considered
 

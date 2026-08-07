@@ -51,8 +51,11 @@ identity and position. Quick-entry values remain UI drafts until Save succeeds.
 Migration 9 creates `workout_session`, `workout_session_exercise`, and
 `workout_set`. Children cascade only on session deletion. Strict checks encode
 planned and actual unions. A fixed three-query read reconstructs and validates an
-active aggregate. Every confirmed mutation is a short transaction, so the active
-workout restores after termination, crash, restart, or cold offline launch.
+active aggregate. Exercise and set changes replace the small active aggregate;
+completion updates only the parent status and completion timestamp so immutable
+historical children are never deleted or reinserted. Every confirmed mutation is
+a short transaction, so the active workout restores after termination, crash,
+restart, or cold offline launch.
 
 Start captures epoch time, local calendar date, and UTC offset. The captured date
 remains the historical grouping key across timezone changes. Completion stores

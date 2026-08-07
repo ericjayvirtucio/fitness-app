@@ -93,6 +93,37 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
     }
   }
 
+  async complete(session: WorkoutSession): Promise<WorkoutSession> {
+    try {
+      if (
+        session.status !== 'completed' ||
+        session.completedAtEpochMilliseconds === null
+      )
+        throw new PersistenceError('operation-failed');
+      await this.database.run(
+        `UPDATE workout_session SET status = ?, completed_at_epoch_ms = ?
+         WHERE id = ? AND status = ?`,
+        [
+          session.status,
+          session.completedAtEpochMilliseconds,
+          session.id.value,
+          'active',
+        ],
+      );
+      const persisted = await this.getById(session.id);
+      if (
+        persisted === null ||
+        persisted.status !== 'completed' ||
+        persisted.completedAtEpochMilliseconds !==
+          session.completedAtEpochMilliseconds
+      )
+        throw new PersistenceError('operation-failed');
+      return persisted;
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
   async replace(session: WorkoutSession): Promise<void> {
     try {
       await this.database.run(

@@ -20,6 +20,10 @@ const ids = Array.from(
 
 class Sessions implements WorkoutSessionRepository {
   current: WorkoutSession | null = null;
+  complete(session: WorkoutSession) {
+    this.current = session;
+    return Promise.resolve(session);
+  }
   discard() {
     this.current = null;
     return Promise.resolve(true);

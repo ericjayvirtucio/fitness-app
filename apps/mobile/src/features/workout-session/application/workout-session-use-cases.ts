@@ -280,8 +280,8 @@ export class FinishWorkoutSessionUseCase {
         status: 'completed',
       });
       if (!completed.isSuccess) return completed;
-      await sessions.replace(completed.value);
-      return completed;
+      const persisted = await sessions.complete(completed.value);
+      return { isSuccess: true as const, value: persisted };
     });
   }
 }
