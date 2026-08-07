@@ -9,9 +9,10 @@ calculations, canonical Nutrition rules, and offline food and caloric beverage
 logging with daily totals, plus a reusable device-local Nutrition catalog with
 search, favorites, recents, and quantity-only re-entry. It also includes
 dedicated offline water and other-fluid logging with a manual daily fluid target
-and stable local-day history. The Workout area now includes a completely offline
-Exercise Library plus a recurring Sunday-to-Saturday Workout Planner with Rest
-days, ordered exercises, and logging-mode-specific targets. It intentionally contains no authentication,
+and stable local-day history. The Workout area includes an offline Exercise
+Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
+Workout Sessions with individual actual-set logging and restart recovery. It
+intentionally contains no authentication,
 synchronization, analytics, notifications, or AI integration.
 
 ## Prerequisites
@@ -85,11 +86,12 @@ future Planner/Session reference rules are documented in
 Recurring-plan semantics, prescriptions, ordering, catalog references, and the
 future Workout Session seam are documented in
 [docs/architecture/offline-workout-planner.md](docs/architecture/offline-workout-planner.md).
+Workout execution, snapshots, results, and recovery are documented in
+[docs/architecture/offline-workout-sessions.md](docs/architecture/offline-workout-sessions.md).
 
 ## Current status
 
-Sprint 12: Offline Workout Planner. The Workout tab exposes one locally persisted
-recurring week and retains Exercise Library access. Schema version 8 protects
-planned references from catalog deletion and logging-mode changes. Workout
-Sessions, actual results, history, timers, analytics, calendar programming,
-cloud behavior, and AI remain deferred.
+Sprint 13: Offline Workout Sessions. Schema version 9 adds independent snapshots,
+individual actual sets, one crash-recoverable active workout, and atomic
+completion/discard. History browsing/correction, timers, analytics, calendar
+programming, cloud behavior, and AI remain deferred.

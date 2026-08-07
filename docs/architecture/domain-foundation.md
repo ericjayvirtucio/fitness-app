@@ -19,8 +19,9 @@ deterministic daily fluid aggregation while composing shared `Volume` and
 `DomainId`. Nutrition owns `Energy`, canonical nutrition composition, deterministic mass- or
 volume-based scaling, consumption entries, and daily aggregation; see
 [Nutrition domain architecture](nutrition-domain.md). Workout owns `Duration`,
-the controlled recurring `Weekday`, immutable planned workout aggregates, and
-logging-mode-specific planned prescriptions.
+the controlled recurring `Weekday`, immutable planned workout aggregates,
+logging-mode-specific planned prescriptions, independent Workout Session
+aggregates, and discriminated actual-set results.
 Body measurements will use `Mass` and
 `Length`. Empty capability modules are not created. A new concept belongs in the
 capability whose language defines it unless at least two real capabilities need

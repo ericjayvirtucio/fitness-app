@@ -122,3 +122,21 @@ export {
   WeeklyWorkoutPlan,
 } from './workout/planned-workout';
 export type { PlannedDay } from './workout/planned-workout';
+export {
+  createWorkoutResult,
+  DistanceDurationResult,
+  DistanceResult,
+  DurationResult,
+  isWorkoutResult,
+  RepetitionResult,
+  ResistanceRepetitionResult,
+  workoutResultPolicy,
+} from './workout/workout-result';
+export type { WorkoutResult } from './workout/workout-result';
+export {
+  WorkoutSession,
+  WorkoutSessionExercise,
+  workoutSessionPolicy,
+  WorkoutSet,
+} from './workout/workout-session';
+export type { WorkoutSessionStatus } from './workout/workout-session';

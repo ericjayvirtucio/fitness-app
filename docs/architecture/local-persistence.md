@@ -93,6 +93,11 @@ cascade only when their workout is deliberately removed; catalog deletion is
 restricted and referenced logging-mode changes are blocked. See
 [Offline Workout Planner architecture](offline-workout-planner.md).
 
+Version 9 adds independent workout sessions, exercise and plan snapshots, and
+individual actual sets. A partial unique index limits active execution to one
+session. No foreign key connects history to mutable Catalog or Planner rows; see
+[Offline Workout Session architecture](offline-workout-sessions.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about

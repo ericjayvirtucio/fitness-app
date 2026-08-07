@@ -77,9 +77,9 @@ cannot change, preventing silent reinterpretation of planned targets. Renames an
 other valid edits appear in current mutable plans. There is no tombstone,
 archive, undo, or synchronization behavior.
 
-Completed Workout Session records must copy enough exercise name and logging
-context to remain historically stable. Session history must never rely on joining
-mutable catalog definitions or Planner rows for historical truth.
+Workout Sessions copy exercise name and logging mode when an exercise enters the
+session. Source catalog UUIDs remain non-relational provenance, so session
+snapshots do not block deletion or require a mutable catalog join.
 
 ## Persistence and performance
 
