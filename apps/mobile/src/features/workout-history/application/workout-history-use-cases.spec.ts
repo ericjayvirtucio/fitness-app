@@ -42,6 +42,9 @@ class Repository implements WorkoutHistoryRepository {
       repetitions: null,
     });
   }
+  summarizeCompletedByDay(): Promise<readonly []> {
+    return Promise.resolve([]);
+  }
 }
 
 describe('workout history use cases', () => {

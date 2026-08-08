@@ -50,6 +50,13 @@ export type WorkoutProgressSummary = Readonly<{
   repetitions: number | null;
 }>;
 
+export type WorkoutProgressDay = Readonly<{
+  actualSetCount: number;
+  completedWorkoutCount: number;
+  localCalendarDate: string;
+  performedExerciseCount: number;
+}>;
+
 export type ExercisePerformanceItem = Readonly<{
   actualSetCount: number;
   distanceMillimeters: number | null;

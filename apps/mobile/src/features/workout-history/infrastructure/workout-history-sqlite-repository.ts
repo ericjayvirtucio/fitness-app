@@ -12,6 +12,7 @@ import type {
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
   WorkoutProgressSummary,
+  WorkoutProgressDay,
 } from '../application/workout-history-models';
 import type { WorkoutHistoryRepository } from '../application/workout-history-repository';
 
@@ -52,6 +53,13 @@ type ExercisePerformanceRow = Readonly<{
   session_name_snapshot: string;
   started_at_epoch_ms: number;
   started_local_calendar_date: string;
+}>;
+
+type DailySummaryRow = Readonly<{
+  actual_set_count: number;
+  completed_workout_count: number;
+  local_calendar_date: string;
+  performed_exercise_count: number;
 }>;
 
 export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository {
@@ -182,6 +190,46 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
         ),
         repetitions: nullableNonnegative(row.repetitions),
       };
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
+  async summarizeCompletedByDay(
+    range: WorkoutHistoryRange,
+  ): Promise<readonly WorkoutProgressDay[]> {
+    try {
+      const rows = await this.database.getAll<DailySummaryRow>(
+        `SELECT session.started_local_calendar_date AS local_calendar_date,
+          COUNT(DISTINCT session.id) AS completed_workout_count,
+          COUNT(DISTINCT CASE WHEN actual.id IS NOT NULL THEN exercise.id END)
+            AS performed_exercise_count,
+          COUNT(actual.id) AS actual_set_count
+        FROM workout_session session
+        LEFT JOIN workout_session_exercise exercise
+          ON exercise.workout_session_id = session.id
+        LEFT JOIN workout_set actual
+          ON actual.workout_session_exercise_id = exercise.id
+        WHERE session.status = 'completed'
+          AND session.started_local_calendar_date BETWEEN ? AND ?
+        GROUP BY session.started_local_calendar_date
+        ORDER BY session.started_local_calendar_date ASC`,
+        [range.startLocalCalendarDate, range.endLocalCalendarDate],
+      );
+      return Object.freeze(
+        rows.map((row) =>
+          Object.freeze({
+            actualSetCount: nonnegativeInteger(row.actual_set_count),
+            completedWorkoutCount: nonnegativeInteger(
+              row.completed_workout_count,
+            ),
+            localCalendarDate: requiredDate(row.local_calendar_date),
+            performedExerciseCount: nonnegativeInteger(
+              row.performed_exercise_count,
+            ),
+          }),
+        ),
+      );
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }

@@ -127,6 +127,33 @@ describe('WorkoutHistorySqliteRepository', () => {
     expect(database.lastParameters).toEqual([10]);
   });
 
+  it('groups completed actual performance by captured local date', async () => {
+    const database = new FakeDatabase();
+    database.allRows = [
+      {
+        actual_set_count: 2,
+        completed_workout_count: 1,
+        local_calendar_date: '2026-08-08',
+        performed_exercise_count: 1,
+      },
+    ];
+    const days = await new WorkoutHistorySqliteRepository(
+      database,
+    ).summarizeCompletedByDay({
+      endLocalCalendarDate: '2026-08-08',
+      startLocalCalendarDate: '2026-08-02',
+    });
+    expect(days).toEqual([
+      {
+        actualSetCount: 2,
+        completedWorkoutCount: 1,
+        localCalendarDate: '2026-08-08',
+        performedExerciseCount: 1,
+      },
+    ]);
+    expect(database.lastStatement).toContain("session.status = 'completed'");
+  });
+
   it('projects mode-specific exercise performance from actual sets', async () => {
     const database = new FakeDatabase();
     database.allRows = [
