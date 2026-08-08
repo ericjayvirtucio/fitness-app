@@ -29,6 +29,19 @@ pnpm typecheck
 pnpm build
 ```
 
+Changes to mobile navigation, persistence composition, or a covered user workflow
+also run the smallest relevant native suite on each available platform:
+
+```bash
+./scripts/qa.sh smoke --platform ios
+./scripts/qa.sh sprint 13 --platform android
+```
+
+Use `./scripts/qa.sh regression` before merge when a change crosses feature or
+persistence boundaries. These commands clear the selected development app's
+local data. Setup, suite ownership, and retained manual checks are in
+[`e2e/mobile/README.md`](e2e/mobile/README.md).
+
 Husky runs lint-staged before a commit. Hooks are a fast feedback mechanism, not a replacement for the complete checks.
 
 ## Commits

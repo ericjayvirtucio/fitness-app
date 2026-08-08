@@ -68,6 +68,32 @@ pnpm build
 pnpm --filter @fitness/mobile exec expo install --check
 ```
 
+## Native end-to-end QA
+
+Maestro CLI 2.7.0 drives the installed `com.fitnessapp.dev` application on an
+iOS Simulator or Android Emulator. Diagnose the local environment and run a
+suite from the repository root:
+
+```bash
+./scripts/qa.sh doctor
+./scripts/qa.sh smoke --platform ios
+./scripts/qa.sh sprint 13 --platform android
+./scripts/qa.sh regression
+```
+
+Build and install the application with Expo's local native commands first. Keep
+Metro running when the installed debug build requires it. Generated `ios` and
+`android` projects remain ignored.
+
+Every suite clears the selected application's sandbox, including
+`fitness-app.db`, before it begins. Use a disposable target; the wrapper does not
+back up development data. It never erases the whole simulator or emulator.
+
+Read the [mobile E2E guide](../e2e/mobile/README.md) for setup, suite structure,
+selectors, artifacts, and troubleshooting. Complete the
+[Sprint 14 harness checklist](manual-testing/sprint-14-mobile-e2e-harness.md)
+before claiming native QA is complete.
+
 ## Local persistence
 
 The root layout waits for the local database to initialize and migrate before it
