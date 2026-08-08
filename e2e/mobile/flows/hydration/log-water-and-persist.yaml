@@ -9,6 +9,10 @@ appId: com.fitnessapp.dev
 - inputText: '3'
 - tapOn: Save daily target
 - assertVisible: 3 L remaining of 3 L
+- scrollUntilVisible:
+    element:
+      text: Add fluid
+    direction: DOWN
 - tapOn: Add fluid
 - tapOn: 500 mL
 - scrollUntilVisible:
@@ -16,8 +20,8 @@ appId: com.fitnessapp.dev
       text: Save fluid
     direction: DOWN
 - tapOn: Save fluid
-- assertVisible: 500 mL
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
 - stopApp
 - launchApp
-- assertVisible: 500 mL
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
 - assertVisible: 2.5 L remaining of 3 L

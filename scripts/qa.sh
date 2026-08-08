@@ -35,7 +35,7 @@ has_command() {
 list_ios_devices() {
   if ! has_command xcrun; then return; fi
   xcrun simctl list devices booted 2>/dev/null |
-    sed -nE 's/^[[:space:]]+.*\(([0-9A-Fa-f-]{36})\) \(Booted\)$/\1/p' || true
+    sed -nE 's/^[[:space:]]+.*\(([0-9A-Fa-f-]{36})\) \(Booted\)[[:space:]]*$/\1/p' || true
 }
 
 list_android_devices() {

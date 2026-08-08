@@ -51,6 +51,11 @@ describe('HydrationDailyScreen', () => {
     await waitFor(() =>
       expect(screen.getByText('Nothing logged for this day')).toBeTruthy(),
     );
+    expect(
+      screen.getByLabelText(
+        'Daily fluid totals, total 0 mL, plain water 0 mL, other fluids 0 mL, 0 entries',
+      ),
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Previous day' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Add fluid' })).toBeTruthy();
     expect(
@@ -86,6 +91,11 @@ describe('HydrationDailyScreen', () => {
       />,
     );
     await waitFor(() => expect(screen.getByText('133% complete')).toBeTruthy());
+    expect(
+      screen.getByLabelText(
+        'Daily fluid totals, total 4 L, plain water 4 L, other fluids 0 mL, 1 entry',
+      ),
+    ).toBeTruthy();
     expect(screen.getByLabelText(/Fluid target progress.*133%/)).toBeTruthy();
     expect(screen.getByText(/Target reached/)).toBeTruthy();
   });

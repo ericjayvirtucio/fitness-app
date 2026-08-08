@@ -11,5 +11,7 @@ appId: com.fitnessapp.dev
 - assertVisible: Resume Workout
 - tapOn: Resume Workout
 - tapOn: Discard Workout
-- tapOn: Discard Workout
+- tapOn:
+    text: Discard Workout
+    index: 1
 - assertVisible: Start Empty Workout

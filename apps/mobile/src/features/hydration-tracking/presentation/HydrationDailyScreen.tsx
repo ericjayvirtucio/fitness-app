@@ -137,7 +137,10 @@ export function HydrationDailyScreen({
         </View>
       </View>
 
-      <Card accessibilityLabel="Daily fluid totals" variant="outlined">
+      <Card
+        accessibilityLabel={`Daily fluid totals, total ${formatHydrationVolume(summary.totalFluidVolume)}, plain water ${formatHydrationVolume(summary.plainWaterVolume)}, other fluids ${formatHydrationVolume(summary.otherFluidVolume)}, ${summary.entryCount} ${summary.entryCount === 1 ? 'entry' : 'entries'}`}
+        variant="outlined"
+      >
         <AppText color="secondary" variant="label">
           Total fluid
         </AppText>
