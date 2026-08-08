@@ -157,7 +157,7 @@ export function ProgressScreen({
 function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.nutrition;
   return (
-    <Card accessibilityLabel="Nutrition progress summary" variant="elevated">
+    <Card variant="elevated">
       <SectionHeader title="Nutrition" />
       {value.loggedDayCount === 0 ? (
         <AppText color="secondary">No nutrition logged in this period.</AppText>
@@ -204,7 +204,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
 function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.hydration;
   return (
-    <Card accessibilityLabel="Hydration progress summary" variant="outlined">
+    <Card variant="outlined">
       <SectionHeader title="Hydration" />
       {value.loggedDayCount === 0 ? (
         <AppText color="secondary">No hydration logged in this period.</AppText>
@@ -235,7 +235,7 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
 function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.workout;
   return (
-    <Card accessibilityLabel="Workout progress summary" variant="outlined">
+    <Card variant="outlined">
       <SectionHeader title="Workouts" />
       {value.completedWorkoutCount === 0 ? (
         <AppText color="secondary">
