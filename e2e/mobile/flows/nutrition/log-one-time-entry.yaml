@@ -6,29 +6,25 @@ appId: com.fitnessapp.dev
 - tapOn: Add food or beverage
 - tapOn: Enter one-time item
 - assertVisible: Add food or beverage
-- tapOn:
-    id: nutrition-description-input
+- tapOn: Description
 - inputText: E2E Banana
 - scrollUntilVisible:
     element:
       text: Reference amount (grams)
     direction: DOWN
-- tapOn:
-    id: nutrition-reference-amount-input
+- tapOn: Reference amount (grams)
 - inputText: '100'
 - scrollUntilVisible:
     element:
       text: Energy per reference (kcal)
     direction: DOWN
-- tapOn:
-    id: nutrition-energy-input
+- tapOn: Energy per reference (kcal)
 - inputText: '89'
 - scrollUntilVisible:
     element:
       text: Consumed amount (grams)
     direction: DOWN
-- tapOn:
-    id: nutrition-consumed-amount-input
+- tapOn: Consumed amount (grams)
 - inputText: '100'
 - scrollUntilVisible:
     element:
