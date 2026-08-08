@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
     "prepare": "husky",
-    "test": "turbo run test",
+    "test": "bash scripts/qa.spec.sh && turbo run test",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
