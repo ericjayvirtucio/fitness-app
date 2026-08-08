@@ -191,18 +191,19 @@ function ExerciseSection({
         items.map((item) => {
           const exercise = item.definition;
           return (
-            <Card
-              accessibilityLabel={`Edit ${exercise.name}`}
-              key={exercise.id.value}
-              onPress={() => onEdit(exercise.id.value)}
-              variant="outlined"
-            >
+            <Card key={exercise.id.value} variant="outlined">
               <AppText variant="heading">{exercise.name}</AppText>
               <AppText color="secondary">
                 {labelFor(equipmentOptions, exercise.equipment)} ·{' '}
                 {labelFor(muscleOptions, exercise.primaryMuscleGroup)} ·{' '}
                 {labelFor(loggingModeOptions, exercise.loggingMode)}
               </AppText>
+              <AppButton
+                accessibilityLabel={`Edit ${exercise.name}`}
+                label="Edit exercise"
+                onPress={() => onEdit(exercise.id.value)}
+                variant="outline"
+              />
               <AppButton
                 accessibilityLabel={`${item.isFavorite ? 'Remove' : 'Add'} ${exercise.name} ${item.isFavorite ? 'from' : 'to'} favorites`}
                 label={item.isFavorite ? 'Remove favorite' : 'Add favorite'}
