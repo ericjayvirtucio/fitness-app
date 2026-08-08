@@ -555,4 +555,23 @@ export const migrations: readonly Migration[] = [
     },
     version: 9,
   },
+  {
+    description: 'Add bounded workout history query indexes.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE INDEX workout_session_completed_local_date
+        ON workout_session (
+          status, started_local_calendar_date DESC,
+          started_at_epoch_ms DESC, id DESC
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX workout_session_exercise_source_history
+        ON workout_session_exercise (
+          source_exercise_definition_id, workout_session_id
+        )
+      `);
+    },
+    version: 10,
+  },
 ];

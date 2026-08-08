@@ -8,7 +8,7 @@ appId: com.fitnessapp.dev
 - tapOn: Workout name
 - inputText: E2E Push Day
 - tapOn: Add exercise
-- tapOn: Add E2E Push-up
+- tapOn: Add E2E Push-upa
 - tapOn: Sets
 - inputText: '3'
 - tapOn: Repetitions

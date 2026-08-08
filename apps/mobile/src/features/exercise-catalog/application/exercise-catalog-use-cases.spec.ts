@@ -140,19 +140,22 @@ describe('exercise catalog application', () => {
     expect(repository.values[0]?.isFavorite).toBe(false);
   });
 
-  it('browses without fake recents and supports favorite and deletion commands', async () => {
+  it('derives performed recents and supports favorite and deletion commands', async () => {
     const repository = new MemoryRepository();
     repository.values = [item()];
-    const browse = new BrowseExercisesUseCase(repository);
+    const browse = new BrowseExercisesUseCase(repository, {
+      listRecentlyPerformedExerciseIds: () =>
+        Promise.resolve([item().definition.id]),
+    });
     await expect(browse.search(' BENCH ')).resolves.toHaveLength(1);
     await expect(browse.search('   ')).resolves.toEqual([]);
+    await expect(browse.listRecentlyPerformed()).resolves.toHaveLength(1);
     await expect(
       new SetExerciseFavoriteUseCase(repository).execute(uuid, true),
     ).resolves.toBe(true);
     await expect(
       new DeleteExerciseUseCase(repository).execute(uuid),
     ).resolves.toEqual({ status: 'deleted' });
-    expect('listRecent' in browse).toBe(false);
   });
 
   it('propagates validation without writing', async () => {

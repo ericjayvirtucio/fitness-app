@@ -70,6 +70,7 @@ export function ExerciseForm({
         error={errors.name}
         label="Exercise name"
         onChangeText={(value) => set('name', value)}
+        testID="exercise-name-input"
         value={values.name}
       />
       <SelectionField

@@ -11,6 +11,7 @@ import type {
   PlannedExerciseUsage,
 } from './exercise-plan-reference-reader';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
+import type { PerformedExerciseRecentReader } from './performed-exercise-recent-reader';
 
 export type ExerciseSaveOutcome =
   | Readonly<{ error: DomainError; status: 'invalid' }>
@@ -141,12 +142,27 @@ export class DeleteExerciseUseCase {
 }
 
 export class BrowseExercisesUseCase {
-  constructor(private readonly repository: ExerciseCatalogRepository) {}
+  constructor(
+    private readonly repository: ExerciseCatalogRepository,
+    private readonly recentReader?: PerformedExerciseRecentReader,
+  ) {}
   listAll(limit = 100) {
     return this.repository.listAll(limit);
   }
   listFavorites(limit = 20) {
     return this.repository.listFavorites(limit);
+  }
+  async listRecentlyPerformed(limit = 10) {
+    if (!this.recentReader) return Object.freeze([]);
+    const ids = await this.recentReader.listRecentlyPerformedExerciseIds(limit);
+    const items = await this.repository.getByIds(ids);
+    const byId = new Map(items.map((item) => [item.definition.id.value, item]));
+    return Object.freeze(
+      ids.flatMap((id) => {
+        const item = byId.get(id.value);
+        return item ? [item] : [];
+      }),
+    );
   }
   search(query: string, limit = 50) {
     const normalized = normalizeExerciseName(query);

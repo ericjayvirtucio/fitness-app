@@ -39,6 +39,17 @@ list_ios_devices() {
     sed -nE 's/^[[:space:]]+.*\(([0-9A-Fa-f-]{36})\) \(Booted\)[[:space:]]*$/\1/p' || true
 }
 
+extract_available_ios_device_ids() {
+  sed -nE \
+    's/^[[:space:]]+iPhone.*\(([0-9A-Fa-f-]{36})\) \((Booted|Shutdown)\).*$/\1/p'
+}
+
+list_available_ios_devices() {
+  if ! has_command xcrun; then return; fi
+  xcrun simctl list devices available 2>/dev/null |
+    extract_available_ios_device_ids || true
+}
+
 list_android_devices() {
   if ! has_command adb; then return; fi
   adb devices 2>/dev/null |
@@ -80,13 +91,13 @@ resolve_suite() {
     smoke | regression) printf '%s/%s.yaml\n' "${suite_root}" "${command_name}" ;;
     sprint)
       case "${sprint_number}" in
-        6 | 8 | 9 | 10 | 11 | 12 | 13)
+        6 | 8 | 9 | 10 | 11 | 12 | 13 | 15)
           printf '%s/sprint-%s.yaml\n' "${suite_root}" "${sprint_number}"
           ;;
         5 | 7)
           fail "Sprint ${sprint_number} has no repository manual QA specification."
           ;;
-        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13." ;;
+        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15." ;;
       esac
       ;;
     *) fail "Unknown suite '${command_name}'." ;;
@@ -141,6 +152,49 @@ select_platform_and_device() {
   selected_device="${requested_device}"
 }
 
+select_and_boot_ios_device() {
+  local requested_device="$1"
+  has_command xcrun || fail 'xcrun is required for iOS QA.'
+  has_command open || fail 'The macOS open command is required for iOS QA.'
+
+  local booted_devices
+  local available_devices
+  booted_devices="$(list_ios_devices)"
+  available_devices="$(list_available_ios_devices)"
+
+  if [[ -n "${requested_device}" ]]; then
+    if ! grep -Fqx -- "${requested_device}" <<<"${available_devices}"; then
+      fail "Device '${requested_device}' is not an available iPhone Simulator."
+    fi
+  else
+    local booted_count
+    booted_count="$(grep -c . <<<"${booted_devices}" || true)"
+    if [[ "${booted_count}" -eq 1 ]]; then
+      requested_device="${booted_devices}"
+    elif [[ "${booted_count}" -gt 1 ]]; then
+      fail 'Multiple iOS devices are booted; pass --device.'
+    else
+      requested_device="$(head -n 1 <<<"${available_devices}")"
+      [[ -n "${requested_device}" ]] ||
+        fail 'No available iPhone Simulator was found. Install a simulator runtime in Xcode.'
+      printf 'Selected default iOS Simulator: %s\n' "${requested_device}"
+    fi
+  fi
+
+  if ! grep -Fqx -- "${requested_device}" <<<"${booted_devices}"; then
+    printf 'Booting iOS Simulator: %s\n' "${requested_device}"
+    xcrun simctl boot "${requested_device}" ||
+      fail "iOS Simulator ${requested_device} could not be booted."
+  fi
+  open -a Simulator --args -CurrentDeviceUDID "${requested_device}" ||
+    fail 'The Simulator application could not be opened.'
+  xcrun simctl bootstatus "${requested_device}" -b ||
+    fail "iOS Simulator ${requested_device} did not finish booting."
+
+  selected_platform='ios'
+  selected_device="${requested_device}"
+}
+
 assert_app_installed() {
   if [[ "${selected_platform}" == 'ios' ]]; then
     xcrun simctl get_app_container "${selected_device}" "${app_id}" app >/dev/null 2>&1 ||
@@ -150,6 +204,72 @@ assert_app_installed() {
       grep -q '^package:' ||
       fail "${app_id} is not installed on Android device ${selected_device}."
   fi
+}
+
+prepare_ios_application() {
+  local artifact_directory="$1"
+  printf 'Preparation: building and installing current iOS Release app\n'
+  set +o errexit
+  env -u NO_COLOR FORCE_COLOR=0 \
+    pnpm --filter @fitness/mobile exec expo run:ios \
+      --configuration Release \
+      --device "${selected_device}" \
+      --no-bundler 2>&1 | tee "${artifact_directory}/preparation.log"
+  local preparation_status="${PIPESTATUS[0]}"
+  set -o errexit
+  if [[ "${preparation_status}" -ne 0 ]]; then
+    printf 'QA setup failed while building or installing the iOS app.\n' >&2
+    return "${preparation_status}"
+  fi
+  if ! xcrun simctl get_app_container \
+    "${selected_device}" "${app_id}" app >/dev/null 2>&1; then
+    printf 'QA setup failed because the iOS app was not installed after the build.\n' >&2
+    return 2
+  fi
+  printf 'Preparation: passed\n'
+}
+
+junit_attribute() {
+  local report_path="$1"
+  local attribute="$2"
+  sed -nE "/<testsuite/ s/.* ${attribute}=\"([0-9]+)\".*/\1/p" \
+    "${report_path}" | head -n 1
+}
+
+print_result_summary() {
+  local result_kind="$1"
+  local status="$2"
+  local started_epoch_seconds="$3"
+  local artifact_directory="$4"
+  local elapsed_seconds
+  elapsed_seconds="$(($(date +%s) - started_epoch_seconds))"
+
+  printf '\nQA result summary\n'
+  printf 'Result: %s\n' "${result_kind}"
+  printf 'Suite: %s\n' "${suite_name}"
+  printf 'Platform: %s\n' "${selected_platform}"
+  printf 'Device: %s\n' "${selected_device}"
+  printf 'Duration: %ss\n' "${elapsed_seconds}"
+  printf 'Exit status: %s\n' "${status}"
+
+  local report_path="${artifact_directory}/junit.xml"
+  if [[ -f "${report_path}" ]]; then
+    local tests failures errors skipped passed
+    tests="$(junit_attribute "${report_path}" tests)"
+    failures="$(junit_attribute "${report_path}" failures)"
+    errors="$(junit_attribute "${report_path}" errors)"
+    skipped="$(junit_attribute "${report_path}" skipped)"
+    tests="${tests:-0}"
+    failures="${failures:-0}"
+    errors="${errors:-0}"
+    skipped="${skipped:-0}"
+    passed="$((tests - failures - errors - skipped))"
+    printf 'Tests: %s passed, %s failed, %s errors, %s skipped, %s total\n' \
+      "${passed}" "${failures}" "${errors}" "${skipped}" "${tests}"
+  else
+    printf 'Tests: no JUnit report was produced\n'
+  fi
+  printf 'Artifacts: %s\n' "${artifact_directory}"
 }
 
 main() {
@@ -196,10 +316,18 @@ main() {
   [[ -f "${suite_path}" ]] || fail "Suite file is missing: ${suite_path}"
   has_command maestro || fail 'Maestro is not installed. Run ./scripts/qa.sh doctor for details.'
 
+  local run_started_epoch_seconds
+  run_started_epoch_seconds="$(date +%s)"
+
   selected_platform=''
   selected_device=''
-  select_platform_and_device "${requested_platform}" "${requested_device}"
-  assert_app_installed
+  local should_prepare_ios='false'
+  if [[ "${requested_platform}" == 'ios' ]]; then
+    select_and_boot_ios_device "${requested_device}"
+    should_prepare_ios='true'
+  else
+    select_platform_and_device "${requested_platform}" "${requested_device}"
+  fi
 
   local run_timestamp
   local suite_name
@@ -216,6 +344,21 @@ main() {
   printf 'State: app-local data will be cleared by the suite\n'
   printf 'Artifacts: %s\n' "${artifact_directory}"
 
+  if [[ "${should_prepare_ios}" == 'true' ]]; then
+    local preparation_status=0
+    prepare_ios_application "${artifact_directory}" || preparation_status="$?"
+    if [[ "${preparation_status}" -ne 0 ]]; then
+      print_result_summary \
+        'SETUP FAILED' \
+        "${preparation_status}" \
+        "${run_started_epoch_seconds}" \
+        "${artifact_directory}"
+      exit "${preparation_status}"
+    fi
+  else
+    assert_app_installed
+  fi
+
   set +o errexit
   maestro --platform="${selected_platform}" --device="${selected_device}" test \
     --debug-output="${artifact_directory}" \
@@ -227,12 +370,21 @@ main() {
   set -o errexit
 
   if [[ "${maestro_status}" -eq 0 ]]; then
-    printf 'QA passed. Artifacts: %s\n' "${artifact_directory}"
+    print_result_summary \
+      'PASSED' \
+      "${maestro_status}" \
+      "${run_started_epoch_seconds}" \
+      "${artifact_directory}"
   else
-    printf 'QA failed with Maestro status %s. Artifacts: %s\n' \
-      "${maestro_status}" "${artifact_directory}" >&2
+    print_result_summary \
+      'FAILED' \
+      "${maestro_status}" \
+      "${run_started_epoch_seconds}" \
+      "${artifact_directory}" >&2
   fi
   exit "${maestro_status}"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

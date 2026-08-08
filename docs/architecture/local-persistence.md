@@ -98,6 +98,11 @@ individual actual sets. A partial unique index limits active execution to one
 session. No foreign key connects history to mutable Catalog or Planner rows; see
 [Offline Workout Session architecture](offline-workout-sessions.md).
 
+Version 10 adds focused indexes for completed-session local-date history and
+source-exercise history. It adds no tables or summary values; Workout History
+derives bounded projections from version-9 facts. See
+[Offline Workout History architecture](offline-workout-history.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about

@@ -12,8 +12,10 @@ dedicated offline water and other-fluid logging with a manual daily fluid target
 and stable local-day history. The Workout area includes an offline Exercise
 Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
 Workout Sessions with individual actual-set logging and restart recovery. It
-intentionally contains no authentication,
-synchronization, analytics, notifications, or AI integration.
+also provides bounded completed Workout History, read-only snapshot detail,
+deterministic Day/Week/Month progress summaries, per-exercise history foundations,
+and performed-exercise recents. It intentionally contains no authentication,
+synchronization, advanced analytics, notifications, or AI integration.
 
 ## Prerequisites
 
@@ -48,12 +50,15 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ./scripts/qa.sh reset --platform ios
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
+./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh regression
 ```
 
 These suites clear `com.fitnessapp.dev` data on the selected virtual device.
-Build and install the app first, use a disposable simulator or emulator, and read
-the [mobile E2E guide](e2e/mobile/README.md) before running them.
+Explicit iOS runs boot an available iPhone Simulator and build/install the current
+Release app automatically. Android and implicit-platform runs still require a
+prepared target. Use a disposable simulator or emulator and read the
+[mobile E2E guide](e2e/mobile/README.md) before running them.
 
 Run one application with a workspace filter:
 
@@ -104,10 +109,13 @@ future Workout Session seam are documented in
 [docs/architecture/offline-workout-planner.md](docs/architecture/offline-workout-planner.md).
 Workout execution, snapshots, results, and recovery are documented in
 [docs/architecture/offline-workout-sessions.md](docs/architecture/offline-workout-sessions.md).
+Completed history, progress semantics, pagination, and performed recents are in
+[docs/architecture/offline-workout-history.md](docs/architecture/offline-workout-history.md).
 
 ## Current status
 
-Sprint 13: Offline Workout Sessions. Schema version 9 adds independent snapshots,
-individual actual sets, one crash-recoverable active workout, and atomic
-completion/discard. History browsing/correction, timers, analytics, calendar
+Sprint 15: Workout History and Progress Foundation. Schema version 10 adds only
+history query indexes over authoritative completed-session snapshots. History,
+read-only detail, bounded deterministic summaries, and performed recents are
+available. Correction, PR claims, charts, advanced analytics, timers, calendar
 programming, cloud behavior, and AI remain deferred.

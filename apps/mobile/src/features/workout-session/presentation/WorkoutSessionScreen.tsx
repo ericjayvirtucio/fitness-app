@@ -18,6 +18,10 @@ import {
 } from '../../../design-system';
 import { ExercisePicker } from '../../workout-planner/presentation/ExercisePicker';
 import { WorkoutSetForm } from './WorkoutSetForm';
+import {
+  formatPlannedWorkoutResult,
+  formatWorkoutResult,
+} from './workout-result-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutSessionUseCases>>;
 type Editor = Readonly<{ exerciseId: string; set?: WorkoutSet }>;
@@ -145,7 +149,7 @@ export function WorkoutSessionScreen({
             {exercise.plannedPrescriptionSnapshot ? (
               <AppText color="secondary">
                 Planned:{' '}
-                {formatPlanned(
+                {formatPlannedWorkoutResult(
                   exercise.plannedPrescriptionSnapshot,
                   unitSystem,
                 )}
@@ -157,7 +161,8 @@ export function WorkoutSessionScreen({
             {exercise.sets.map((set) => (
               <View key={set.id.value} style={styles.setRow}>
                 <AppText>
-                  Set {set.position + 1}: {formatResult(set.result, unitSystem)}
+                  Set {set.position + 1}:{' '}
+                  {formatWorkoutResult(set.result, unitSystem)}
                 </AppText>
                 <AppButton
                   accessibilityLabel={`Edit set ${set.position + 1} for ${exercise.exerciseNameSnapshot}`}
@@ -306,39 +311,6 @@ export function WorkoutSessionScreen({
       />
     </Screen>
   );
-}
-
-function formatResult(result: WorkoutResult, unitSystem: UnitSystem): string {
-  const massUnit = unitSystem === 'metric' ? 'kilogram' : 'pound';
-  const massLabel = unitSystem === 'metric' ? 'kg' : 'lb';
-  const distanceUnit = unitSystem === 'metric' ? 'kilometer' : 'mile';
-  const distanceLabel = unitSystem === 'metric' ? 'km' : 'mi';
-  if (result.kind === 'repetitions') return `${result.repetitions} reps`;
-  if (result.kind === 'resistance-and-repetitions')
-    return `${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}`;
-  if (result.kind === 'duration') return `${result.duration.seconds} sec`;
-  if (result.kind === 'distance')
-    return `${result.distance.in(distanceUnit)} ${distanceLabel}`;
-  return `${result.distance.in(distanceUnit)} ${distanceLabel} in ${result.duration.seconds} sec`;
-}
-
-function formatPlanned(
-  planned: WorkoutSession['exercises'][number]['plannedPrescriptionSnapshot'],
-  unitSystem: UnitSystem,
-): string {
-  if (!planned) return '';
-  const parts = [`${planned.sets} sets`];
-  if ('repetitions' in planned) parts.push(`${planned.repetitions} reps`);
-  if ('resistance' in planned && planned.resistance)
-    parts.push(
-      `${planned.resistance.in(unitSystem === 'metric' ? 'kilogram' : 'pound')} ${unitSystem === 'metric' ? 'kg' : 'lb'}`,
-    );
-  if ('duration' in planned) parts.push(`${planned.duration.seconds} sec`);
-  if ('distance' in planned)
-    parts.push(
-      `${planned.distance.in(unitSystem === 'metric' ? 'kilometer' : 'mile')} ${unitSystem === 'metric' ? 'km' : 'mi'}`,
-    );
-  return parts.join(' · ');
 }
 
 const styles = StyleSheet.create({

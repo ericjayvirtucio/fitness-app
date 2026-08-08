@@ -35,10 +35,22 @@ device, and installed-app validation, but contains no business assertions.
 Local runs have no automatic retries. Maestro's exit status remains authoritative,
 and failure artifacts are written beneath the ignored `artifacts/qa` directory.
 
+Explicit iOS runs self-prepare their target. They reuse one booted simulator or
+select and boot the first available iPhone Simulator reported by `simctl`, open
+Simulator for observation, wait for boot, and use Expo to incrementally build and
+install a Release application bundle. Release avoids making Metro another runtime
+prerequisite. Implicit platform selection retains its ambiguity checks, and Android
+remains pre-provisioned until a separate platform policy is approved.
+
+The wrapper prints a final result summary with setup versus assertion failure,
+duration, device, JUnit counts when produced, and artifact location. It leaves the
+simulator booted so failures can be inspected.
+
 ## Consequences
 
 The harness remains decoupled from React Native internals and requires no test
-instrumentation or committed `ios` and `android` projects. Product and QA readers
+instrumentation or committed `ios` and `android` projects. Explicit iOS runs trade
+additional first-run build time for a single reproducible command. Product and QA readers
 can review concise YAML flows, and Expo/EAS integration remains available later.
 
 UI-created setup is slower than database fixtures, accessibility trees may have

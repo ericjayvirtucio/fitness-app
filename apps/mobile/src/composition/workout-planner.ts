@@ -11,6 +11,7 @@ import {
 } from '../features/workout-planner/application/workout-planner-use-cases';
 import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infrastructure/workout-planner-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
+import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 import { getDatabase, initializePersistence } from './persistence';
 
 export async function createWorkoutPlannerUseCases() {
@@ -27,7 +28,10 @@ export async function createWorkoutPlannerUseCases() {
   );
   return Object.freeze({
     generateId: randomUUID,
-    browseExercises: new BrowseExercisesUseCase(catalog),
+    browseExercises: new BrowseExercisesUseCase(
+      catalog,
+      new WorkoutHistorySqliteRepository(database),
+    ),
     get: new GetPlannedWorkoutUseCase(planner),
     getProfile: new GetProfileUseCase(
       new PersonalProfileSqliteRepository(database),

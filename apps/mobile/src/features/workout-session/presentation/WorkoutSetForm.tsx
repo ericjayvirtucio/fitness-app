@@ -82,6 +82,7 @@ export function WorkoutSetForm({
           keyboardType="number-pad"
           label="Repetitions"
           onChangeText={setRepetitions}
+          testID="workout-set-repetitions-input"
           value={repetitions}
         />
       ) : null}

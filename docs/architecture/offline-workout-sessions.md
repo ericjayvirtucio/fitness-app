@@ -16,9 +16,9 @@ a discriminated actual-result union. Mobile application use cases orchestrate
 clocks, UUIDs, repositories, and transactions. Presentation never accesses SQL.
 
 Only active and completed states persist. Completion requires at least one set
-and an end timestamp at or after start. Completed sessions are read-only in this
-sprint. A partial unique SQLite index and application outcome enforce at most one
-active session.
+and an end timestamp at or after start. Completed sessions are read-only and feed
+the independent Workout History read capability. A partial unique SQLite index
+and application outcome enforce at most one active session.
 
 ## Snapshots and planned versus actual
 
@@ -63,12 +63,14 @@ its epoch time; elapsed time is derived rather than continuously persisted.
 
 ## Experience, privacy, and limitations
 
-Workout exposes Resume, today's planned start, empty start, Weekly Plan, and
-Exercise Library. Expanding cards, contextual set actions, explicit
+Workout exposes Resume, today's planned start, empty start, Weekly Plan, Workout
+History, and Exercise Library. Expanding cards, contextual set actions, explicit
 metric/imperial units, destructive confirmations, and textual planned/actual
 distinctions support gym use and accessibility.
 
 Data remains in the application sandbox. SQL is bound, rows are validated, and
-errors/logs exclude workout details. There is no network, telemetry, analytics,
-AI, or new permission. Encryption, history browsing/correction, analytics,
-advanced sets, timers, export, backup, and synchronization remain deferred.
+errors/logs exclude workout details. There is no network, telemetry, AI, or new
+permission. Read-only history and deterministic progress are described in
+[Offline Workout History](offline-workout-history.md). Encryption, completed
+correction, charts, advanced analytics, advanced sets, timers, export, backup,
+and synchronization remain deferred.

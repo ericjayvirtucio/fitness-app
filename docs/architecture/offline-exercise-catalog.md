@@ -64,8 +64,10 @@ show a warning and require explicit confirmation, but remain legal; similar name
 are independent and never merged.
 
 Favorites persist in the exercise row and can change without editing the pure
-definition. Recents are deliberately absent because creation and editing are not
-exercise usage. Planner or Session must provide a real usage event first.
+definition. Performed recents derive the latest completed Workout Session actual
+set for each source definition UUID. Creation, editing, Planner selection, and
+active sessions are not usage. Current UI resolves only existing Catalog rows;
+historical display remains snapshot-only. No usage metadata is persisted.
 
 ## Edit, delete, and future references
 

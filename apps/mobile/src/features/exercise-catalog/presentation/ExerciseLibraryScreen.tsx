@@ -30,6 +30,7 @@ type State =
       useCases: UseCases;
       all: readonly ExerciseCatalogItem[];
       favorites: readonly ExerciseCatalogItem[];
+      recents: readonly ExerciseCatalogItem[];
       search: readonly ExerciseCatalogItem[];
     };
 
@@ -48,11 +49,19 @@ export function ExerciseLibraryScreen({
     setState({ status: 'loading' });
     void loadUseCases()
       .then(async (useCases) => {
-        const [all, favorites] = await Promise.all([
+        const [all, favorites, recents] = await Promise.all([
           useCases.browse.listAll(),
           useCases.browse.listFavorites(),
+          useCases.browse.listRecentlyPerformed(),
         ]);
-        setState({ all, favorites, search: [], status: 'ready', useCases });
+        setState({
+          all,
+          favorites,
+          recents,
+          search: [],
+          status: 'ready',
+          useCases,
+        });
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
@@ -141,6 +150,14 @@ export function ExerciseLibraryScreen({
               title="Favorites"
             />
           ) : null}
+          {query.trim() === '' && state.recents.length > 0 ? (
+            <ExerciseSection
+              items={state.recents}
+              onEdit={onEdit}
+              onFavorite={(item) => void toggle(item)}
+              title="Recently performed"
+            />
+          ) : null}
           <ExerciseSection
             items={results}
             onEdit={onEdit}
@@ -174,18 +191,19 @@ function ExerciseSection({
         items.map((item) => {
           const exercise = item.definition;
           return (
-            <Card
-              accessibilityLabel={`Edit ${exercise.name}`}
-              key={exercise.id.value}
-              onPress={() => onEdit(exercise.id.value)}
-              variant="outlined"
-            >
+            <Card key={exercise.id.value} variant="outlined">
               <AppText variant="heading">{exercise.name}</AppText>
               <AppText color="secondary">
                 {labelFor(equipmentOptions, exercise.equipment)} ·{' '}
                 {labelFor(muscleOptions, exercise.primaryMuscleGroup)} ·{' '}
                 {labelFor(loggingModeOptions, exercise.loggingMode)}
               </AppText>
+              <AppButton
+                accessibilityLabel={`Edit ${exercise.name}`}
+                label="Edit exercise"
+                onPress={() => onEdit(exercise.id.value)}
+                variant="outline"
+              />
               <AppButton
                 accessibilityLabel={`${item.isFavorite ? 'Remove' : 'Add'} ${exercise.name} ${item.isFavorite ? 'from' : 'to'} favorites`}
                 label={item.isFavorite ? 'Remove favorite' : 'Add favorite'}

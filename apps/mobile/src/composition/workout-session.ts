@@ -14,6 +14,7 @@ import { GetProfileUseCase } from '../features/personal-profile/application/get-
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import { getDatabase, initializePersistence } from './persistence';
+import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 
 export async function createWorkoutSessionUseCases() {
   await initializePersistence();
@@ -28,6 +29,7 @@ export async function createWorkoutSessionUseCases() {
   return Object.freeze({
     browseExercises: new BrowseExercisesUseCase(
       new ExerciseCatalogSqliteRepository(database),
+      new WorkoutHistorySqliteRepository(database),
     ),
     discard: new DiscardWorkoutSessionUseCase(sessions),
     finish: new FinishWorkoutSessionUseCase(runner, now),

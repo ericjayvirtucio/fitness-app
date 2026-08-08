@@ -12,9 +12,10 @@ Maestro paths or encode product assertions in the shell wrapper.
 - an Android Emulator with `adb` on `PATH`
 
 Use a repository-built application rather than Expo Go. Generated `ios` and
-`android` projects remain ignored. Build and install the application with Expo's
-local native commands, and keep Metro running when the selected debug build
-requires it.
+`android` projects remain ignored. Explicit iOS execution builds and installs the
+current Release app automatically and does not require Metro. Android and implicit
+platform execution still require a prepared installed app; debug builds may need
+Metro.
 
 Install Maestro using its official installation guidance, then confirm the
 expected version:
@@ -36,12 +37,20 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh regression
 ./scripts/qa.sh sprint 13 --platform ios
 ./scripts/qa.sh sprint 13 --platform android
+./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
-Without `--platform`, exactly one platform must have an active virtual device.
-Without `--device`, exactly one virtual device may be active on that platform.
-The wrapper refuses ambiguous selection and never creates or erases a device.
+Without `--platform`, exactly one platform must have an active virtual device and
+the app must already be installed. The wrapper refuses ambiguous implicit
+selection.
+
+With explicit `--platform ios`, the wrapper reuses one booted simulator or selects
+the first available iPhone Simulator in `simctl` order, boots it, opens Simulator,
+waits for boot, and incrementally builds/installs the current Release app. Pass
+`--device <simulator-udid>` to choose a different available iPhone or resolve
+multiple booted devices. The wrapper never creates, erases, or installs a simulator
+runtime and leaves the simulator booted for inspection.
 
 Every suite currently starts with `clearState: true`. Running it permanently
 removes the data stored by `com.fitnessapp.dev` on that selected simulator or
@@ -61,9 +70,9 @@ at startup, so running it separately before every suite is unnecessary.
 - Shared flows contain only cross-feature mechanics.
 - A platform-specific flow is justified only by observed native behavior.
 
-Sprint suites exist for the repository's manual QA sources: Sprints 6 and 8–13.
-Sprints 5 and 7 deliberately return an unsupported-suite error because no manual
-QA specification exists for them.
+Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
+and 15. Sprints 5, 7, and 14 deliberately return an unsupported-suite error
+because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
 do not add database fixtures, deep-link seeders, network services, or production
@@ -102,7 +111,13 @@ The directory is ignored by Git. Evidence must contain only synthetic data and
 must not include database dumps, personal identifiers, or real fitness values.
 
 If no device is detected, boot one and confirm `xcrun simctl list devices booted`
-or `adb devices`. If the app is absent, build and install it before rerunning.
+or `adb devices`. For explicit iOS, confirm Xcode contains an available iPhone
+Simulator runtime; the wrapper handles boot and app installation. For Android or
+implicit selection, build and install the app before rerunning.
+
+Every run prints a final result summary with setup/assertion status, suite, target,
+duration, exit status, JUnit pass/fail/error/skip counts when available, and the
+artifact path. A failed iOS build writes `preparation.log` beside the QA artifacts.
 If a selector differs by platform, inspect the Maestro hierarchy and first fix
 missing accessibility semantics. Add a narrow platform override only when the
 underlying native behavior is genuinely different.
