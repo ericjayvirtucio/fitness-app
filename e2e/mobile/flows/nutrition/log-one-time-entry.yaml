@@ -5,7 +5,7 @@ appId: com.fitnessapp.dev
 - assertVisible: Nutrition
 - tapOn: Add food or beverage
 - tapOn: Enter one-time item
-- assertVisible: Add nutrition
+- assertVisible: Add food or beverage
 - tapOn: Description
 - inputText: E2E Banana
 - tapOn: Reference amount (grams)

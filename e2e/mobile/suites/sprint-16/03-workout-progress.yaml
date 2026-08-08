@@ -5,6 +5,8 @@ name: Completed actual workout appears in progress
     clearState: true
 - runFlow: ../../flows/exercise/create-exercise.yaml
 - runFlow: ../../flows/workout/complete-and-review-history.yaml
+- stopApp
+- launchApp
 - tapOn:
     id: tab-progress
 - scrollUntilVisible:

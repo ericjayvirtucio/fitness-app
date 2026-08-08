@@ -35,6 +35,19 @@ EOF
     'available iOS selection includes iPhones only in simctl order'
 }
 
+test_doctor_survives_failing_maestro() {
+  maestro() {
+    printf 'synthetic maestro failure\n' >&2
+    return 1
+  }
+  local output
+  output="$(print_doctor)"
+  unset -f maestro
+  assert_equal 'Maestro: synthetic maestro failure' \
+    "$(printf '%s\n' "${output}" | sed -n '1p')" \
+    'doctor reports an installed but failing Maestro command'
+}
+
 test_junit_summary() {
   local temporary_directory
   temporary_directory="$(mktemp -d)"
@@ -96,6 +109,7 @@ EOF
 }
 
 test_extract_available_ios_devices
+test_doctor_survives_failing_maestro
 test_junit_summary
 test_sprint_15_resolution
 test_sprint_16_resolution

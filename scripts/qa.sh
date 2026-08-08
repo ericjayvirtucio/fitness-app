@@ -63,7 +63,9 @@ print_doctor() {
   local ios_devices='none'
   local android_devices='none'
 
-  if has_command maestro; then maestro_status="$(maestro --version 2>&1 | head -n 1)"; fi
+  if has_command maestro; then
+    maestro_status="$(maestro --version 2>&1 | head -n 1 || true)"
+  fi
   if has_command xcrun; then ios_tool_status='available'; fi
   if has_command adb; then android_tool_status='available'; fi
 
