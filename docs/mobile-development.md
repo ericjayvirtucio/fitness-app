@@ -83,9 +83,15 @@ suite from the repository root:
 ./scripts/qa.sh regression
 ```
 
-Build and install the application with Expo's local native commands first. Keep
-Metro running when the installed debug build requires it. Generated `ios` and
-`android` projects remain ignored.
+An explicit iOS command is self-preparing: it reuses one booted simulator or boots
+the first available iPhone Simulator, opens Simulator, waits for boot, and
+incrementally builds and installs a Release app. The Release bundle does not need
+Metro. The first run can take several minutes; later Xcode builds reuse caches.
+
+Android and commands without an explicit platform retain the pre-provisioned
+target contract. Build/install their application first and keep Metro running when
+the installed debug build requires it. Generated `ios` and `android` projects
+remain ignored.
 
 Every suite clears the selected application's sandbox, including
 `fitness-app.db`, before it begins. Use a disposable target; the wrapper does not
@@ -174,7 +180,11 @@ Run commands from the repository root and use the pinned pnpm version. Do not ru
 
 ### The iOS Simulator does not open
 
-Open Xcode once to accept its license and install components. Verify the active command-line tools with `xcode-select -p`, open Simulator manually, and retry the Expo command. On a non-macOS host, use a physical device or defer iOS verification to macOS.
+Open Xcode once to accept its license and install an iOS Simulator runtime. Verify
+the active command-line tools with `xcode-select -p`, then rerun an explicit iOS
+QA command. The wrapper opens Simulator automatically. If several simulators are
+already booted, pass `--device <udid>`. On a non-macOS host, defer iOS verification
+to macOS.
 
 ### Android does not open
 

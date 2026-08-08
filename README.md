@@ -55,8 +55,10 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ```
 
 These suites clear `com.fitnessapp.dev` data on the selected virtual device.
-Build and install the app first, use a disposable simulator or emulator, and read
-the [mobile E2E guide](e2e/mobile/README.md) before running them.
+Explicit iOS runs boot an available iPhone Simulator and build/install the current
+Release app automatically. Android and implicit-platform runs still require a
+prepared target. Use a disposable simulator or emulator and read the
+[mobile E2E guide](e2e/mobile/README.md) before running them.
 
 Run one application with a workspace filter:
 
