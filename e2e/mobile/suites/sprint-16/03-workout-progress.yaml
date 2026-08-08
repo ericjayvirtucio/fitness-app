@@ -11,8 +11,14 @@ name: Completed actual workout appears in progress
     id: tab-progress
 - scrollUntilVisible:
     element:
-      text: Workouts
+      text: Completed workouts, 1
     direction: DOWN
 - assertVisible: Completed workouts, 1
-- assertVisible: Actual sets, 1
-- assertVisible: Repetitions, 12
+- scrollUntilVisible:
+    element:
+      text: Actual sets, 1
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: Repetitions, 12
+    direction: DOWN

@@ -16,7 +16,8 @@ appId: com.fitnessapp.dev
     element:
       text: Consumed amount (grams)
     direction: DOWN
-- tapOn: Consumed amount (grams)
+- tapOn:
+    id: nutrition-consumed-amount-input
 - inputText: '100'
 - scrollUntilVisible:
     element:

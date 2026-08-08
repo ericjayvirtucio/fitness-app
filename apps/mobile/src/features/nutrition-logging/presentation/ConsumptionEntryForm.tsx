@@ -167,6 +167,7 @@ export function ConsumptionEntryForm({
         keyboardType="decimal-pad"
         label={`Consumed amount (${unit})`}
         onChangeText={(value) => set('consumedAmount', value)}
+        testID="nutrition-consumed-amount-input"
         value={values.consumedAmount}
       />
       <TextField
