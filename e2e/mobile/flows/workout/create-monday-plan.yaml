@@ -1,0 +1,26 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-workout
+- tapOn:
+    id: weekday-card-monday
+- assertVisible: Plan Monday
+- tapOn: Workout name
+- inputText: E2E Push Day
+- tapOn: Add exercise
+- tapOn: Add E2E Push-up
+- tapOn: Sets
+- inputText: '3'
+- tapOn: Repetitions
+- inputText: '8'
+- scrollUntilVisible:
+    element:
+      text: Save workout
+    direction: DOWN
+- tapOn: Save workout
+- assertVisible: E2E Push Day
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- assertVisible: E2E Push Day

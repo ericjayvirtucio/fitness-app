@@ -1,0 +1,15 @@
+appId: com.fitnessapp.dev
+name: Mobile smoke
+---
+- launchApp:
+    clearState: true
+- runFlow: ../flows/shared/assert-primary-navigation.yaml
+- tapOn: Add fluid
+- tapOn: 500 mL
+- scrollUntilVisible:
+    element:
+      text: Save fluid
+    direction: DOWN
+- tapOn: Save fluid
+- assertVisible: 500 mL
+- runFlow: ../flows/workout/empty-session-lifecycle.yaml

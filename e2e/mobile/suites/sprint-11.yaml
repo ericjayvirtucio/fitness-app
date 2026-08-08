@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Sprint 11 offline exercise catalog
+---
+- launchApp:
+    clearState: true
+- runFlow: ../flows/exercise/create-exercise.yaml

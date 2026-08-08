@@ -1,0 +1,23 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-today
+- assertVisible: Hydration
+- tapOn: Set daily target
+- tapOn: Liters (L)
+- tapOn: Target (L)
+- inputText: '3'
+- tapOn: Save daily target
+- assertVisible: 3 L remaining of 3 L
+- tapOn: Add fluid
+- tapOn: 500 mL
+- scrollUntilVisible:
+    element:
+      text: Save fluid
+    direction: DOWN
+- tapOn: Save fluid
+- assertVisible: 500 mL
+- stopApp
+- launchApp
+- assertVisible: 500 mL
+- assertVisible: 2.5 L remaining of 3 L

@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-workout
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+- tapOn: Create exercise
+- tapOn: Exercise name
+- inputText: E2E Push-up
+- tapOn: Bodyweight
+- tapOn: Chest
+- tapOn: Bodyweight + reps
+- scrollUntilVisible:
+    element:
+      text: Save exercise
+    direction: DOWN
+- tapOn: Save exercise
+- assertVisible: E2E Push-up
+- tapOn: Add E2E Push-up to favorites
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- tapOn: Open Exercise Library
+- assertVisible: E2E Push-up

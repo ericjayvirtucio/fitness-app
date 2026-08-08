@@ -1,0 +1,34 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-profile
+- assertVisible: Personal profile
+- tapOn: Height (cm)
+- inputText: '175'
+- tapOn: Weight (kg)
+- inputText: '75'
+- tapOn: Date of birth
+- inputText: '1990-06-15'
+- tapOn: Male
+- tapOn: Moderately active
+- scrollUntilVisible:
+    element:
+      text: Save profile
+    direction: DOWN
+- tapOn: Save profile
+- assertVisible: Profile saved successfully.
+- tapOn: Open goals and energy
+- assertVisible: Goals and energy
+- tapOn: Maintain weight
+- scrollUntilVisible:
+    element:
+      text: Save goal
+    direction: DOWN
+- tapOn: Save goal
+- assertVisible: Goal saved successfully.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-profile
+- assertVisible: '175'
+- assertVisible: '75'

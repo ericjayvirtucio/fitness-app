@@ -1,0 +1,18 @@
+appId: com.fitnessapp.dev
+---
+- assertVisible:
+    id: tab-today
+- assertVisible:
+    id: tab-nutrition
+- assertVisible:
+    id: tab-workout
+- assertVisible:
+    id: tab-progress
+- assertVisible:
+    id: tab-profile
+- tapOn:
+    id: tab-progress
+- assertVisible: Progress
+- tapOn:
+    id: tab-today
+- assertVisible: Hydration
