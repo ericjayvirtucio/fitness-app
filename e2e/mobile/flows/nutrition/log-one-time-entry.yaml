@@ -9,7 +9,6 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-description-input
 - inputText: E2E Banana
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: nutrition-reference-amount-input
@@ -17,7 +16,6 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-reference-amount-input
 - inputText: '100'
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: nutrition-energy-input
@@ -25,7 +23,6 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-energy-input
 - inputText: '89'
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: nutrition-consumed-amount-input
@@ -33,7 +30,6 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-consumed-amount-input
 - inputText: '100'
-- hideKeyboard
 - scrollUntilVisible:
     element:
       text: Save entry
