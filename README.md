@@ -14,8 +14,10 @@ Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
 Workout Sessions with individual actual-set logging and restart recovery. It
 also provides bounded completed Workout History, read-only snapshot detail,
 deterministic Day/Week/Month progress summaries, per-exercise history foundations,
-and performed-exercise recents. It intentionally contains no authentication,
-synchronization, advanced analytics, notifications, or AI integration.
+and performed-exercise recents. The Progress tab derives text-first Nutrition,
+Hydration, and completed-workout summaries for Today, This Week, and This Month.
+It intentionally contains no authentication, synchronization, cloud analytics,
+notifications, or AI integration.
 
 ## Prerequisites
 
@@ -51,6 +53,7 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
+./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -111,11 +114,14 @@ Workout execution, snapshots, results, and recovery are documented in
 [docs/architecture/offline-workout-sessions.md](docs/architecture/offline-workout-sessions.md).
 Completed history, progress semantics, pagination, and performed recents are in
 [docs/architecture/offline-workout-history.md](docs/architecture/offline-workout-history.md).
+Cross-capability period summaries, missing-data semantics, and Progress ownership
+are documented in
+[docs/architecture/offline-progress-analytics.md](docs/architecture/offline-progress-analytics.md).
 
 ## Current status
 
-Sprint 15: Workout History and Progress Foundation. Schema version 10 adds only
-history query indexes over authoritative completed-session snapshots. History,
-read-only detail, bounded deterministic summaries, and performed recents are
-available. Correction, PR claims, charts, advanced analytics, timers, calendar
-programming, cloud behavior, and AI remain deferred.
+Sprint 16: Progress Analytics and Human-Readable QA Reporting. Progress derives
+local-calendar Nutrition, Hydration, and completed-workout summaries without a
+schema migration. Maestro runs now retain raw JUnit and produce scenario-level
+terminal, text, and JSON reports. Weight/goal trends, target adherence, charts,
+cloud behavior, external analytics, coaching, and AI remain deferred.

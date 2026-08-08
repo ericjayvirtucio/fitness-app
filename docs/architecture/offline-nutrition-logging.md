@@ -73,6 +73,11 @@ editing, and display.
 Domain arithmetic retains full precision. Presentation rounds energy to whole
 kilocalories and nutrients to at most one decimal place.
 
+Progress range summaries are exposed through a Nutrition-owned reader. SQLite
+groups the bounded local-date range and returns entry counts, energy, macro sums,
+and known-value counts. The Progress application layer uses those counts to keep
+unknown optional nutrients distinct from zero and to average only logged days.
+
 ## Failure, privacy, and limitations
 
 Validation errors are field-addressable and safe. Read, write, and delete failures

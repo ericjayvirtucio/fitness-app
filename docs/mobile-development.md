@@ -80,6 +80,7 @@ suite from the repository root:
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
+./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -159,6 +160,15 @@ current Catalog definitions. See
 [Workout History architecture](architecture/offline-workout-history.md), the
 [Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md), and
 [troubleshooting guidance](troubleshooting/offline-workout-history.md).
+
+## Offline Progress analytics
+
+The Progress tab combines bounded, capability-owned Nutrition, Hydration, and
+completed-workout readers. It derives Today, Sunday-to-Saturday week, and calendar
+month summaries from captured local dates without persisted rollups. See the
+[offline Progress architecture](architecture/offline-progress-analytics.md), the
+[Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md), and
+the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
 
 ## Troubleshooting
 
