@@ -11,21 +11,21 @@ appId: com.fitnessapp.dev
 - inputText: E2E Banana
 - scrollUntilVisible:
     element:
-      id: nutrition-reference-amount-input
+      text: Reference amount (grams)
     direction: DOWN
 - tapOn:
     id: nutrition-reference-amount-input
 - inputText: '100'
 - scrollUntilVisible:
     element:
-      id: nutrition-energy-input
+      text: Energy per reference (kcal)
     direction: DOWN
 - tapOn:
     id: nutrition-energy-input
 - inputText: '89'
 - scrollUntilVisible:
     element:
-      id: nutrition-consumed-amount-input
+      text: Consumed amount (grams)
     direction: DOWN
 - tapOn:
     id: nutrition-consumed-amount-input
