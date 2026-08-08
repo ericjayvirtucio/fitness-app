@@ -24,8 +24,16 @@ The wrapper validates its arguments, Maestro, platform tools, a single selected
 virtual device, the installed `com.fitnessapp.dev` application, and suite files.
 It prints the resolved run context, streams Maestro diagnostics, preserves
 Maestro's status, and exits non-zero for invalid configuration or failed QA. It
-does not install tools, build the application, start Metro, create devices, erase
-an entire device, or encode product assertions.
+does not install tools, create devices, erase an entire device, or encode product
+assertions.
+
+When `--platform ios` is explicit, the wrapper self-prepares the local native
+target. It reuses the single booted iOS Simulator or deterministically selects
+and boots the first available iPhone Simulator reported by `simctl`, opens the
+Simulator application, waits for boot completion, and incrementally builds and
+installs the current application with Expo's Release configuration. The embedded
+Release bundle avoids a Metro prerequisite. Automatic preparation never applies
+when platform selection is implicit and does not yet apply to Android.
 
 ## Flows and suites
 
@@ -63,12 +71,20 @@ for documented startup boundaries.
 
 The target is the repository-built application with the existing iOS bundle and
 Android package identifier `com.fitnessapp.dev`. Expo-generated `ios` and
-`android` directories remain ignored. Developers build and install the app before
-running QA and start Metro when their debug build requires it.
+`android` directories remain ignored. Explicit iOS runs build and install a
+Release app automatically. Android remains pre-provisioned, and manually installed
+debug builds may require Metro.
 
 Local execution is serial. The wrapper uses one explicitly selected or
-unambiguous booted simulator/emulator and refuses to choose silently among
-multiple targets. Physical devices and web are excluded.
+unambiguous booted simulator/emulator. Explicit iOS execution may select the
+documented default when none is booted; a supplied device identifier remains
+authoritative. Implicit platform selection continues to refuse ambiguity.
+Physical devices and web are excluded.
+
+After execution, the wrapper reports suite, preparation result, device, elapsed
+time, Maestro status, JUnit pass/fail/error/skip counts when available, and the
+artifact path. Build/setup failures are distinguished from product assertion
+failures. The simulator remains booted for inspection.
 
 Maestro diagnostics, reports, screenshots, and view-hierarchy evidence belong
 beneath `artifacts/qa`, which is ignored by Git. Artifacts use only synthetic test
@@ -112,9 +128,13 @@ checks must remain green.
 ## Explicit exclusions
 
 Web E2E, physical-device automation, CI workflow creation, cloud accounts,
-multiple E2E frameworks, pixel-diff visual regression, automatic tool or device
-installation, committed native projects, privileged fixture APIs, historical
+multiple E2E frameworks, pixel-diff visual regression, automatic tool or simulator
+runtime installation, committed native projects, privileged fixture APIs, historical
 database fixtures, and exhaustive automation of every manual QA row are excluded.
 
 The repository owner approved the Stage 1 design and requested staged,
 commit-by-commit implementation on 2026-08-08.
+
+The repository owner approved explicit-iOS self-preparation and one-command
+execution as an amendment on 2026-08-08. Android and web preparation remain
+deferred to their own reviewed platform policies.
