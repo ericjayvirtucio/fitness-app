@@ -40,9 +40,14 @@ type SummaryRow = Readonly<{
 
 type ExercisePerformanceRow = Readonly<{
   actual_set_count: number;
+  distance_millimeters: number | null;
+  duration_seconds: number | null;
   exercise_name_snapshot: string;
   id: string;
   logging_mode_snapshot: ExerciseLoggingMode;
+  maximum_resistance_grams: number | null;
+  recorded_load_volume: number | null;
+  repetitions: number | null;
   session_id: string;
   session_name_snapshot: string;
   started_at_epoch_ms: number;
@@ -214,7 +219,16 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
           session.display_name AS session_name_snapshot,
           session.started_at_epoch_ms, session.started_local_calendar_date,
           exercise.exercise_name_snapshot, exercise.logging_mode_snapshot,
-          COUNT(actual.id) AS actual_set_count
+          COUNT(actual.id) AS actual_set_count,
+          SUM(actual.repetitions) AS repetitions,
+          MAX(actual.resistance_grams) AS maximum_resistance_grams,
+          SUM(actual.duration_seconds) AS duration_seconds,
+          SUM(actual.distance_millimeters) AS distance_millimeters,
+          SUM(CASE WHEN exercise.logging_mode_snapshot IN (
+            'external-load-and-repetitions',
+            'bodyweight-plus-load-and-repetitions'
+          ) THEN actual.resistance_grams * actual.repetitions END)
+            AS recorded_load_volume
         FROM workout_session_exercise exercise
         JOIN workout_session session ON session.id = exercise.workout_session_id
         JOIN workout_set actual
@@ -289,8 +303,15 @@ function mapExercisePerformanceRow(
     return corrupt();
   return Object.freeze({
     actualSetCount: nonnegativeInteger(row.actual_set_count),
+    distanceMillimeters: nullableNonnegative(row.distance_millimeters),
+    durationSeconds: nullableNonnegative(row.duration_seconds),
     exerciseNameSnapshot: row.exercise_name_snapshot,
     loggingModeSnapshot: row.logging_mode_snapshot,
+    maximumResistanceGrams: nullableNonnegative(row.maximum_resistance_grams),
+    recordedLoadVolumeGramRepetitions: nullableNonnegative(
+      row.recorded_load_volume,
+    ),
+    repetitions: nullableNonnegative(row.repetitions),
     sessionId: requiredId(row.session_id),
     sessionNameSnapshot: row.session_name_snapshot,
     startedAtEpochMilliseconds: nonnegativeInteger(row.started_at_epoch_ms),

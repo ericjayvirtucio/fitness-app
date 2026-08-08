@@ -8,6 +8,8 @@ import {
 import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
+import { BrowseExercisesUseCase } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
+import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
 import { getDatabase, initializePersistence } from './persistence';
 
 export async function createWorkoutHistoryUseCases() {
@@ -25,6 +27,10 @@ export async function createWorkoutHistoryUseCases() {
       repository,
     ),
     listRecentExerciseIds: new ListRecentlyPerformedExerciseIdsUseCase(
+      repository,
+    ),
+    browseRecentExercises: new BrowseExercisesUseCase(
+      new ExerciseCatalogSqliteRepository(database),
       repository,
     ),
   });

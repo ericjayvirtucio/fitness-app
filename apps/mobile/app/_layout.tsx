@@ -34,6 +34,7 @@ export default function RootLayout() {
           <Stack.Screen name="workout-session/active" />
           <Stack.Screen name="workout-history/index" />
           <Stack.Screen name="workout-history/[id]" />
+          <Stack.Screen name="workout-history/exercise/[id]" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

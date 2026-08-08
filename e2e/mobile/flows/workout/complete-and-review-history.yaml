@@ -37,6 +37,11 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Workout History
 - assertVisible: Workout
-- tapOn:
-    id: completed-workout-card
+- scrollUntilVisible:
+    element:
+      text: Exercise progress
+    direction: DOWN
+- tapOn: E2E Push-up
+- assertVisible: 12 repetitions
+- tapOn: Workout
 - assertVisible: 'Performed set 1: 12 reps'

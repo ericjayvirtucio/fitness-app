@@ -4,6 +4,7 @@ import { WorkoutHistoryScreen } from '../../src/features/workout-history/present
 export default function WorkoutHistoryRoute() {
   return (
     <WorkoutHistoryScreen
+      onOpenExercise={(id) => router.push(`/workout-history/exercise/${id}`)}
       onOpenSession={(id) => router.push(`/workout-history/${id}`)}
     />
   );

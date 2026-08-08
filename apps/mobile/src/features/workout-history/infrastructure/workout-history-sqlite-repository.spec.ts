@@ -2,6 +2,7 @@ import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
+import { DomainId } from '@fitness/domain';
 import { WorkoutHistorySqliteRepository } from './workout-history-sqlite-repository';
 
 class FakeDatabase implements DatabaseConnection {
@@ -124,6 +125,40 @@ describe('WorkoutHistorySqliteRepository', () => {
     expect(database.lastStatement).toContain("session.status = 'completed'");
     expect(database.lastStatement).toContain('JOIN workout_set');
     expect(database.lastParameters).toEqual([10]);
+  });
+
+  it('projects mode-specific exercise performance from actual sets', async () => {
+    const database = new FakeDatabase();
+    database.allRows = [
+      {
+        actual_set_count: 2,
+        distance_millimeters: null,
+        duration_seconds: null,
+        exercise_name_snapshot: 'Bench Press',
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        logging_mode_snapshot: 'external-load-and-repetitions',
+        maximum_resistance_grams: 60_000,
+        recorded_load_volume: 960_000,
+        repetitions: 16,
+        session_id: historyRow.id,
+        session_name_snapshot: 'Push Day',
+        started_at_epoch_ms: historyRow.started_at_epoch_ms,
+        started_local_calendar_date: '2026-08-08',
+      },
+    ];
+    const definitionId = DomainId.create(
+      '550e8400-e29b-41d4-a716-446655440009',
+    );
+    if (!definitionId.isSuccess) throw new Error('Invalid fixture');
+    const page = await new WorkoutHistorySqliteRepository(
+      database,
+    ).listExercisePerformancePage(definitionId.value, { limit: 20 });
+    expect(page.items[0]).toMatchObject({
+      maximumResistanceGrams: 60_000,
+      recordedLoadVolumeGramRepetitions: 960_000,
+      repetitions: 16,
+    });
+    expect(database.lastStatement).toContain('SUM(actual.repetitions)');
   });
 
   it('rejects corrupt projected history safely', async () => {

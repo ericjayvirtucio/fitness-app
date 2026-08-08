@@ -52,8 +52,13 @@ export type WorkoutProgressSummary = Readonly<{
 
 export type ExercisePerformanceItem = Readonly<{
   actualSetCount: number;
+  distanceMillimeters: number | null;
+  durationSeconds: number | null;
   exerciseNameSnapshot: string;
   loggingModeSnapshot: WorkoutSession['exercises'][number]['loggingModeSnapshot'];
+  maximumResistanceGrams: number | null;
+  recordedLoadVolumeGramRepetitions: number | null;
+  repetitions: number | null;
   sessionId: DomainId;
   sessionNameSnapshot: string;
   startedAtEpochMilliseconds: number;

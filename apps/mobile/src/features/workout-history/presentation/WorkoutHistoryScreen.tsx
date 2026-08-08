@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import type { UnitSystem } from '@fitness/domain';
+import type { ExerciseCatalogItem } from '../../exercise-catalog/application/exercise-catalog-item';
 import { createWorkoutHistoryUseCases } from '../../../composition/workout-history';
 import {
   AppButton,
@@ -29,6 +30,7 @@ import { formatDuration } from '../../workout-session/presentation/workout-resul
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
 type ReadyState = Readonly<{
   page: WorkoutHistoryPage;
+  recentExercises: readonly ExerciseCatalogItem[];
   summary: WorkoutProgressSummary;
   unitSystem: UnitSystem;
   useCases: UseCases;
@@ -37,9 +39,11 @@ type ReadyState = Readonly<{
 export function WorkoutHistoryScreen({
   loadUseCases = createWorkoutHistoryUseCases,
   onOpenSession,
+  onOpenExercise,
 }: Readonly<{
   loadUseCases?: () => Promise<UseCases>;
   onOpenSession: (id: string) => void;
+  onOpenExercise: (id: string) => void;
 }>) {
   const [anchor, setAnchor] = useState(() => new Date());
   const [period, setPeriod] = useState<WorkoutHistoryPeriod>('week');
@@ -53,13 +57,15 @@ export function WorkoutHistoryScreen({
     setError(undefined);
     void loadUseCases()
       .then(async (useCases) => {
-        const [page, summary, profile] = await Promise.all([
+        const [page, summary, profile, recentExercises] = await Promise.all([
           useCases.list.execute(),
           useCases.getSummary.execute(periodDetails.range),
           useCases.getProfile.execute(),
+          useCases.browseRecentExercises.listRecentlyPerformed(),
         ]);
         setReady({
           page,
+          recentExercises,
           summary,
           unitSystem: profile?.preferredUnitSystem ?? 'metric',
           useCases,
@@ -191,6 +197,22 @@ export function WorkoutHistoryScreen({
           onPress={loadMore}
           variant="outline"
         />
+      ) : null}
+      {ready.recentExercises.length > 0 ? (
+        <View style={{ gap: spacing.md }}>
+          <SectionHeader title="Exercise progress" />
+          {ready.recentExercises.map((item) => (
+            <Card
+              accessibilityLabel={`Open performance history for ${item.definition.name}`}
+              key={item.definition.id.value}
+              onPress={() => onOpenExercise(item.definition.id.value)}
+              variant="outlined"
+            >
+              <AppText variant="heading">{item.definition.name}</AppText>
+              <AppText color="secondary">Review performed sessions</AppText>
+            </Card>
+          ))}
+        </View>
       ) : null}
     </Screen>
   );

@@ -32,6 +32,9 @@ describe('WorkoutHistoryScreen', () => {
       <WorkoutHistoryScreen
         loadUseCases={() =>
           Promise.resolve({
+            browseRecentExercises: {
+              listRecentlyPerformed: () => Promise.resolve([]),
+            },
             getProfile: { execute: () => Promise.resolve(null) },
             getSummary: {
               execute: () =>
@@ -69,6 +72,7 @@ describe('WorkoutHistoryScreen', () => {
           } as never)
         }
         onOpenSession={onOpenSession}
+        onOpenExercise={jest.fn()}
       />,
     );
 
@@ -90,6 +94,9 @@ describe('WorkoutHistoryScreen', () => {
       <WorkoutHistoryScreen
         loadUseCases={() =>
           Promise.resolve({
+            browseRecentExercises: {
+              listRecentlyPerformed: () => Promise.resolve([]),
+            },
             getProfile: { execute: () => Promise.resolve(null) },
             getSummary: {
               execute: () =>
@@ -110,6 +117,7 @@ describe('WorkoutHistoryScreen', () => {
           } as never)
         }
         onOpenSession={jest.fn()}
+        onOpenExercise={jest.fn()}
       />,
     );
     await waitFor(() =>
