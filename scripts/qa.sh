@@ -88,16 +88,18 @@ resolve_suite() {
 
   case "${command_name}" in
     reset) printf '%s/reset.yaml\n' "${suite_root}" ;;
-    smoke | regression) printf '%s/%s.yaml\n' "${suite_root}" "${command_name}" ;;
+    smoke) printf '%s/smoke.yaml\n' "${suite_root}" ;;
+    regression) printf '%s/regression\n' "${suite_root}" ;;
     sprint)
       case "${sprint_number}" in
         6 | 8 | 9 | 10 | 11 | 12 | 13 | 15)
           printf '%s/sprint-%s.yaml\n' "${suite_root}" "${sprint_number}"
           ;;
+        16) printf '%s/sprint-16\n' "${suite_root}" ;;
         5 | 7)
           fail "Sprint ${sprint_number} has no repository manual QA specification."
           ;;
-        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15." ;;
+        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15, 16." ;;
       esac
       ;;
     *) fail "Unknown suite '${command_name}'." ;;
@@ -313,7 +315,7 @@ main() {
 
   local suite_path
   suite_path="$(resolve_suite "${command_name}" "${sprint_number}")"
-  [[ -f "${suite_path}" ]] || fail "Suite file is missing: ${suite_path}"
+  [[ -e "${suite_path}" ]] || fail "Suite is missing: ${suite_path}"
   has_command maestro || fail 'Maestro is not installed. Run ./scripts/qa.sh doctor for details.'
 
   local run_started_epoch_seconds
@@ -369,20 +371,40 @@ main() {
   local maestro_status="${PIPESTATUS[0]}"
   set -o errexit
 
-  if [[ "${maestro_status}" -eq 0 ]]; then
+  local report_status=0
+  if [[ -f "${artifact_directory}/junit.xml" ]]; then
+    node "${script_dir}/qa-report.mjs" \
+      "${artifact_directory}/junit.xml" \
+      "${artifact_directory}/report.txt" \
+      "${artifact_directory}/report.json" \
+      "${suite_name}" \
+      "${selected_platform}" \
+      "${selected_device}" \
+      "${artifact_directory}" || report_status="$?"
+  else
+    printf 'QA report error: Maestro produced no JUnit report.\n' >&2
+    report_status=65
+  fi
+
+  local final_status="${maestro_status}"
+  if [[ "${final_status}" -eq 0 && "${report_status}" -ne 0 ]]; then
+    final_status="${report_status}"
+  fi
+
+  if [[ "${final_status}" -eq 0 ]]; then
     print_result_summary \
       'PASSED' \
-      "${maestro_status}" \
+      "${final_status}" \
       "${run_started_epoch_seconds}" \
       "${artifact_directory}"
   else
     print_result_summary \
       'FAILED' \
-      "${maestro_status}" \
+      "${final_status}" \
       "${run_started_epoch_seconds}" \
       "${artifact_directory}" >&2
   fi
-  exit "${maestro_status}"
+  exit "${final_status}"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

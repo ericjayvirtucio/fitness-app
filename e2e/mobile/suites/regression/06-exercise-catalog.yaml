@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Exercise catalog
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml

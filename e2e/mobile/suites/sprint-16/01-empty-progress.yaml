@@ -1,0 +1,13 @@
+appId: com.fitnessapp.dev
+name: Empty progress explains missing records
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: tab-progress
+- assertVisible: No nutrition logged in this period.
+- assertVisible: No hydration logged in this period.
+- assertVisible: No completed workouts in this period.
+- tapOn:
+    id: progress-period-day
+- assertVisible: No nutrition logged in this period.

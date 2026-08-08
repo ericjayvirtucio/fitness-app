@@ -1,0 +1,16 @@
+appId: com.fitnessapp.dev
+name: Completed actual workout appears in progress
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/workout/complete-and-review-history.yaml
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Workouts
+    direction: DOWN
+- assertVisible: Completed workouts, 1
+- assertVisible: Actual sets, 1
+- assertVisible: Repetitions, 12

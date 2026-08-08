@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Workout session recovery
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/workout/empty-session-lifecycle.yaml

@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: Recorded nutrition and hydration appear in progress
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/nutrition/log-one-time-entry.yaml
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml
+- tapOn:
+    id: tab-progress
+- assertVisible: 89 kcal
+- assertVisible: Incomplete
+- scrollUntilVisible:
+    element:
+      text: Total fluid
+    direction: DOWN
+- assertVisible: 500 mL
+- assertNotVisible: target met

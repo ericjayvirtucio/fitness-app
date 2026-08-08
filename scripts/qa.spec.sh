@@ -60,7 +60,44 @@ test_sprint_15_resolution() {
     'Sprint 15 resolves through the stable wrapper contract'
 }
 
+test_sprint_16_resolution() {
+  assert_equal \
+    "${test_root}/e2e/mobile/suites/sprint-16" \
+    "$(resolve_suite sprint 16)" \
+    'Sprint 16 resolves to independently reported scenarios'
+}
+
+test_human_readable_report() {
+  local temporary_directory
+  temporary_directory="$(mktemp -d)"
+  trap 'rm -rf -- "${temporary_directory}"' RETURN
+  cat >"${temporary_directory}/junit.xml" <<'EOF'
+<testsuites><testsuite tests="2" failures="1">
+  <testcase name="Empty progress" file="empty.yaml" time="1.25" status="SUCCESS"/>
+  <testcase name="Workout progress" file="workout.yaml" time="2.5"><failure message="Expected &quot;1 actual set&quot;"/></testcase>
+</testsuite></testsuites>
+EOF
+  local report_status=0
+  node "${test_root}/scripts/qa-report.mjs" \
+    "${temporary_directory}/junit.xml" \
+    "${temporary_directory}/report.txt" \
+    "${temporary_directory}/report.json" \
+    'sprint-16' 'ios' 'test-device' "${temporary_directory}" >/dev/null || report_status="$?"
+  assert_equal '1' "${report_status}" \
+    'scenario failure produces a nonzero report status'
+  assert_equal 'PASS  Empty progress (1.3s)' \
+    "$(sed -n '2p' "${temporary_directory}/report.txt")" \
+    'human-readable report includes passing scenario'
+  assert_equal 'failed' \
+    "$(sed -nE 's/.*"status": "([^"]+)".*/\1/p' "${temporary_directory}/report.json" | tail -n 1)" \
+    'JSON report preserves failed scenario status'
+  rm -rf -- "${temporary_directory}"
+  trap - RETURN
+}
+
 test_extract_available_ios_devices
 test_junit_summary
 test_sprint_15_resolution
+test_sprint_16_resolution
+test_human_readable_report
 printf 'QA wrapper tests passed.\n'
