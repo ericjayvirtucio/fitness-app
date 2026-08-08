@@ -9,19 +9,31 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-description-input
 - inputText: E2E Banana
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: nutrition-reference-amount-input
+    direction: DOWN
 - tapOn:
     id: nutrition-reference-amount-input
 - inputText: '100'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: nutrition-energy-input
+    direction: DOWN
 - tapOn:
     id: nutrition-energy-input
 - inputText: '89'
+- hideKeyboard
 - scrollUntilVisible:
     element:
-      text: Consumed amount (grams)
+      id: nutrition-consumed-amount-input
     direction: DOWN
 - tapOn:
     id: nutrition-consumed-amount-input
 - inputText: '100'
+- hideKeyboard
 - scrollUntilVisible:
     element:
       text: Save entry
