@@ -34,12 +34,14 @@ export function WorkoutPlannerScreen({
   onOpenActive,
   onEditDay,
   onOpenLibrary,
+  onOpenHistory,
 }: Readonly<{
   loadUseCases?: () => Promise<UseCases>;
   loadSessionUseCases?: () => Promise<SessionUseCases>;
   onEditDay: (weekday: number) => void;
   onOpenActive: () => void;
   onOpenLibrary: () => void;
+  onOpenHistory: () => void;
 }>) {
   const [state, setState] = useState<State>({ status: 'loading' });
   const load = useCallback(() => {
@@ -163,6 +165,13 @@ export function WorkoutPlannerScreen({
           );
         })}
       </View>
+      <Card variant="outlined">
+        <AppText variant="heading">Workout History</AppText>
+        <AppText color="secondary">
+          Review completed workouts and performed progress.
+        </AppText>
+        <AppButton label="Open Workout History" onPress={onOpenHistory} />
+      </Card>
       <Card variant="outlined">
         <AppText variant="heading">Exercise Library</AppText>
         <AppText color="secondary">

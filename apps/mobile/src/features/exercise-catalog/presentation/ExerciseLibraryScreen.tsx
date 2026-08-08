@@ -30,6 +30,7 @@ type State =
       useCases: UseCases;
       all: readonly ExerciseCatalogItem[];
       favorites: readonly ExerciseCatalogItem[];
+      recents: readonly ExerciseCatalogItem[];
       search: readonly ExerciseCatalogItem[];
     };
 
@@ -48,11 +49,19 @@ export function ExerciseLibraryScreen({
     setState({ status: 'loading' });
     void loadUseCases()
       .then(async (useCases) => {
-        const [all, favorites] = await Promise.all([
+        const [all, favorites, recents] = await Promise.all([
           useCases.browse.listAll(),
           useCases.browse.listFavorites(),
+          useCases.browse.listRecentlyPerformed(),
         ]);
-        setState({ all, favorites, search: [], status: 'ready', useCases });
+        setState({
+          all,
+          favorites,
+          recents,
+          search: [],
+          status: 'ready',
+          useCases,
+        });
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
@@ -139,6 +148,14 @@ export function ExerciseLibraryScreen({
               onEdit={onEdit}
               onFavorite={(item) => void toggle(item)}
               title="Favorites"
+            />
+          ) : null}
+          {query.trim() === '' && state.recents.length > 0 ? (
+            <ExerciseSection
+              items={state.recents}
+              onEdit={onEdit}
+              onFavorite={(item) => void toggle(item)}
+              title="Recently performed"
             />
           ) : null}
           <ExerciseSection

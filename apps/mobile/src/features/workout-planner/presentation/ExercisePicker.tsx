@@ -22,14 +22,25 @@ export function ExercisePicker({
 }>) {
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<readonly ExerciseCatalogItem[]>([]);
+  const [isShowingRecents, setIsShowingRecents] = useState(false);
   const [error, setError] = useState<string>();
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const result =
-        query.trim() === '' ? browse.listAll() : browse.search(query);
-      void result.then(setItems).catch(() => {
-        setError('Exercises could not be loaded.');
-      });
+      const isEmptyQuery = query.trim() === '';
+      const result = isEmptyQuery
+        ? browse.listRecentlyPerformed().then(async (recents) => ({
+            items: recents.length > 0 ? recents : await browse.listAll(),
+            isRecent: recents.length > 0,
+          }))
+        : browse.search(query).then((items) => ({ items, isRecent: false }));
+      void result
+        .then((loaded) => {
+          setItems(loaded.items);
+          setIsShowingRecents(loaded.isRecent);
+        })
+        .catch(() => {
+          setError('Exercises could not be loaded.');
+        });
     }, 200);
     return () => clearTimeout(timeout);
   }, [browse, query]);
@@ -55,19 +66,24 @@ export function ExercisePicker({
           title="No exercises found"
         />
       ) : (
-        items.map((item) => (
-          <Card
-            accessibilityLabel={`Add ${item.definition.name}`}
-            key={item.definition.id.value}
-            onPress={() => onSelect(item)}
-            variant="outlined"
-          >
-            <AppText variant="heading">{item.definition.name}</AppText>
-            <AppText color="secondary">
-              Configure its planned target after adding it.
-            </AppText>
-          </Card>
-        ))
+        <>
+          {isShowingRecents ? (
+            <AppText color="secondary">Recently performed</AppText>
+          ) : null}
+          {items.map((item) => (
+            <Card
+              accessibilityLabel={`Add ${item.definition.name}`}
+              key={item.definition.id.value}
+              onPress={() => onSelect(item)}
+              variant="outlined"
+            >
+              <AppText variant="heading">{item.definition.name}</AppText>
+              <AppText color="secondary">
+                Configure its planned target after adding it.
+              </AppText>
+            </Card>
+          ))}
+        </>
       )}
       <AppButton
         label="Cancel adding exercise"

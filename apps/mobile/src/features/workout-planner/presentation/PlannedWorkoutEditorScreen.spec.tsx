@@ -87,6 +87,7 @@ function useCases(
   return {
     browseExercises: {
       listAll: () => Promise.resolve([exercise()]),
+      listRecentlyPerformed: () => Promise.resolve([]),
       search: () => Promise.resolve([exercise()]),
     },
     generateId: jest

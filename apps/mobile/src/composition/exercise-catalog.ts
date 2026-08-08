@@ -9,6 +9,7 @@ import {
 } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
 import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
 import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infrastructure/workout-planner-sqlite-repository';
+import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import { getDatabase, initializePersistence } from './persistence';
 
@@ -24,7 +25,10 @@ export async function createExerciseCatalogUseCases() {
     }),
   );
   return Object.freeze({
-    browse: new BrowseExercisesUseCase(repository),
+    browse: new BrowseExercisesUseCase(
+      repository,
+      new WorkoutHistorySqliteRepository(database),
+    ),
     create: new CreateExerciseUseCase(repository, randomUUID),
     delete: new DeleteExerciseUseCase(repository, mutationRunner),
     get: new GetExerciseUseCase(repository),

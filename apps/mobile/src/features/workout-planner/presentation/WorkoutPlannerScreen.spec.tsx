@@ -52,6 +52,7 @@ describe('WorkoutPlannerScreen', () => {
         onEditDay={onEditDay}
         onOpenActive={jest.fn()}
         onOpenLibrary={onOpenLibrary}
+        onOpenHistory={jest.fn()}
       />,
     );
     await waitFor(() => expect(screen.getByText('Sunday')).toBeOnTheScreen());
@@ -88,6 +89,7 @@ describe('WorkoutPlannerScreen', () => {
         onEditDay={jest.fn()}
         onOpenActive={jest.fn()}
         onOpenLibrary={jest.fn()}
+        onOpenHistory={jest.fn()}
       />,
     );
     await waitFor(() =>
