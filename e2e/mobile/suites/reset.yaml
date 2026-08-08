@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Reset mobile test data
+---
+- launchApp:
+    clearState: true
+- stopApp

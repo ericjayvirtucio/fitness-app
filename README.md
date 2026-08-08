@@ -45,6 +45,7 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 
 ```bash
 ./scripts/qa.sh doctor
+./scripts/qa.sh reset --platform ios
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh regression

@@ -76,6 +76,7 @@ suite from the repository root:
 
 ```bash
 ./scripts/qa.sh doctor
+./scripts/qa.sh reset --platform ios
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh regression

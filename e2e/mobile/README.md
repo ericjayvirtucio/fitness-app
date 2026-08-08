@@ -30,6 +30,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ## Commands
 
 ```bash
+./scripts/qa.sh reset
 ./scripts/qa.sh smoke
 ./scripts/qa.sh sprint 13
 ./scripts/qa.sh regression
@@ -46,6 +47,12 @@ Every suite currently starts with `clearState: true`. Running it permanently
 removes the data stored by `com.fitnessapp.dev` on that selected simulator or
 emulator. This is app-local deletion, not a whole-device erase. Use a disposable
 QA target and never point the harness at development data you need to retain.
+
+Use `./scripts/qa.sh reset` when a fresh app sandbox is needed without executing
+product assertions. Reset launches the app with cleared state and then stops it,
+leaving the application installed and the simulator or emulator otherwise
+unchanged. Normal smoke, sprint, and regression suites already perform this reset
+at startup, so running it separately before every suite is unnecessary.
 
 ## Structure and ownership
 

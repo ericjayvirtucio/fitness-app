@@ -14,6 +14,7 @@ usage() {
   cat <<'EOF'
 Usage:
   ./scripts/qa.sh doctor
+  ./scripts/qa.sh reset [--platform ios|android] [--device ID]
   ./scripts/qa.sh smoke [--platform ios|android] [--device ID]
   ./scripts/qa.sh regression [--platform ios|android] [--device ID]
   ./scripts/qa.sh sprint NUMBER [--platform ios|android] [--device ID]
@@ -75,6 +76,7 @@ resolve_suite() {
   local sprint_number="$2"
 
   case "${command_name}" in
+    reset) printf '%s/reset.yaml\n' "${suite_root}" ;;
     smoke | regression) printf '%s/%s.yaml\n' "${suite_root}" "${command_name}" ;;
     sprint)
       case "${sprint_number}" in

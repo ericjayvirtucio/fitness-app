@@ -20,6 +20,9 @@ be recorded honestly and cannot be marked passed.
 
 ## Destructive scope and state
 
+- [ ] Run `./scripts/qa.sh reset` on a disposable target. Expect only
+      `com.fitnessapp.dev` data to be cleared, the app to remain installed, and
+      the command to return zero.
 - [ ] Put disposable data in `com.fitnessapp.dev`, run smoke, and confirm the
       selected app's data is cleared before the flow.
 - [ ] Confirm another application and unrelated simulator/emulator settings are
