@@ -80,13 +80,13 @@ resolve_suite() {
     smoke | regression) printf '%s/%s.yaml\n' "${suite_root}" "${command_name}" ;;
     sprint)
       case "${sprint_number}" in
-        6 | 8 | 9 | 10 | 11 | 12 | 13)
+        6 | 8 | 9 | 10 | 11 | 12 | 13 | 15)
           printf '%s/sprint-%s.yaml\n' "${suite_root}" "${sprint_number}"
           ;;
         5 | 7)
           fail "Sprint ${sprint_number} has no repository manual QA specification."
           ;;
-        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13." ;;
+        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15." ;;
       esac
       ;;
     *) fail "Unknown suite '${command_name}'." ;;

@@ -1,0 +1,42 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+- tapOn: Add E2E Push-up
+- tapOn: Add Set for E2E Push-up
+- tapOn: Repetitions
+- inputText: '12'
+- tapOn: Save Set
+- assertVisible: 'Set 1: 12 reps'
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 1
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+- assertVisible: Workout
+- assertVisible: 1 actual sets
+- tapOn:
+    id: completed-workout-card
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: Edit set
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout
+- tapOn:
+    id: completed-workout-card
+- assertVisible: 'Performed set 1: 12 reps'

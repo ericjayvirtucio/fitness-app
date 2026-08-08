@@ -1,0 +1,7 @@
+appId: com.fitnessapp.dev
+name: Sprint 15 workout history and progress foundation
+---
+- launchApp:
+    clearState: true
+- runFlow: ../flows/exercise/create-exercise.yaml
+- runFlow: ../flows/workout/complete-and-review-history.yaml

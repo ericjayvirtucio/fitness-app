@@ -11,3 +11,4 @@ name: Mobile regression
 - runFlow: ../flows/exercise/create-exercise.yaml
 - runFlow: ../flows/workout/create-monday-plan.yaml
 - runFlow: ../flows/workout/empty-session-lifecycle.yaml
+- runFlow: ../flows/workout/complete-and-review-history.yaml
