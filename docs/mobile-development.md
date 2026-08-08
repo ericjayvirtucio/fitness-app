@@ -79,6 +79,7 @@ suite from the repository root:
 ./scripts/qa.sh reset --platform ios
 ./scripts/qa.sh smoke --platform ios
 ./scripts/qa.sh sprint 13 --platform android
+./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -142,6 +143,16 @@ changes are blocked while referenced. See
 [Workout Planner architecture](architecture/offline-workout-planner.md), the
 [manual QA checklist](manual-testing/sprint-12-offline-workout-planner.md), and
 [troubleshooting guidance](troubleshooting/offline-workout-planner.md).
+
+## Offline workout history
+
+Workout History reads completed session snapshots and provides read-only detail,
+captured-local-date Day/Week/Month summaries, bounded pagination, and genuinely
+performed exercise recents. It never derives performance from Planner targets or
+current Catalog definitions. See
+[Workout History architecture](architecture/offline-workout-history.md), the
+[Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md), and
+[troubleshooting guidance](troubleshooting/offline-workout-history.md).
 
 ## Troubleshooting
 
