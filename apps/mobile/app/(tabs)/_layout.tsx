@@ -32,6 +32,7 @@ export default function TabLayout() {
           name={destination.route}
           options={{
             tabBarAccessibilityLabel: `${destination.title} tab`,
+            tabBarButtonTestID: destination.testID,
             tabBarIcon: ({ color, size }) => (
               <AppIcon
                 color={color}

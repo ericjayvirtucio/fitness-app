@@ -76,6 +76,20 @@ behavior, VoiceOver on iOS, and TalkBack on Android. Automated component tests
 cannot prove platform contrast, shadow rendering, or assistive-technology
 quality.
 
+### Automation identifiers
+
+Accessible names describe controls to people; `testID` identifies a stable
+automation anchor. Prefer visible outcomes and accessibility semantics. Add a
+`testID` only when repeated, dynamic, localized, or platform-specific native
+structure would make that selector ambiguous or brittle.
+
+Use kebab-case product language such as `hydration-add-entry`. Do not encode
+user-entered values, fitness data, generated database identifiers, or list
+positions. A published identifier is a test contract and should be renamed only
+with its consumers. `AppButton`, `TextField`, `Card`, and `Screen` forward native
+identifiers. `SelectionField` also derives `<field-id>-<option-value>` identifiers
+for its radio options.
+
 ## Extending the system
 
 Add a component only when an approved product use case demonstrates reuse.

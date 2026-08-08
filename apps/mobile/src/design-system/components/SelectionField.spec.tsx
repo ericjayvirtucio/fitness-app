@@ -23,4 +23,29 @@ describe('SelectionField', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Imperial' }));
     expect(onChange).toHaveBeenCalledWith('imperial');
   });
+
+  it('derives stable option identifiers from an explicit field identifier', async () => {
+    await render(
+      <SelectionField
+        label="Units"
+        onChange={jest.fn()}
+        options={[
+          { label: 'Metric', value: 'metric' },
+          { label: 'Imperial', value: 'imperial' },
+        ]}
+        testID="profile-unit-system"
+        value="metric"
+      />,
+    );
+
+    expect(screen.getByTestId('profile-unit-system')).toBeOnTheScreen();
+    expect(screen.getByTestId('profile-unit-system-metric')).toHaveProp(
+      'accessibilityState',
+      { checked: true },
+    );
+    expect(screen.getByTestId('profile-unit-system-imperial')).toHaveProp(
+      'accessibilityState',
+      { checked: false },
+    );
+  });
 });

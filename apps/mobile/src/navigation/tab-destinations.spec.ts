@@ -10,6 +10,13 @@ describe('tab destinations', () => {
       'Profile',
     ]);
     expect(tabDestinations[0]?.route).toBe('index');
+    expect(tabDestinations.map(({ testID }) => testID)).toEqual([
+      'tab-today',
+      'tab-nutrition',
+      'tab-workout',
+      'tab-progress',
+      'tab-profile',
+    ]);
   });
 
   it('provides future-facing copy only for unfinished destinations', () => {
