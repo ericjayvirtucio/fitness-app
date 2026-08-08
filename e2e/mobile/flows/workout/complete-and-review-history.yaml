@@ -42,6 +42,6 @@ appId: com.fitnessapp.dev
       text: Exercise progress
     direction: DOWN
 - tapOn: Open performance history for E2E Push-upa
-- assertVisible: 12 repetitions
-- tapOn: Workout
+- assertVisible: 'Open Workout,.*1 actual sets, 12 repetitions'
+- tapOn: 'Open Workout,.*1 actual sets, 12 repetitions'
 - assertVisible: 'Performed set 1: 12 reps'
