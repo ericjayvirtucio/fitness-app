@@ -1,6 +1,5 @@
-import { ApplicationShellScreen } from '../../src/features/application-shell/ApplicationShellScreen';
-import { getTabDestination } from '../../src/navigation/tab-destinations';
+import { ProgressScreen as ProgressAnalyticsScreen } from '../../src/features/progress-analytics/presentation/ProgressScreen';
 
 export default function ProgressScreen() {
-  return <ApplicationShellScreen {...getTabDestination('progress')} />;
+  return <ProgressAnalyticsScreen />;
 }
