@@ -8,6 +8,7 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+artifacts/qa/
 
 # Environment and local configuration
 .env

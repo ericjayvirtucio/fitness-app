@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-nutrition
+- tapOn: Add food or beverage
+- tapOn: Create reusable item
+- assertVisible: Create reusable item
+- tapOn: Name
+- inputText: E2E Oats
+- tapOn: Reference amount (grams)
+- inputText: '100'
+- tapOn: Energy per reference (kcal)
+- inputText: '380'
+- scrollUntilVisible:
+    element:
+      text: Save reusable item
+    direction: DOWN
+- tapOn: Save reusable item
+- assertVisible: E2E Oats
+- tapOn: Log E2E Oats
+- tapOn: Consumed amount (grams)
+- inputText: '50'
+- tapOn: Log to today
+- assertVisible: E2E Oats
+- assertVisible: 190 kcal

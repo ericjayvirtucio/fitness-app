@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- assertVisible: Resume Workout
+- tapOn: Resume Workout
+- tapOn: Discard Workout
+- tapOn:
+    text: Discard Workout
+    index: 1
+- assertVisible: Start Empty Workout

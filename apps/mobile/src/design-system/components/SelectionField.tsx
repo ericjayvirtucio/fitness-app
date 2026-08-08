@@ -18,6 +18,7 @@ type SelectionFieldProps<TValue extends string> = Readonly<{
   label: string;
   onChange: (value: TValue) => void;
   options: readonly SelectionOption<TValue>[];
+  testID?: string;
   value?: TValue | undefined;
 }>;
 
@@ -26,6 +27,7 @@ export function SelectionField<TValue extends string>({
   label,
   onChange,
   options,
+  testID,
   value,
 }: SelectionFieldProps<TValue>) {
   const theme = useAppTheme();
@@ -35,6 +37,7 @@ export function SelectionField<TValue extends string>({
       accessibilityLabel={label}
       accessibilityRole="radiogroup"
       style={styles.field}
+      testID={testID}
     >
       <AppText variant="label">{label}</AppText>
       <View style={styles.options}>
@@ -60,6 +63,7 @@ export function SelectionField<TValue extends string>({
                       : theme.colors.border,
                 },
               ]}
+              testID={testID ? `${testID}-${option.value}` : undefined}
             >
               <AppText variant="label">{option.label}</AppText>
             </Pressable>

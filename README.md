@@ -41,6 +41,20 @@ pnpm test          # Run automated tests
 pnpm typecheck     # Run strict TypeScript checks
 ```
 
+Native mobile E2E QA uses the repository-owned Maestro wrapper:
+
+```bash
+./scripts/qa.sh doctor
+./scripts/qa.sh reset --platform ios
+./scripts/qa.sh smoke --platform ios
+./scripts/qa.sh sprint 13 --platform android
+./scripts/qa.sh regression
+```
+
+These suites clear `com.fitnessapp.dev` data on the selected virtual device.
+Build and install the app first, use a disposable simulator or emulator, and read
+the [mobile E2E guide](e2e/mobile/README.md) before running them.
+
 Run one application with a workspace filter:
 
 ```bash
@@ -64,6 +78,8 @@ The API reads `PORT` when it is supplied and otherwise listens on port `3000`. P
 Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.md) before making engineering changes. Contribution requirements are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
+Native E2E suite ownership, state behavior, and artifacts are documented in the
+[mobile E2E guide](e2e/mobile/README.md).
 Domain boundaries, value-object conventions, and extension guidance are documented
 in [docs/architecture/domain-foundation.md](docs/architecture/domain-foundation.md).
 Local database initialization, migrations, transactions, and troubleshooting are

@@ -1,0 +1,13 @@
+appId: com.fitnessapp.dev
+name: Mobile regression
+---
+- launchApp:
+    clearState: true
+- runFlow: ../flows/shared/assert-primary-navigation.yaml
+- runFlow: ../flows/profile/create-profile-and-goal.yaml
+- runFlow: ../flows/hydration/log-water-and-persist.yaml
+- runFlow: ../flows/nutrition/log-one-time-entry.yaml
+- runFlow: ../flows/nutrition/create-and-reuse-catalog-item.yaml
+- runFlow: ../flows/exercise/create-exercise.yaml
+- runFlow: ../flows/workout/create-monday-plan.yaml
+- runFlow: ../flows/workout/empty-session-lifecycle.yaml

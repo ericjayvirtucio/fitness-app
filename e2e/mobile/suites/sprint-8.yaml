@@ -1,0 +1,11 @@
+appId: com.fitnessapp.dev
+name: Sprint 8 offline nutrition logging
+---
+- launchApp:
+    clearState: true
+- runFlow: ../flows/nutrition/log-one-time-entry.yaml
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-nutrition
+- assertVisible: E2E Banana
