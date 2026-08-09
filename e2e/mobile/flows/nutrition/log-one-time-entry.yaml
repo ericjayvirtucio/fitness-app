@@ -7,31 +7,31 @@ appId: com.fitnessapp.dev
 - tapOn: Enter one-time item
 - assertVisible: Add food or beverage
 - tapOn:
-    id: nutrition-description-input
+    id: nutrition-description-input-touch-target
 - inputText: E2E Banana
 - scrollUntilVisible:
     centerElement: true
     element:
-      id: nutrition-reference-amount-input
+      id: nutrition-reference-amount-input-touch-target
     direction: DOWN
 - tapOn:
-    point: 50%,23%
+    id: nutrition-reference-amount-input-touch-target
 - inputText: '100'
 - scrollUntilVisible:
     centerElement: true
     element:
-      id: nutrition-energy-input
+      id: nutrition-energy-input-touch-target
     direction: DOWN
 - tapOn:
-    point: 50%,23%
+    id: nutrition-energy-input-touch-target
 - inputText: '89'
 - scrollUntilVisible:
     centerElement: true
     element:
-      id: nutrition-consumed-amount-input
+      id: nutrition-consumed-amount-input-touch-target
     direction: DOWN
 - tapOn:
-    point: 50%,23%
+    id: nutrition-consumed-amount-input-touch-target
 - inputText: '100'
 - swipe:
     start: 50%,55%

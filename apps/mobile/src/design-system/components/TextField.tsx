@@ -1,5 +1,5 @@
-import { useId, useState, type ComponentProps } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { useId, useRef, useState, type ComponentProps } from 'react';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import {
   borderWidths,
   minimumTouchTarget,
@@ -34,10 +34,12 @@ export function TextField({
   onBlur,
   onFocus,
   style,
+  testID,
   trailingIcon,
   ...props
 }: TextFieldProps) {
   const theme = useAppTheme();
+  const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
   const inputId = useId();
   const supportingTextId = useId();
@@ -48,7 +50,10 @@ export function TextField({
       <AppText nativeID={`${inputId}-label`} variant="label">
         {label}
       </AppText>
-      <View
+      <Pressable
+        accessible={false}
+        disabled={isDisabled}
+        onPress={() => inputRef.current?.focus()}
         style={[
           styles.inputFrame,
           {
@@ -64,6 +69,7 @@ export function TextField({
             opacity: isDisabled ? opacity.disabled : opacity.visible,
           },
         ]}
+        testID={testID ? `${testID}-touch-target` : undefined}
       >
         {leadingIcon ? (
           <AppIcon color={theme.colors.textSecondary} name={leadingIcon} />
@@ -75,6 +81,7 @@ export function TextField({
           accessibilityState={{ disabled: isDisabled }}
           aria-describedby={supportingText ? supportingTextId : undefined}
           editable={!isDisabled}
+          ref={inputRef}
           onBlur={(event) => {
             setIsFocused(false);
             onBlur?.(event);
@@ -85,12 +92,13 @@ export function TextField({
           }}
           placeholderTextColor={theme.colors.textDisabled}
           style={[styles.input, { color: theme.colors.textPrimary }, style]}
+          testID={testID}
           {...props}
         />
         {trailingIcon ? (
           <AppIcon color={theme.colors.textSecondary} name={trailingIcon} />
         ) : null}
-      </View>
+      </Pressable>
       {supportingText ? (
         <AppText
           accessibilityLiveRegion={error ? 'polite' : 'none'}
