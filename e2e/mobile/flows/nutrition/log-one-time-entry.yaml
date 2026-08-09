@@ -38,5 +38,7 @@ appId: com.fitnessapp.dev
     end: 50%,10%
     duration: 500
 - tapOn: Save entry
+- back
+- assertVisible: Nutrition
 - assertVisible: E2E Banana
 - assertVisible: 89 kcal
