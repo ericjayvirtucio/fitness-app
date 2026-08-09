@@ -43,6 +43,7 @@ export function Screen({
     <ScrollView
       contentContainerStyle={contentStyle}
       contentInsetAdjustmentBehavior="automatic"
+      keyboardDismissMode={isKeyboardAware ? 'on-drag' : 'none'}
       keyboardShouldPersistTaps="handled"
       style={[styles.fill, style]}
       {...props}
