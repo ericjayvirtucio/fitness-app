@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: Weight check-in persists after relaunch
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/body-measurement/open-body-measurements.yaml
+- runFlow:
+    file: ../../flows/body-measurement/log-weight-check-in.yaml
+    env:
+      WEIGHT: '82.4'
+- assertVisible: 82.4 kg
+- stopApp
+- launchApp
+- runFlow: ../../flows/body-measurement/open-body-measurements.yaml
+- assertVisible: 82.4 kg
+- assertVisible: Weight history

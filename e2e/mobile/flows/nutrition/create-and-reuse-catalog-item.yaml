@@ -4,7 +4,7 @@ appId: com.fitnessapp.dev
     id: tab-nutrition
 - tapOn: Add food or beverage
 - tapOn: Create reusable item
-- assertVisible: Create reusable item
+- assertVisible: Create saved item
 - tapOn: Name
 - inputText: E2E Oats
 - tapOn: Reference amount (grams)

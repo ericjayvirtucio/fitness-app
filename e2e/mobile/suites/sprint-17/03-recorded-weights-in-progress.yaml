@@ -1,0 +1,31 @@
+appId: com.fitnessapp.dev
+name: Recorded weights contribute to Progress
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/body-measurement/open-body-measurements.yaml
+- runFlow:
+    file: ../../flows/body-measurement/log-weight-check-in.yaml
+    env:
+      WEIGHT: '83.0'
+- runFlow:
+    file: ../../flows/body-measurement/log-weight-check-in.yaml
+    env:
+      SHOULD_SET_TIME: 'false'
+      WEIGHT: '81.8'
+- assertVisible: 81.8 kg
+- assertVisible: 83.0 kg
+- tapOn:
+    id: tab-progress
+- assertVisible: 'First recorded, 83.0 kg'
+- assertVisible: 'Latest recorded, 81.8 kg'
+- assertVisible: 'Check-ins, 2'
+- tapOn:
+    id: progress-period-month
+- assertVisible: 'First recorded, 83.0 kg'
+- assertVisible: 'Latest recorded, 81.8 kg'
+# The newest check-in also updated the single current profile weight.
+- tapOn:
+    id: tab-profile
+- assertVisible: '81.8'

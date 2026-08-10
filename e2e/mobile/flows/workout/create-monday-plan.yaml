@@ -2,8 +2,9 @@ appId: com.fitnessapp.dev
 ---
 - tapOn:
     id: tab-workout
+# Weekday cards are keyed by the domain Weekday value, where Monday is 1.
 - tapOn:
-    id: weekday-card-monday
+    id: weekday-card-1
 - assertVisible: Plan Monday
 - tapOn: Workout name
 - inputText: E2E Push Day

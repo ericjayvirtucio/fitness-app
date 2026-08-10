@@ -1,0 +1,38 @@
+appId: com.fitnessapp.dev
+---
+# A cleared install shows the profile empty state, so the form has to be
+# opened before any field exists. Fields use test IDs so unit-dependent
+# labels such as "Height (cm)" cannot break the flow.
+- tapOn:
+    id: tab-profile
+- assertVisible: Personal profile
+- tapOn: Create profile
+- tapOn:
+    id: profile-height
+- inputText: '175'
+- tapOn:
+    id: profile-weight
+- inputText: '75'
+- tapOn:
+    id: profile-date-of-birth
+- inputText: '1990-06-15'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: profile-biological-sex-male
+    direction: DOWN
+- tapOn:
+    id: profile-biological-sex-male
+- scrollUntilVisible:
+    element:
+      id: profile-activity-level-moderately-active
+    direction: DOWN
+- tapOn:
+    id: profile-activity-level-moderately-active
+- scrollUntilVisible:
+    element:
+      id: save-profile
+    direction: DOWN
+- tapOn:
+    id: save-profile
+- assertVisible: Profile saved successfully.

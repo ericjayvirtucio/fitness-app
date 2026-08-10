@@ -1,0 +1,36 @@
+appId: com.fitnessapp.dev
+env:
+  # Synthetic values only. The date field keeps its prefilled local date so a
+  # check-in is never recorded in the future or outside the current period.
+  # Leaving SHOULD_SET_TIME false keeps the prefilled current time, which
+  # always sorts after an earlier check-in recorded at CHECK_IN_TIME.
+  CHECK_IN_TIME: '00:01'
+  SHOULD_SET_TIME: 'true'
+  UPDATE_PROFILE: 'yes'
+  WEIGHT: '83.0'
+---
+- tapOn:
+    id: add-body-weight
+- assertVisible: Add weight check-in
+- tapOn:
+    id: body-weight-value
+- eraseText: 12
+- inputText: ${WEIGHT}
+- runFlow:
+    when:
+      true: ${SHOULD_SET_TIME == 'true'}
+    commands:
+      - tapOn:
+          id: body-weight-time
+      - eraseText: 8
+      - inputText: ${CHECK_IN_TIME}
+- tapOn:
+    id: body-weight-update-profile-${UPDATE_PROFILE}
+- scrollUntilVisible:
+    element:
+      id: save-body-weight
+    direction: DOWN
+- tapOn:
+    id: save-body-weight
+- assertVisible:
+    id: body-measurements-screen
