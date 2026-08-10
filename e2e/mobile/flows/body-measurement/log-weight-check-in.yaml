@@ -1,21 +1,18 @@
 appId: com.fitnessapp.dev
-env:
-  # Synthetic values only. The date field keeps its prefilled local date so a
-  # check-in is never recorded in the future or outside the current period.
-  # Leaving SHOULD_SET_TIME false keeps the prefilled current time, which
-  # always sorts after an earlier check-in recorded at CHECK_IN_TIME.
-  CHECK_IN_TIME: '00:01'
-  SHOULD_SET_TIME: 'true'
-  UPDATE_PROFILE: 'yes'
-  WEIGHT: '83.0'
 ---
+# Callers must pass CHECK_IN_TIME, SHOULD_SET_TIME, UPDATE_PROFILE, and WEIGHT.
+# This flow declares no env defaults because a default here would win over the
+# value supplied by runFlow.
+#
+# Synthetic values only. The date field keeps its prefilled local date so a
+# check-in is never recorded in the future or outside the current period.
+# Passing SHOULD_SET_TIME false keeps the prefilled current time, which always
+# sorts after an earlier check-in recorded at CHECK_IN_TIME.
 - tapOn:
     id: add-body-weight
 - assertVisible: Add weight check-in
-- tapOn:
-    id: body-weight-value
-- eraseText: 12
-- inputText: ${WEIGHT}
+# Fields are filled bottom-up so the on-screen keyboard never covers the next
+# one, then the heading is tapped to dismiss the keyboard.
 - runFlow:
     when:
       true: ${SHOULD_SET_TIME == 'true'}
@@ -25,11 +22,16 @@ env:
       - eraseText: 8
       - inputText: ${CHECK_IN_TIME}
 - tapOn:
-    id: body-weight-update-profile-${UPDATE_PROFILE}
+    id: body-weight-value
+- eraseText: 12
+- inputText: ${WEIGHT}
+- tapOn: Add weight check-in
 - scrollUntilVisible:
     element:
       id: save-body-weight
     direction: DOWN
+- tapOn:
+    id: body-weight-update-profile-${UPDATE_PROFILE}
 - tapOn:
     id: save-body-weight
 - assertVisible:

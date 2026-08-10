@@ -8,10 +8,13 @@ name: Weight check-in persists after relaunch
 - runFlow:
     file: ../../flows/body-measurement/log-weight-check-in.yaml
     env:
+      CHECK_IN_TIME: '00:01'
+      SHOULD_SET_TIME: 'true'
+      UPDATE_PROFILE: 'yes'
       WEIGHT: '82.4'
-- assertVisible: 82.4 kg
+- assertVisible: 'Weight check-in 82.4 kilograms.*'
 - stopApp
 - launchApp
 - runFlow: ../../flows/body-measurement/open-body-measurements.yaml
-- assertVisible: 82.4 kg
+- assertVisible: 'Weight check-in 82.4 kilograms.*'
 - assertVisible: Weight history

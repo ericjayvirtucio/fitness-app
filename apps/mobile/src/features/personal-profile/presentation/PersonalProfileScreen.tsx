@@ -119,7 +119,11 @@ export function PersonalProfileScreen({
 
   if (state.status === 'loading') {
     return (
-      <Screen accessibilityLabel="Loading personal profile" isCentered>
+      <Screen
+        accessibilityLabel="Loading personal profile"
+        hasTabBar
+        isCentered
+      >
         <LoadingIndicator label="Loading personal profile" />
       </Screen>
     );
@@ -127,7 +131,7 @@ export function PersonalProfileScreen({
 
   if (state.status === 'error') {
     return (
-      <Screen accessibilityLabel="Personal profile error" isCentered>
+      <Screen accessibilityLabel="Personal profile error" hasTabBar isCentered>
         <AppText accessibilityRole="header" variant="heading">
           Profile unavailable
         </AppText>
@@ -141,7 +145,7 @@ export function PersonalProfileScreen({
 
   if (state.profile === null && !isEditing) {
     return (
-      <Screen accessibilityLabel="Personal profile" isCentered>
+      <Screen accessibilityLabel="Personal profile" hasTabBar isCentered>
         <EmptyState
           actionLabel="Create profile"
           description="Add the personal details future fitness features will use. Your profile stays on this device."
@@ -154,7 +158,7 @@ export function PersonalProfileScreen({
   }
 
   return (
-    <Screen accessibilityLabel="Personal profile" isKeyboardAware>
+    <Screen accessibilityLabel="Personal profile" hasTabBar isKeyboardAware>
       <PersonalProfileForm
         errors={errors}
         initialValues={formValues(state.profile)}

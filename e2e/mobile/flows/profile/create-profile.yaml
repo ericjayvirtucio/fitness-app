@@ -7,32 +7,29 @@ appId: com.fitnessapp.dev
     id: tab-profile
 - assertVisible: Personal profile
 - tapOn: Create profile
+# Text fields are filled bottom-up so the on-screen keyboard never covers the
+# next field. Tapping the top label then dismisses the keyboard, because the
+# screen uses keyboardShouldPersistTaps="handled".
 - tapOn:
-    id: profile-height
-- inputText: '175'
+    id: profile-date-of-birth
+- inputText: '1990-06-15'
 - tapOn:
     id: profile-weight
 - inputText: '75'
 - tapOn:
-    id: profile-date-of-birth
-- inputText: '1990-06-15'
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      id: profile-biological-sex-male
-    direction: DOWN
-- tapOn:
-    id: profile-biological-sex-male
-- scrollUntilVisible:
-    element:
-      id: profile-activity-level-moderately-active
-    direction: DOWN
-- tapOn:
-    id: profile-activity-level-moderately-active
+    id: profile-height
+- inputText: '175'
+- tapOn: Preferred units
+# Scroll to the end of the form once. Both option groups then sit well above
+# the tab bar, so a tap can never land on a tab instead of an option.
 - scrollUntilVisible:
     element:
       id: save-profile
     direction: DOWN
+- tapOn:
+    id: profile-biological-sex-male
+- tapOn:
+    id: profile-activity-level-moderately-active
 - tapOn:
     id: save-profile
 - assertVisible: Profile saved successfully.

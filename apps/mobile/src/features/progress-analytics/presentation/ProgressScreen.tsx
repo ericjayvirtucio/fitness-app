@@ -80,13 +80,13 @@ export function ProgressScreen({
 
   if (isLoading && !summary)
     return (
-      <Screen accessibilityLabel="Loading progress" isCentered>
+      <Screen accessibilityLabel="Loading progress" hasTabBar isCentered>
         <LoadingIndicator label="Loading progress" />
       </Screen>
     );
   if (!summary)
     return (
-      <Screen accessibilityLabel="Progress error" isCentered>
+      <Screen accessibilityLabel="Progress error" hasTabBar isCentered>
         <AppText accessibilityRole="header" variant="heading">
           Progress unavailable
         </AppText>
@@ -100,6 +100,7 @@ export function ProgressScreen({
   return (
     <Screen
       contentContainerStyle={{ gap: spacing.xl }}
+      hasTabBar
       testID="progress-screen"
     >
       <View style={{ gap: spacing.sm }}>
@@ -286,12 +287,11 @@ function BodyWeightSummary({
       </Card>
     );
 
+  // The card itself stays non-accessible so each metric remains individually
+  // navigable, matching the other Progress cards. The closing caption carries
+  // the combined spoken summary.
   return (
-    <Card
-      accessibilityLabel={describeSummary(value, unit)}
-      testID="progress-body-weight"
-      variant="outlined"
-    >
+    <Card testID="progress-body-weight" variant="outlined">
       <SectionHeader title="Body weight" />
       <Metric
         label="First recorded"
@@ -308,7 +308,11 @@ function BodyWeightSummary({
         />
       )}
       <Metric label="Check-ins" value={String(value.entryCount)} />
-      <AppText color="secondary" variant="bodySmall">
+      <AppText
+        accessibilityLabel={describeSummary(value, unit)}
+        color="secondary"
+        variant="bodySmall"
+      >
         {value.changeGrams === null
           ? 'A recorded change needs at least two check-ins in this period.'
           : 'This is the difference between your first and latest recorded check-ins, not a measured trend.'}
@@ -329,6 +333,7 @@ function describeSummary(
       ? 'Recorded change needs at least two check-ins'
       : `Recorded change ${describeBodyWeightChange(value.changeGrams, unit)}`,
     `${value.entryCount} check-ins`,
+    'This describes recorded check-ins, not a measured trend',
   ];
   return `${parts.join('. ')}.`;
 }

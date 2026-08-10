@@ -86,7 +86,7 @@ describe('ProgressScreen', () => {
     expect(screen.getByLabelText('Recorded change, −1.2 kg')).toBeOnTheScreen();
     expect(
       screen.getByLabelText(
-        'Body weight progress. First recorded weight 83.0 kilograms. Latest recorded weight 81.8 kilograms. Recorded change minus 1.2 kilograms. 2 check-ins.',
+        'Body weight progress. First recorded weight 83.0 kilograms. Latest recorded weight 81.8 kilograms. Recorded change minus 1.2 kilograms. 2 check-ins. This describes recorded check-ins, not a measured trend.',
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText(/not a measured trend/)).toBeOnTheScreen();

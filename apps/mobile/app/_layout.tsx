@@ -17,6 +17,9 @@ export default function RootLayout() {
       <PersistenceGate>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="body-measurements/index" />
+          <Stack.Screen name="body-measurements/new" />
+          <Stack.Screen name="body-measurements/[id]" />
           <Stack.Screen name="goals-energy" />
           <Stack.Screen name="hydration-entry/new" />
           <Stack.Screen name="hydration-entry/[id]" />

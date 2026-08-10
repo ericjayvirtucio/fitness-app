@@ -8,8 +8,11 @@ name: Editing and deleting a check-in leaves the profile weight unchanged
 - runFlow:
     file: ../../flows/body-measurement/log-weight-check-in.yaml
     env:
+      CHECK_IN_TIME: '00:01'
+      SHOULD_SET_TIME: 'true'
+      UPDATE_PROFILE: 'yes'
       WEIGHT: '82.4'
-- tapOn: 82.4 kg
+- tapOn: 'Weight check-in 82.4 kilograms.*'
 - assertVisible: Edit weight check-in
 - assertNotVisible:
     id: body-weight-update-profile
@@ -17,19 +20,22 @@ name: Editing and deleting a check-in leaves the profile weight unchanged
     id: body-weight-value
 - eraseText: 12
 - inputText: '81.5'
+- tapOn: Edit weight check-in
 - scrollUntilVisible:
     element:
       id: save-body-weight
     direction: DOWN
 - tapOn:
     id: save-body-weight
-- assertVisible: 81.5 kg
+- assertVisible: 'Weight check-in 81.5 kilograms.*'
 # Editing history never rewrites the current profile weight.
+- stopApp
+- launchApp
 - tapOn:
     id: tab-profile
 - assertVisible: '82.4'
 - runFlow: ../../flows/body-measurement/open-body-measurements.yaml
-- tapOn: 81.5 kg
+- tapOn: 'Weight check-in 81.5 kilograms.*'
 - scrollUntilVisible:
     element:
       id: delete-body-weight
