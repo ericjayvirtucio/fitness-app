@@ -99,6 +99,7 @@ export function LogNutritionCatalogItemScreen({
         helperText={`Enter the physical amount consumed in ${unit}.`}
         keyboardType="decimal-pad"
         label={`Consumed amount (${unit})`}
+        testID="catalog-consumed-amount"
         onChangeText={setAmount}
         value={amount}
       />
@@ -110,6 +111,7 @@ export function LogNutritionCatalogItemScreen({
       <AppButton
         isLoading={isSaving}
         label="Log to today"
+        testID="log-catalog-item"
         onPress={() => void save()}
       />
       <AppButton label="Cancel" onPress={onDone} variant="ghost" />

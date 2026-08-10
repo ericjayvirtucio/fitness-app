@@ -8,6 +8,10 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: open-goals-energy
 - assertVisible: Goals and energy
+- scrollUntilVisible:
+    element:
+      text: Maintain weight
+    direction: DOWN
 - tapOn: Maintain weight
 - scrollUntilVisible:
     element:

@@ -82,6 +82,13 @@ do not add database fixtures, deep-link seeders, network services, or production
 reset routes. A reusable flow must not clear application state. Persistence
 checks use `stopApp` followed by `launchApp` without clearing state.
 
+iOS exposes an element with an `accessibilityLabel` as a single accessibility
+node and hides its children, so assertions target the container label rather
+than the text inside it. Screens use `keyboardDismissMode="on-drag"`, so a
+short swipe or a scroll dismisses the keyboard between text fields; without
+one, the keyboard covers the next field and text lands in the previous one.
+Filling a form bottom-up avoids the problem entirely.
+
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two
 check-ins must be ordered, the earlier one uses the synthetic time `00:01` and
