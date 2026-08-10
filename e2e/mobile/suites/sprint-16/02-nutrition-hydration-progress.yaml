@@ -7,11 +7,11 @@ name: Recorded nutrition and hydration appear in progress
 - runFlow: ../../flows/hydration/log-water-and-persist.yaml
 - tapOn:
     id: tab-progress
-- assertVisible: 89 kcal
-- assertVisible: Incomplete
+- assertVisible: 'Energy, 89 kcal'
+- assertVisible: Incomplete means one or more entries did not include that nutrient.
 - scrollUntilVisible:
     element:
-      text: Total fluid
+      text: 'Total fluid, 500 mL'
     direction: DOWN
-- assertVisible: 500 mL
+- assertVisible: 'Total fluid, 500 mL'
 - assertNotVisible: target met

@@ -8,7 +8,7 @@ name: Progress remains after application restart
 - launchApp
 - tapOn:
     id: tab-progress
-- assertVisible: 89 kcal
+- assertVisible: 'Energy, 89 kcal'
 - tapOn:
     id: progress-period-month
-- assertVisible: 89 kcal
+- assertVisible: 'Energy, 89 kcal'

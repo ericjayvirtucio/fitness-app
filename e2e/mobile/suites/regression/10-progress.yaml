@@ -7,9 +7,9 @@ name: Offline progress analytics
 - runFlow: ../../flows/hydration/log-water-and-persist.yaml
 - tapOn:
     id: tab-progress
-- assertVisible: 89 kcal
+- assertVisible: 'Energy, 89 kcal'
 - scrollUntilVisible:
     element:
-      text: Total fluid
+      text: 'Total fluid, 500 mL'
     direction: DOWN
-- assertVisible: 500 mL
+- assertVisible: 'Total fluid, 500 mL'
