@@ -38,7 +38,16 @@ appId: com.fitnessapp.dev
     end: 50%,10%
     duration: 500
 - tapOn: Save entry
-- back
+- assertVisible: Add nutrition
+- swipe:
+    start: 1%,50%
+    end: 95%,50%
+    duration: 300
 - assertVisible: Nutrition
-- assertVisible: E2E Banana
-- assertVisible: 89 kcal
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: '.*E2E Banana.*'
+    direction: DOWN
+- assertVisible: '.*E2E Banana.*'
+- assertVisible: '.*89 kcal.*'
