@@ -36,6 +36,7 @@ type ScreenState =
 
 type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
+  onOpenBodyMeasurements?: () => void;
   onOpenGoals?: () => void;
 }>;
 
@@ -69,6 +70,7 @@ function formValues(profile: UserProfile | null): ProfileFormValues {
 
 export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
+  onOpenBodyMeasurements,
   onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -165,6 +167,16 @@ export function PersonalProfileScreen({
           label="Open goals and energy"
           onPress={onOpenGoals}
           style={{ marginTop: spacing.xl }}
+          testID="open-goals-energy"
+          variant="outline"
+        />
+      ) : null}
+      {onOpenBodyMeasurements ? (
+        <AppButton
+          label="Open body measurements"
+          onPress={onOpenBodyMeasurements}
+          style={{ marginTop: spacing.md }}
+          testID="open-body-measurements"
           variant="outline"
         />
       ) : null}

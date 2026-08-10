@@ -102,6 +102,7 @@ export function PersonalProfileForm({
       <SelectionField
         error={errors.preferredUnitSystem}
         label="Preferred units"
+        testID="profile-units"
         onChange={changeUnits}
         options={unitSystems.map((value) => ({
           label: value === 'metric' ? 'Metric' : 'Imperial',
@@ -113,6 +114,7 @@ export function PersonalProfileForm({
         error={errors.height}
         keyboardType="decimal-pad"
         label={`Height (${isImperial ? 'in' : 'cm'})`}
+        testID="profile-height"
         onChangeText={(height) =>
           setValues((current) => ({ ...current, height }))
         }
@@ -123,6 +125,7 @@ export function PersonalProfileForm({
         error={errors.weight}
         keyboardType="decimal-pad"
         label={`Weight (${isImperial ? 'lb' : 'kg'})`}
+        testID="profile-weight"
         onChangeText={(weight) =>
           setValues((current) => ({ ...current, weight }))
         }
@@ -139,12 +142,14 @@ export function PersonalProfileForm({
           setValues((current) => ({ ...current, dateOfBirth }))
         }
         placeholder="1990-06-15"
+        testID="profile-date-of-birth"
         textContentType="birthdate"
         value={values.dateOfBirth}
       />
       <SelectionField
         error={errors.biologicalSex}
         label="Biological sex"
+        testID="profile-biological-sex"
         onChange={(biologicalSex) =>
           setValues((current) => ({ ...current, biologicalSex }))
         }
@@ -157,6 +162,7 @@ export function PersonalProfileForm({
       <SelectionField
         error={errors.activityLevel}
         label="Activity level"
+        testID="profile-activity-level"
         onChange={(activityLevel) =>
           setValues((current) => ({ ...current, activityLevel }))
         }
@@ -184,6 +190,7 @@ export function PersonalProfileForm({
         isLoading={isSaving}
         label={isSaving ? 'Saving profile' : 'Save profile'}
         onPress={() => onSave(values)}
+        testID="save-profile"
       />
     </View>
   );

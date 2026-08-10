@@ -51,18 +51,25 @@ class FakeDatabase implements DatabaseConnection {
   }
 }
 
-const row = {
+type StoredRow = Readonly<{
+  id: string;
+  local_calendar_date: string;
+  mass_grams: number;
+  note: string | null;
+  occurred_at_epoch_ms: number;
+  utc_offset_minutes: number;
+}>;
+
+const row: StoredRow = {
   id: '123e4567-e89b-42d3-a456-426614174000',
   local_calendar_date: '2026-08-04',
   mass_grams: 82_400,
   note: 'Morning',
   occurred_at_epoch_ms: Date.UTC(2026, 7, 4, 4),
   utc_offset_minutes: 480,
-} as const;
+};
 
-function rowWith(
-  overrides: Partial<typeof row> & { id: string },
-): typeof row & { id: string } {
+function rowWith(overrides: Partial<StoredRow>): StoredRow {
   return { ...row, ...overrides };
 }
 
@@ -83,25 +90,25 @@ function entry(): BodyWeightEntry {
 }
 
 describe('body weight persistence', () => {
-  it('creates the forward-only table and one ordered index', () => {
+  it('creates the forward-only table and one ordered index', async () => {
     const migration = migrations.at(-1);
+    if (!migration) throw new Error('Missing migration');
     expect(migration).toMatchObject({
       description: 'Add historical body weight check-ins.',
       version: 11,
     });
     const database = new FakeDatabase();
-    return migration?.up(database).then(() => {
-      const statements = database.runs.map(({ statement }) => statement);
-      expect(statements).toHaveLength(2);
-      expect(statements[0]).toContain('CREATE TABLE body_weight_entry');
-      expect(statements[0]).toContain('mass_grams >= 2000');
-      expect(statements[0]).toContain(
-        'utc_offset_minutes BETWEEN -840 AND 840',
-      );
-      expect(statements[1]).toContain(
-        'CREATE INDEX body_weight_entry_local_date_occurred_at',
-      );
-    });
+
+    await migration.up(database);
+
+    const statements = database.runs.map(({ statement }) => statement);
+    expect(statements).toHaveLength(2);
+    expect(statements[0]).toContain('CREATE TABLE body_weight_entry');
+    expect(statements[0]).toContain('mass_grams >= 2000');
+    expect(statements[0]).toContain('utc_offset_minutes BETWEEN -840 AND 840');
+    expect(statements[1]).toContain(
+      'CREATE INDEX body_weight_entry_local_date_occurred_at',
+    );
   });
 
   it('reconstructs a stored row through the domain', async () => {
