@@ -1,4 +1,10 @@
+import { UserProfile, isErr } from '@fitness/domain';
 import type { LocalCalendarDateRange } from '../../../application/date/local-calendar-date';
+import type {
+  BodyWeightProgressReader,
+  BodyWeightProgressSummary,
+} from '../../body-measurement-history/application/body-weight-progress-reader';
+import type { PersonalProfileRepository } from '../../personal-profile/application/personal-profile-repository';
 import type { HydrationProgressReader } from '../../hydration-tracking/application/hydration-progress-reader';
 import type { NutritionProgressReader } from '../../nutrition-logging/application/nutrition-progress-reader';
 import {
@@ -47,9 +53,72 @@ describe('GetProgressSummaryUseCase', () => {
       }),
     ).rejects.toThrow('Progress date range is invalid.');
   });
+
+  it('reports no body weight data rather than a zero weight', async () => {
+    const summary = await createUseCase({ nutritionComplete: true }).execute(
+      range,
+    );
+    expect(summary.bodyWeight).toBeNull();
+  });
+
+  it('passes through recorded first, latest, and change values', async () => {
+    const bodyWeight: BodyWeightProgressSummary = {
+      changeGrams: -1_200,
+      entryCount: 2,
+      firstGrams: 83_000,
+      firstLocalCalendarDate: '2026-08-01',
+      latestGrams: 81_800,
+      latestLocalCalendarDate: '2026-08-02',
+    };
+    const summary = await createUseCase({
+      bodyWeight,
+      nutritionComplete: true,
+    }).execute(range);
+
+    expect(summary.bodyWeight).toEqual(bodyWeight);
+  });
+
+  it('reads the current profile preference for display only', async () => {
+    const withProfile = await createUseCase({
+      nutritionComplete: true,
+      preferredUnitSystem: 'imperial',
+    }).execute(range);
+    const withoutProfile = await createUseCase({
+      nutritionComplete: true,
+    }).execute(range);
+
+    expect(withProfile.preferredUnitSystem).toBe('imperial');
+    expect(withoutProfile.preferredUnitSystem).toBe('metric');
+  });
 });
 
-function createUseCase({ nutritionComplete }: { nutritionComplete: boolean }) {
+function storedProfile(
+  preferredUnitSystem: 'imperial' | 'metric',
+): UserProfile {
+  const created = UserProfile.create(
+    {
+      activityLevel: 'moderately-active',
+      biologicalSex: 'female',
+      dateOfBirth: '1990-06-15',
+      heightMillimeters: 1_650,
+      preferredUnitSystem,
+      weightGrams: 83_000,
+    },
+    '2026-08-10',
+  );
+  if (isErr(created)) throw new Error('Invalid fixture');
+  return created.value;
+}
+
+function createUseCase({
+  bodyWeight: bodyWeightSummary = null,
+  nutritionComplete,
+  preferredUnitSystem,
+}: {
+  bodyWeight?: BodyWeightProgressSummary | null;
+  nutritionComplete: boolean;
+  preferredUnitSystem?: 'imperial' | 'metric';
+}) {
   const nutrition: NutritionProgressReader = {
     summarizeRange: () =>
       Promise.resolve([
@@ -92,5 +161,21 @@ function createUseCase({ nutritionComplete }: { nutritionComplete: boolean }) {
         repetitions: null,
       }),
   };
-  return new GetProgressSummaryUseCase(nutrition, hydration, workout);
+  const bodyWeight: BodyWeightProgressReader = {
+    summarizeRange: () => Promise.resolve(bodyWeightSummary),
+  };
+  const profile: PersonalProfileRepository = {
+    get: () =>
+      Promise.resolve(
+        preferredUnitSystem ? storedProfile(preferredUnitSystem) : null,
+      ),
+    save: () => Promise.resolve(),
+  };
+  return new GetProgressSummaryUseCase(
+    nutrition,
+    hydration,
+    workout,
+    bodyWeight,
+    profile,
+  );
 }

@@ -18,6 +18,13 @@ import {
   SelectionField,
   spacing,
 } from '../../../design-system';
+import {
+  describeBodyWeight,
+  describeBodyWeightChange,
+  formatBodyWeight,
+  formatBodyWeightChange,
+  getBodyWeightDisplayUnit,
+} from '../../body-measurement-history/presentation/body-weight-formatting';
 import type {
   ProgressDay,
   ProgressSummary,
@@ -147,6 +154,7 @@ export function ProgressScreen({
       <NutritionSummary summary={summary} />
       <HydrationSummary summary={summary} />
       <WorkoutSummary summary={summary} />
+      <BodyWeightSummary summary={summary} />
       {period !== 'day' ? (
         <DailyActivity days={summary.days} period={period} />
       ) : null}
@@ -263,6 +271,66 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
       )}
     </Card>
   );
+}
+
+function BodyWeightSummary({
+  summary,
+}: Readonly<{ summary: ProgressSummary }>) {
+  const value = summary.bodyWeight;
+  const unit = getBodyWeightDisplayUnit(summary.preferredUnitSystem);
+  if (value === null)
+    return (
+      <Card testID="progress-body-weight" variant="outlined">
+        <SectionHeader title="Body weight" />
+        <AppText color="secondary">No weight check-ins in this period.</AppText>
+      </Card>
+    );
+
+  return (
+    <Card
+      accessibilityLabel={describeSummary(value, unit)}
+      testID="progress-body-weight"
+      variant="outlined"
+    >
+      <SectionHeader title="Body weight" />
+      <Metric
+        label="First recorded"
+        value={formatBodyWeight(value.firstGrams, unit)}
+      />
+      <Metric
+        label="Latest recorded"
+        value={formatBodyWeight(value.latestGrams, unit)}
+      />
+      {value.changeGrams === null ? null : (
+        <Metric
+          label="Recorded change"
+          value={formatBodyWeightChange(value.changeGrams, unit)}
+        />
+      )}
+      <Metric label="Check-ins" value={String(value.entryCount)} />
+      <AppText color="secondary" variant="bodySmall">
+        {value.changeGrams === null
+          ? 'A recorded change needs at least two check-ins in this period.'
+          : 'This is the difference between your first and latest recorded check-ins, not a measured trend.'}
+      </AppText>
+    </Card>
+  );
+}
+
+function describeSummary(
+  value: NonNullable<ProgressSummary['bodyWeight']>,
+  unit: Parameters<typeof describeBodyWeight>[1],
+): string {
+  const parts = [
+    'Body weight progress',
+    `First recorded weight ${describeBodyWeight(value.firstGrams, unit)}`,
+    `Latest recorded weight ${describeBodyWeight(value.latestGrams, unit)}`,
+    value.changeGrams === null
+      ? 'Recorded change needs at least two check-ins'
+      : `Recorded change ${describeBodyWeightChange(value.changeGrams, unit)}`,
+    `${value.entryCount} check-ins`,
+  ];
+  return `${parts.join('. ')}.`;
 }
 
 function Metric({ label, value }: Readonly<{ label: string; value: string }>) {

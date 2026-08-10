@@ -3,6 +3,8 @@ import {
   isLocalCalendarDateRange,
   type LocalCalendarDateRange,
 } from '../../../application/date/local-calendar-date';
+import type { BodyWeightProgressReader } from '../../body-measurement-history/application/body-weight-progress-reader';
+import type { PersonalProfileRepository } from '../../personal-profile/application/personal-profile-repository';
 import type {
   HydrationProgressDay,
   HydrationProgressReader,
@@ -38,22 +40,36 @@ export class GetProgressSummaryUseCase {
     private readonly nutrition: NutritionProgressReader,
     private readonly hydration: HydrationProgressReader,
     private readonly workout: ProgressWorkoutReader,
+    private readonly bodyWeight: BodyWeightProgressReader,
+    // Read for the display unit only. Progress never treats a mutable
+    // singleton as historical truth.
+    private readonly profile: PersonalProfileRepository,
   ) {}
 
   async execute(range: LocalCalendarDateRange): Promise<ProgressSummary> {
     if (!isLocalCalendarDateRange(range))
       throw new Error('Progress date range is invalid.');
-    const [nutritionDays, hydrationDays, workout, workoutDays] =
-      await Promise.all([
-        this.nutrition.summarizeRange(range),
-        this.hydration.summarizeRange(range),
-        this.workout.summarizeCompletedRange(range),
-        this.workout.summarizeCompletedByDay(range),
-      ]);
+    const [
+      nutritionDays,
+      hydrationDays,
+      workout,
+      workoutDays,
+      bodyWeight,
+      profile,
+    ] = await Promise.all([
+      this.nutrition.summarizeRange(range),
+      this.hydration.summarizeRange(range),
+      this.workout.summarizeCompletedRange(range),
+      this.workout.summarizeCompletedByDay(range),
+      this.bodyWeight.summarizeRange(range),
+      this.profile.get(),
+    ]);
     return Object.freeze({
+      bodyWeight,
       days: combineDays(range, nutritionDays, hydrationDays, workoutDays),
       hydration: summarizeHydration(hydrationDays),
       nutrition: summarizeNutrition(nutritionDays),
+      preferredUnitSystem: profile?.preferredUnitSystem ?? 'metric',
       range,
       workout,
     });
