@@ -74,14 +74,14 @@ export function HydrationDailyScreen({
 
   if (state.status === 'loading') {
     return (
-      <Screen accessibilityLabel="Loading hydration" isCentered>
+      <Screen accessibilityLabel="Loading hydration" hasTabBar isCentered>
         <LoadingIndicator label="Loading hydration" />
       </Screen>
     );
   }
   if (state.status === 'error') {
     return (
-      <Screen accessibilityLabel="Hydration error" isCentered>
+      <Screen accessibilityLabel="Hydration error" hasTabBar isCentered>
         <AppText accessibilityRole="header" variant="heading">
           Hydration unavailable
         </AppText>
@@ -101,6 +101,7 @@ export function HydrationDailyScreen({
     <Screen
       accessibilityLabel="Hydration"
       contentContainerStyle={{ gap: spacing.xl }}
+      hasTabBar
     >
       <View style={{ gap: spacing.sm }}>
         <AppText accessibilityRole="header" variant="display">

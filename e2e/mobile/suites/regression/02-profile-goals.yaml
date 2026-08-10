@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Profile and goals
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile-and-goal.yaml

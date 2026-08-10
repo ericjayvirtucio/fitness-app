@@ -130,6 +130,7 @@ export function HydrationTargetScreen({
         keyboardType="decimal-pad"
         label={`Target (${unit === 'liter' ? 'L' : 'mL'})`}
         onChangeText={setAmount}
+        testID="hydration-target-amount-input"
         value={amount}
       />
       {errors.form ? (

@@ -5,23 +5,49 @@ appId: com.fitnessapp.dev
 - assertVisible: Nutrition
 - tapOn: Add food or beverage
 - tapOn: Enter one-time item
-- assertVisible: Add nutrition
-- tapOn: Description
+- assertVisible: Add food or beverage
+- tapOn:
+    id: nutrition-description-input-touch-target
 - inputText: E2E Banana
-- tapOn: Reference amount (grams)
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-reference-amount-input-touch-target
+    direction: DOWN
+- tapOn:
+    id: nutrition-reference-amount-input-touch-target
 - inputText: '100'
-- tapOn: Energy per reference (kcal)
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-energy-input-touch-target
+    direction: DOWN
+- tapOn:
+    id: nutrition-energy-input-touch-target
 - inputText: '89'
 - scrollUntilVisible:
+    centerElement: true
     element:
-      text: Consumed amount (grams)
+      id: nutrition-consumed-amount-input-touch-target
     direction: DOWN
-- tapOn: Consumed amount (grams)
+- tapOn:
+    id: nutrition-consumed-amount-input-touch-target
 - inputText: '100'
-- scrollUntilVisible:
-    element:
-      text: Save entry
-    direction: DOWN
+- swipe:
+    start: 50%,55%
+    end: 50%,10%
+    duration: 500
 - tapOn: Save entry
-- assertVisible: E2E Banana
-- assertVisible: 89 kcal
+- assertVisible: Add nutrition
+- swipe:
+    start: 1%,50%
+    end: 95%,50%
+    duration: 300
+- assertVisible: Nutrition
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: '.*E2E Banana.*'
+    direction: DOWN
+- assertVisible: '.*E2E Banana.*'
+- assertVisible: '.*89 kcal.*'

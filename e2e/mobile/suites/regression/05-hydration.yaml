@@ -1,0 +1,6 @@
+appId: com.fitnessapp.dev
+name: Hydration logging and persistence
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml

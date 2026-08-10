@@ -3,12 +3,26 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: tab-today
 - assertVisible: Hydration
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Set daily target
+    direction: DOWN
 - tapOn: Set daily target
 - tapOn: Liters (L)
-- tapOn: Target (L)
+- tapOn:
+    id: hydration-target-amount-input-touch-target
 - inputText: '3'
 - tapOn: Save daily target
-- assertVisible: 3 L remaining of 3 L
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- assertVisible: 'Fluid target progress, 0 mL of 3 L, 0%'
 - scrollUntilVisible:
     element:
       text: Add fluid
@@ -24,4 +38,12 @@ appId: com.fitnessapp.dev
 - stopApp
 - launchApp
 - assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
-- assertVisible: 2.5 L remaining of 3 L
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- assertVisible: 'Fluid target progress, 500 mL of 3 L, 17%'

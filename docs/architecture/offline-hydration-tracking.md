@@ -60,6 +60,11 @@ The singleton target represents current configuration, not historical target
 history. Target progress is shown for today. Other selected dates show stable
 entry totals and explicitly omit historical progress claims.
 
+Progress range summaries are exposed through a Hydration-owned reader and group
+bounded captured local dates into total, plain-water, other-fluid, and entry
+counts. They deliberately exclude the mutable target because target history is
+not persisted.
+
 ## Persistence, errors, and performance
 
 Migration 6 adds `hydration_entry`, its `(local_calendar_date,

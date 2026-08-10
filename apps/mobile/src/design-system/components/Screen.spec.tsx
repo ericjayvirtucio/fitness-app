@@ -28,4 +28,17 @@ describe('Screen', () => {
       'keyboardShouldPersistTaps',
     );
   });
+
+  it('dismisses the keyboard when a keyboard-aware screen is dragged', async () => {
+    await render(
+      <Screen isKeyboardAware testID="screen-content">
+        <AppText>Form content</AppText>
+      </Screen>,
+    );
+
+    expect(screen.getByTestId('screen-content')).toHaveProp(
+      'keyboardDismissMode',
+      'on-drag',
+    );
+  });
 });

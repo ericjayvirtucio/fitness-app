@@ -1,0 +1,14 @@
+appId: com.fitnessapp.dev
+name: Progress remains after application restart
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/nutrition/log-one-time-entry.yaml
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-progress
+- assertVisible: 'Energy, 89 kcal'
+- tapOn:
+    id: progress-period-month
+- assertVisible: 'Energy, 89 kcal'

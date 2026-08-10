@@ -38,6 +38,7 @@ export {
   opacity,
   radii,
   spacing,
+  tabBarHeight,
   typography,
 } from './theme/tokens';
 export { useAppTheme } from './theme/use-app-theme';

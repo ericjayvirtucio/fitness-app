@@ -38,6 +38,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 13 --platform ios
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
+./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -65,13 +66,15 @@ at startup, so running it separately before every suite is unnecessary.
 
 ## Structure and ownership
 
-- `suites` contains thin, independently runnable entry flows.
+- `suites` contains thin entry flows. Scenario-reporting suites use a directory
+  of independently runnable top-level flows so JUnit owns one testcase per
+  human-readable scenario.
 - `flows` contains reusable product-capability workflows.
 - Shared flows contain only cross-feature mechanics.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15. Sprints 5, 7, and 14 deliberately return an unsupported-suite error
+15, and 16. Sprints 5, 7, and 14 deliberately return an unsupported-suite error
 because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -100,8 +103,8 @@ hidden rerun.
 
 ## Results and troubleshooting
 
-Each run writes the CLI log, JUnit report, screenshots, view hierarchy, and
-Maestro debug output beneath:
+Each run writes the CLI log, raw JUnit, `report.txt`, `report.json`, screenshots,
+view hierarchy, and Maestro debug output beneath:
 
 ```text
 artifacts/qa/<UTC timestamp>/<platform>/<suite>/
@@ -115,9 +118,11 @@ or `adb devices`. For explicit iOS, confirm Xcode contains an available iPhone
 Simulator runtime; the wrapper handles boot and app installation. For Android or
 implicit selection, build and install the app before rerunning.
 
-Every run prints a final result summary with setup/assertion status, suite, target,
-duration, exit status, JUnit pass/fail/error/skip counts when available, and the
-artifact path. A failed iOS build writes `preparation.log` beside the QA artifacts.
+Every assertion run prints individual PASS, FAIL, ERROR, or SKIP scenario lines
+followed by setup/assertion status, suite, target, duration, exit status, JUnit
+counts, and the artifact path. Missing or malformed JUnit is a nonzero reporting
+integrity failure. Maestro's nonzero runner status is never replaced by reporting.
+A failed iOS build writes `preparation.log` beside the QA artifacts.
 If a selector differs by platform, inspect the Maestro hierarchy and first fix
 missing accessibility semantics. Add a narrow platform override only when the
 underlying native behavior is genuinely different.

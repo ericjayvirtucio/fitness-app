@@ -10,13 +10,14 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
-import { spacing } from '../theme/tokens';
+import { spacing, tabBarHeight } from '../theme/tokens';
 import { useAppTheme } from '../theme/use-app-theme';
 
 type ScreenProps = Omit<ScrollViewProps, 'children' | 'style'> &
   Readonly<{
     children: ReactNode;
     edges?: readonly Edge[];
+    hasTabBar?: boolean;
     isCentered?: boolean;
     isKeyboardAware?: boolean;
     isScrollable?: boolean;
@@ -26,7 +27,8 @@ type ScreenProps = Omit<ScrollViewProps, 'children' | 'style'> &
 export function Screen({
   children,
   contentContainerStyle,
-  edges = ['top'],
+  edges,
+  hasTabBar = false,
   isCentered = false,
   isKeyboardAware = false,
   isScrollable = true,
@@ -34,6 +36,8 @@ export function Screen({
   ...props
 }: ScreenProps) {
   const theme = useAppTheme();
+  const resolvedEdges: readonly Edge[] =
+    edges ?? (hasTabBar ? (['top', 'bottom'] as const) : (['top'] as const));
   const contentStyle = [
     styles.content,
     isCentered && styles.centered,
@@ -43,6 +47,7 @@ export function Screen({
     <ScrollView
       contentContainerStyle={contentStyle}
       contentInsetAdjustmentBehavior="automatic"
+      keyboardDismissMode={isKeyboardAware ? 'on-drag' : 'none'}
       keyboardShouldPersistTaps="handled"
       style={[styles.fill, style]}
       {...props}
@@ -57,8 +62,12 @@ export function Screen({
 
   return (
     <SafeAreaView
-      edges={edges}
-      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+      edges={resolvedEdges}
+      style={[
+        styles.safeArea,
+        hasTabBar && styles.tabBarClearance,
+        { backgroundColor: theme.colors.background },
+      ]}
     >
       {isKeyboardAware ? (
         <KeyboardAvoidingView
@@ -87,5 +96,8 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  tabBarClearance: {
+    paddingBottom: tabBarHeight,
   },
 });

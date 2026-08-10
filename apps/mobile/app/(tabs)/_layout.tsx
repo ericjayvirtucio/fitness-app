@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import {
   AppIcon,
   minimumTouchTarget,
+  tabBarHeight,
   typography,
   useAppTheme,
 } from '../../src/design-system';
@@ -20,7 +21,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          minHeight: 60,
+          minHeight: tabBarHeight,
         },
         tabBarItemStyle: { minHeight: minimumTouchTarget },
         tabBarLabelStyle: typography.caption,

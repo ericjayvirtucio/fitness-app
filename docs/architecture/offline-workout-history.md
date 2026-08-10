@@ -51,6 +51,10 @@ never combined into one score.
 Personal-record claims, strength estimates, charts, adherence, streaks, calories,
 coaching, and recommendations remain deferred.
 
+The same repository also groups completed workout, performed exercise, and
+actual-set counts by captured local date for the cross-capability Progress daily
+breakdown. Planner intent and active sessions remain excluded.
+
 ## Performed exercise recents
 
 Recent exercises derive the latest completed performed occurrence per source Exercise

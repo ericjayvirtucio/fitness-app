@@ -5,6 +5,7 @@ import type {
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
   WorkoutProgressSummary,
+  WorkoutProgressDay,
 } from './workout-history-models';
 
 export interface WorkoutHistoryRepository {
@@ -20,4 +21,7 @@ export interface WorkoutHistoryRepository {
   summarizeCompletedRange(
     range: WorkoutHistoryRange,
   ): Promise<WorkoutProgressSummary>;
+  summarizeCompletedByDay(
+    range: WorkoutHistoryRange,
+  ): Promise<readonly WorkoutProgressDay[]>;
 }

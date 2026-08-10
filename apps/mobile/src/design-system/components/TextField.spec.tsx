@@ -66,4 +66,14 @@ describe('TextField', () => {
     expect(onFocus).toHaveBeenCalledTimes(1);
     expect(onBlur).toHaveBeenCalledTimes(1);
   });
+
+  it('exposes a stable touch target for the complete input frame', async () => {
+    await render(<TextField label="Display name" testID="display-name" />);
+
+    expect(screen.getByTestId('display-name-touch-target')).toHaveProp(
+      'accessible',
+      false,
+    );
+    expect(screen.getByTestId('display-name')).toBeOnTheScreen();
+  });
 });

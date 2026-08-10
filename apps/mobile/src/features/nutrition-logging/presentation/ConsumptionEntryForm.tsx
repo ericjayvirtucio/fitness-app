@@ -85,6 +85,7 @@ export function ConsumptionEntryForm({
         error={errors.description}
         label="Description"
         onChangeText={(value) => set('description', value)}
+        testID="nutrition-description-input"
         value={values.description}
       />
 
@@ -105,6 +106,7 @@ export function ConsumptionEntryForm({
         keyboardType="decimal-pad"
         label={`Reference amount (${unit})`}
         onChangeText={(value) => set('referenceAmount', value)}
+        testID="nutrition-reference-amount-input"
         value={values.referenceAmount}
       />
       <TextField
@@ -112,6 +114,7 @@ export function ConsumptionEntryForm({
         keyboardType="decimal-pad"
         label="Energy per reference (kcal)"
         onChangeText={(value) => set('energyKilocalories', value)}
+        testID="nutrition-energy-input"
         value={values.energyKilocalories}
       />
 
@@ -167,6 +170,7 @@ export function ConsumptionEntryForm({
         keyboardType="decimal-pad"
         label={`Consumed amount (${unit})`}
         onChangeText={(value) => set('consumedAmount', value)}
+        testID="nutrition-consumed-amount-input"
         value={values.consumedAmount}
       />
       <TextField

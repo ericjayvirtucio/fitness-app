@@ -76,3 +76,5 @@ export const motionEasings = {
 } as const;
 
 export const minimumTouchTarget = 44;
+
+export const tabBarHeight = 60;
