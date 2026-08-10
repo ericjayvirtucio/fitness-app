@@ -161,6 +161,16 @@ between the profile and body-measurement suites.
 Check-in flows keep the prefilled local date so a scenario never records a
 future measurement or crosses the selected period boundary.
 
+## Accessibility container behavior
+
+iOS exposes an element carrying an `accessibilityLabel` as one accessibility
+node and hides its children. A history row is therefore a single element read
+as one phrase, which is the intended list behavior. The Progress card
+deliberately does not set a container label, so each metric row stays
+individually navigable like the other Progress cards; the closing caption
+carries the combined spoken summary instead. End-to-end assertions target
+container labels for the same reason.
+
 ## Known limitations
 
 - Weight changed directly on the Profile screen creates no history record.

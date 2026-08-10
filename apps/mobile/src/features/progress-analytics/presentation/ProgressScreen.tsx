@@ -24,6 +24,7 @@ import {
   formatBodyWeight,
   formatBodyWeightChange,
   getBodyWeightDisplayUnit,
+  type BodyWeightDisplayUnit,
 } from '../../body-measurement-history/presentation/body-weight-formatting';
 import type {
   ProgressDay,
@@ -323,7 +324,7 @@ function BodyWeightSummary({
 
 function describeSummary(
   value: NonNullable<ProgressSummary['bodyWeight']>,
-  unit: Parameters<typeof describeBodyWeight>[1],
+  unit: BodyWeightDisplayUnit,
 ): string {
   const parts = [
     'Body weight progress',

@@ -1,4 +1,10 @@
-import type { BodyWeightEntry, MassUnit, UnitSystem } from '@fitness/domain';
+import {
+  Mass,
+  isErr,
+  type BodyWeightEntry,
+  type MassUnit,
+  type UnitSystem,
+} from '@fitness/domain';
 
 export type BodyWeightDisplayUnit = Extract<MassUnit, 'kilogram' | 'pound'>;
 
@@ -20,11 +26,14 @@ export function getBodyWeightDisplayUnit(
   return unitSystem === 'imperial' ? 'pound' : 'kilogram';
 }
 
+/** Conversion stays in the canonical Mass object rather than a second table. */
 export function convertGrams(
   grams: number,
   unit: BodyWeightDisplayUnit,
 ): number {
-  return unit === 'pound' ? grams / 453.59237 : grams / 1_000;
+  const mass = Mass.create(Math.abs(grams), 'gram');
+  if (isErr(mass)) throw new Error('Body weight value is not a valid mass.');
+  return grams < 0 ? -mass.value.in(unit) : mass.value.in(unit);
 }
 
 export function formatBodyWeight(
