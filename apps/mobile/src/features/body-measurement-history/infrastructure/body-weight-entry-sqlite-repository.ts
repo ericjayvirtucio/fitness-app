@@ -1,30 +1,20 @@
-import { BodyWeightEntry, DomainId, Mass, isErr } from '@fitness/domain';
+import type { BodyWeightEntry, DomainId } from '@fitness/domain';
 import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
-import {
-  PersistenceError,
-  toPersistenceError,
-} from '../../../infrastructure/persistence/persistence-error';
+import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import type { BodyWeightEntryRepository } from '../application/body-weight-entry-repository';
 import {
   toBodyWeightHistoryCursor,
   type BodyWeightHistoryPage,
   type BodyWeightHistoryPageQuery,
 } from '../application/body-weight-history-models';
-
-type BodyWeightEntryRow = Readonly<{
-  id: string;
-  local_calendar_date: string;
-  mass_grams: number;
-  note: string | null;
-  occurred_at_epoch_ms: number;
-  utc_offset_minutes: number;
-}>;
-
-const selectedColumns = `id, mass_grams, note, occurred_at_epoch_ms,
-  local_calendar_date, utc_offset_minutes`;
+import {
+  bodyWeightEntryColumns,
+  mapBodyWeightEntryRow,
+  type BodyWeightEntryRow,
+} from './body-weight-row-mapping';
 
 // Newest first, matching body_weight_entry_local_date_occurred_at.
 const newestFirst = `ORDER BY local_calendar_date DESC,
@@ -36,10 +26,10 @@ export class BodyWeightEntrySqliteRepository implements BodyWeightEntryRepositor
   async getById(id: DomainId): Promise<BodyWeightEntry | null> {
     try {
       const row = await this.database.getFirst<BodyWeightEntryRow>(
-        `SELECT ${selectedColumns} FROM body_weight_entry WHERE id = ?`,
+        `SELECT ${bodyWeightEntryColumns} FROM body_weight_entry WHERE id = ?`,
         [id.value],
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapBodyWeightEntryRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -48,9 +38,9 @@ export class BodyWeightEntrySqliteRepository implements BodyWeightEntryRepositor
   async getLatest(): Promise<BodyWeightEntry | null> {
     try {
       const row = await this.database.getFirst<BodyWeightEntryRow>(
-        `SELECT ${selectedColumns} FROM body_weight_entry ${newestFirst} LIMIT 1`,
+        `SELECT ${bodyWeightEntryColumns} FROM body_weight_entry ${newestFirst} LIMIT 1`,
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapBodyWeightEntryRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -64,7 +54,7 @@ export class BodyWeightEntrySqliteRepository implements BodyWeightEntryRepositor
     try {
       // One extra row decides whether another page exists without a count.
       const rows = await this.database.getAll<BodyWeightEntryRow>(
-        `SELECT ${selectedColumns} FROM body_weight_entry
+        `SELECT ${bodyWeightEntryColumns} FROM body_weight_entry
          ${
            cursor
              ? `WHERE local_calendar_date < ?
@@ -86,7 +76,7 @@ export class BodyWeightEntrySqliteRepository implements BodyWeightEntryRepositor
             ]
           : [limit + 1],
       );
-      const items = rows.slice(0, limit).map(mapRow);
+      const items = rows.slice(0, limit).map(mapBodyWeightEntryRow);
       const lastItem = items.at(-1);
       return Object.freeze({
         items: Object.freeze(items),
@@ -140,22 +130,6 @@ export class BodyWeightEntrySqliteRepository implements BodyWeightEntryRepositor
       throw toPersistenceError(error, 'operation-failed');
     }
   }
-}
-
-function mapRow(row: BodyWeightEntryRow): BodyWeightEntry {
-  const id = DomainId.create(row.id);
-  const mass = Mass.create(row.mass_grams, 'gram');
-  if (isErr(id) || isErr(mass)) throw new PersistenceError('operation-failed');
-  const entry = BodyWeightEntry.create({
-    id: id.value,
-    localCalendarDate: row.local_calendar_date,
-    mass: mass.value,
-    note: row.note,
-    occurredAtEpochMilliseconds: row.occurred_at_epoch_ms,
-    utcOffsetMinutes: row.utc_offset_minutes,
-  });
-  if (isErr(entry)) throw new PersistenceError('operation-failed');
-  return entry.value;
 }
 
 function toParameters(entry: BodyWeightEntry): DatabaseParameters {
