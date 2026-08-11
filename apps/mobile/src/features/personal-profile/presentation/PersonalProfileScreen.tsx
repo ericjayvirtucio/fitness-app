@@ -37,6 +37,7 @@ type ScreenState =
 type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
   onOpenBodyMeasurements?: () => void;
+  onOpenDataExport?: () => void;
   onOpenGoals?: () => void;
 }>;
 
@@ -71,6 +72,7 @@ function formValues(profile: UserProfile | null): ProfileFormValues {
 export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
   onOpenBodyMeasurements,
+  onOpenDataExport,
   onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -181,6 +183,15 @@ export function PersonalProfileScreen({
           onPress={onOpenBodyMeasurements}
           style={{ marginTop: spacing.md }}
           testID="open-body-measurements"
+          variant="outline"
+        />
+      ) : null}
+      {onOpenDataExport ? (
+        <AppButton
+          label="Export my data"
+          onPress={onOpenDataExport}
+          style={{ marginTop: spacing.md }}
+          testID="open-data-export"
           variant="outline"
         />
       ) : null}

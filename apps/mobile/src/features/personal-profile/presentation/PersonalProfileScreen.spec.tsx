@@ -132,4 +132,24 @@ describe('PersonalProfileScreen', () => {
     );
     expect(screen.queryByText('raw SQL')).not.toBeOnTheScreen();
   });
+  it('opens data export from the profile', async () => {
+    const openDataExport = jest.fn();
+    await render(
+      <PersonalProfileScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getProfile: { execute: () => Promise.resolve(validProfile()) },
+            saveProfile: {
+              execute: () => Promise.resolve(ok(validProfile())),
+            },
+          })
+        }
+        onOpenDataExport={openDataExport}
+      />,
+    );
+
+    await fireEvent.press(await screen.findByTestId('open-data-export'));
+
+    expect(openDataExport).toHaveBeenCalledTimes(1);
+  });
 });

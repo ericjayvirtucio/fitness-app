@@ -1,0 +1,23 @@
+appId: com.fitnessapp.dev
+name: Review the export privacy notice
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-export/open-data-export.yaml
+- assertVisible: What is included
+- assertVisible:
+    id: data-export-privacy-notice
+- assertVisible: '.*This app does not upload it anywhere.*'
+# The notice is longer than one screen, so the later statements need scrolling
+# before they can be asserted.
+- scrollUntilVisible:
+    element:
+      text: '.*not encrypted.*'
+    direction: DOWN
+- assertVisible: '.*not encrypted.*'
+- scrollUntilVisible:
+    element:
+      text: '.*not supported yet.*'
+    direction: DOWN
+- assertVisible: '.*not supported yet.*'

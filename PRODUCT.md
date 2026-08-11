@@ -37,7 +37,9 @@ Phase 0 excludes all business features, authentication, databases, backend endpo
 2. **Domain foundation:** approved domain language, local persistence strategy, and the first vertical feature with tests.
 3. **Offline product capability:** local-first logging workflows and resilient user experience.
 4. **Cloud services:** authentication, authoritative API behavior, and secure synchronization.
-5. **Product expansion:** analytics, notifications, export, responsible AI assistance, and approved platform integrations.
+5. **Product expansion:** analytics, notifications, responsible AI assistance, and approved platform integrations.
+
+Offline data export shipped during the offline product capability phase rather than product expansion, because a local export needs no cloud service and portability should not wait behind one.
 
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 

@@ -1,0 +1,20 @@
+appId: com.fitnessapp.dev
+---
+# Generation is a separate step from the platform share sheet, so the flow can
+# assert an application-owned confirmation without touching native controls.
+- scrollUntilVisible:
+    element:
+      id: create-data-export
+    direction: DOWN
+- tapOn:
+    id: create-data-export
+- assertVisible:
+    id: data-export-ready
+- assertVisible: Export ready
+# The ready panel is inserted above the actions, so the confirmation appears
+# while "Open share options" is still below the fold. Leave the flow with the
+# post-export actions on screen for whatever asserts next.
+- scrollUntilVisible:
+    element:
+      id: share-data-export
+    direction: DOWN

@@ -1,0 +1,12 @@
+appId: com.fitnessapp.dev
+name: Offline data export
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-export/open-data-export.yaml
+- assertVisible:
+    id: data-export-privacy-notice
+- runFlow: ../../flows/data-export/create-data-export.yaml
+- assertVisible:
+    id: share-data-export

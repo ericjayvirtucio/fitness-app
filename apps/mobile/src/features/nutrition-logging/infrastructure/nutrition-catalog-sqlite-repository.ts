@@ -1,49 +1,17 @@
-import {
-  DomainId,
-  Energy,
-  Mass,
-  NutritionFacts,
-  Volume,
-  isErr,
-  type NutritionReference,
-} from '@fitness/domain';
+import type { DomainId } from '@fitness/domain';
 import type { DatabaseConnection } from '../../../infrastructure/persistence/database';
-import {
-  PersistenceError,
-  toPersistenceError,
-} from '../../../infrastructure/persistence/persistence-error';
-import { NutritionCatalogItem } from '../application/nutrition-catalog-item';
+import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
+import type { NutritionCatalogItem } from '../application/nutrition-catalog-item';
 import {
   escapeLikePattern,
   normalizeNutritionCatalogName,
 } from '../application/nutrition-catalog-name';
 import type { NutritionCatalogRepository } from '../application/nutrition-catalog-repository';
-
-type NutritionCatalogRow = Readonly<{
-  carbohydrate_grams: number | null;
-  display_name: string;
-  energy_kilojoules: number;
-  fat_grams: number | null;
-  fiber_grams: number | null;
-  id: string;
-  is_favorite: number;
-  item_kind: string;
-  last_used_at_epoch_ms: number | null;
-  normalized_name: string;
-  protein_grams: number | null;
-  provenance: string;
-  reference_amount: number;
-  reference_kind: string;
-  sodium_milligrams: number | null;
-  sugar_grams: number | null;
-  use_count: number;
-}>;
-
-const selectedColumns = `id, item_kind, display_name, normalized_name,
-  reference_kind, reference_amount, energy_kilojoules, protein_grams,
-  carbohydrate_grams, fat_grams, fiber_grams, sugar_grams,
-  sodium_milligrams, provenance, is_favorite, last_used_at_epoch_ms,
-  use_count`;
+import {
+  mapNutritionCatalogRow,
+  nutritionCatalogColumns,
+  type NutritionCatalogRow,
+} from './nutrition-row-mapping';
 
 export class NutritionCatalogSqliteRepository implements NutritionCatalogRepository {
   constructor(private readonly database: DatabaseConnection) {}
@@ -51,11 +19,11 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
   async getById(id: DomainId): Promise<NutritionCatalogItem | null> {
     try {
       const row = await this.database.getFirst<NutritionCatalogRow>(
-        `SELECT ${selectedColumns}
+        `SELECT ${nutritionCatalogColumns}
          FROM nutrition_catalog_item WHERE id = ?`,
         [id.value],
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapNutritionCatalogRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -65,7 +33,7 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
     normalizedName: string,
   ): Promise<readonly NutritionCatalogItem[]> {
     return this.readMany(
-      `SELECT ${selectedColumns}
+      `SELECT ${nutritionCatalogColumns}
        FROM nutrition_catalog_item
        WHERE normalized_name = ?
        ORDER BY id ASC`,
@@ -78,7 +46,7 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
     limit: number,
   ): Promise<readonly NutritionCatalogItem[]> {
     return this.readMany(
-      `SELECT ${selectedColumns}
+      `SELECT ${nutritionCatalogColumns}
        FROM nutrition_catalog_item
        WHERE normalized_name LIKE ? ESCAPE '\\'
        ORDER BY is_favorite DESC, normalized_name ASC, id ASC
@@ -89,7 +57,7 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
 
   async listFavorites(limit: number): Promise<readonly NutritionCatalogItem[]> {
     return this.readMany(
-      `SELECT ${selectedColumns}
+      `SELECT ${nutritionCatalogColumns}
        FROM nutrition_catalog_item
        WHERE is_favorite = 1
        ORDER BY normalized_name ASC, id ASC
@@ -100,7 +68,7 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
 
   async listRecent(limit: number): Promise<readonly NutritionCatalogItem[]> {
     return this.readMany(
-      `SELECT ${selectedColumns}
+      `SELECT ${nutritionCatalogColumns}
        FROM nutrition_catalog_item
        WHERE last_used_at_epoch_ms IS NOT NULL
        ORDER BY last_used_at_epoch_ms DESC, use_count DESC,
@@ -201,67 +169,11 @@ export class NutritionCatalogSqliteRepository implements NutritionCatalogReposit
         statement,
         parameters,
       );
-      return Object.freeze(rows.map(mapRow));
+      return Object.freeze(rows.map(mapNutritionCatalogRow));
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
   }
-}
-
-function mapRow(row: NutritionCatalogRow): NutritionCatalogItem {
-  const id = DomainId.create(row.id);
-  const energy = Energy.create(row.energy_kilojoules, 'kilojoule');
-  const reference = createReference(row.reference_kind, row.reference_amount);
-  if (isErr(id) || isErr(energy))
-    throw new PersistenceError('operation-failed');
-
-  const facts = NutritionFacts.create({
-    description: row.display_name,
-    energy: energy.value,
-    nutrients: {
-      carbohydrateGrams: row.carbohydrate_grams,
-      fatGrams: row.fat_grams,
-      fiberGrams: row.fiber_grams,
-      proteinGrams: row.protein_grams,
-      sodiumMilligrams: row.sodium_milligrams,
-      sugarGrams: row.sugar_grams,
-    },
-    provenance: row.provenance,
-    reference,
-  });
-  if (
-    isErr(facts) ||
-    normalizeNutritionCatalogName(row.display_name) !== row.normalized_name
-  ) {
-    throw new PersistenceError('operation-failed');
-  }
-
-  const item = NutritionCatalogItem.create({
-    facts: facts.value,
-    id: id.value,
-    isFavorite: row.is_favorite === 1,
-    kind: row.item_kind,
-    lastUsedAtEpochMilliseconds: row.last_used_at_epoch_ms,
-    useCount: row.use_count,
-  });
-  if (isErr(item) || (row.is_favorite !== 0 && row.is_favorite !== 1)) {
-    throw new PersistenceError('operation-failed');
-  }
-  return item.value;
-}
-
-function createReference(kind: string, amount: number): NutritionReference {
-  if (kind === 'mass') {
-    const mass = Mass.create(amount, 'gram');
-    if (isErr(mass)) throw new PersistenceError('operation-failed');
-    return Object.freeze({ amount: mass.value, kind });
-  }
-  if (kind === 'volume') {
-    const volume = Volume.create(amount, 'milliliter');
-    if (isErr(volume)) throw new PersistenceError('operation-failed');
-    return Object.freeze({ amount: volume.value, kind });
-  }
-  throw new PersistenceError('operation-failed');
 }
 
 function toParameters(item: NutritionCatalogItem) {

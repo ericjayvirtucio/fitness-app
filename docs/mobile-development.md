@@ -81,6 +81,8 @@ suite from the repository root:
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh sprint 16 --platform ios
+./scripts/qa.sh sprint 17 --platform ios
+./scripts/qa.sh sprint 18 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -169,6 +171,23 @@ month summaries from captured local dates without persisted rollups. See the
 [offline Progress architecture](architecture/offline-progress-analytics.md), the
 [Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md), and
 the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
+
+## Offline data export
+
+The Profile tab can create one versioned JSON file describing everything the
+app stores on the device. Generation runs entirely offline inside a single
+exclusive SQLite read transaction, using bounded capability-owned readers, and
+is a separate step from the platform share and save controls. The app keeps at
+most one export in its cache directory and removes it when the export screen
+opens, before the next export, and on discard. The file is not encrypted and
+there is no import or restore. See
+[offline data export architecture](architecture/offline-data-export.md), the
+[Sprint 18 manual checklist](manual-testing/sprint-18-offline-data-export.md),
+and [troubleshooting guidance](troubleshooting/offline-data-export.md).
+
+Adding `expo-sharing` introduced a native module, so the first `expo run:ios`
+or explicit iOS QA run after pulling this change regenerates the native project
+and reinstalls pods.
 
 ## Troubleshooting
 

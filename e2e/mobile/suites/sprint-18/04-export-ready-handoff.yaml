@@ -1,0 +1,18 @@
+appId: com.fitnessapp.dev
+name: Reach the share handoff control
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-export/open-data-export.yaml
+- runFlow: ../../flows/data-export/create-data-export.yaml
+# The share sheet itself is platform-owned. This asserts the application state
+# immediately before handoff rather than adding brittle native selectors.
+- assertVisible:
+    id: share-data-export
+- scrollUntilVisible:
+    element:
+      id: discard-data-export
+    direction: DOWN
+- assertVisible:
+    id: discard-data-export

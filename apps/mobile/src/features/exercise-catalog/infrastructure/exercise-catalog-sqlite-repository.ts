@@ -1,32 +1,20 @@
-import { DomainId, ExerciseDefinition, isErr } from '@fitness/domain';
+import type { DomainId } from '@fitness/domain';
 import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
-import {
-  PersistenceError,
-  toPersistenceError,
-} from '../../../infrastructure/persistence/persistence-error';
-import { ExerciseCatalogItem } from '../application/exercise-catalog-item';
+import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
+import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import {
   escapeExerciseSearch,
   normalizeExerciseName,
 } from '../application/exercise-catalog-name';
 import type { ExerciseCatalogRepository } from '../application/exercise-catalog-repository';
-
-type ExerciseRow = Readonly<{
-  display_name: string;
-  equipment: string;
-  id: string;
-  is_favorite: number;
-  logging_mode: string;
-  normalized_name: string;
-  notes: string | null;
-  primary_muscle_group: string;
-}>;
-
-const columns =
-  'id, display_name, normalized_name, equipment, primary_muscle_group, logging_mode, notes, is_favorite';
+import {
+  exerciseColumns,
+  mapExerciseRow,
+  type ExerciseRow,
+} from './exercise-row-mapping';
 
 export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepository {
   constructor(private readonly database: DatabaseConnection) {}
@@ -34,10 +22,10 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
   async getById(id: DomainId): Promise<ExerciseCatalogItem | null> {
     try {
       const row = await this.database.getFirst<ExerciseRow>(
-        `SELECT ${columns} FROM exercise_catalog_item WHERE id = ?`,
+        `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE id = ?`,
         [id.value],
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapExerciseRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -46,42 +34,42 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
   getByIds(ids: readonly DomainId[]) {
     if (ids.length === 0) return Promise.resolve(Object.freeze([]));
     return this.readMany(
-      `SELECT ${columns} FROM exercise_catalog_item WHERE id IN (${ids.map(() => '?').join(', ')}) ORDER BY id ASC`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE id IN (${ids.map(() => '?').join(', ')}) ORDER BY id ASC`,
       ids.map((id) => id.value),
     );
   }
 
   findByNormalizedName(normalizedName: string) {
     return this.readMany(
-      `SELECT ${columns} FROM exercise_catalog_item WHERE normalized_name = ? ORDER BY id ASC`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE normalized_name = ? ORDER BY id ASC`,
       [normalizedName],
     );
   }
 
   search(normalizedQuery: string, limit: number) {
     return this.readMany(
-      `SELECT ${columns} FROM exercise_catalog_item WHERE normalized_name LIKE ? ESCAPE '\\' ORDER BY is_favorite DESC, normalized_name ASC, id ASC LIMIT ?`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE normalized_name LIKE ? ESCAPE '\\' ORDER BY is_favorite DESC, normalized_name ASC, id ASC LIMIT ?`,
       [`%${escapeExerciseSearch(normalizedQuery)}%`, limit],
     );
   }
 
   listAll(limit: number) {
     return this.readMany(
-      `SELECT ${columns} FROM exercise_catalog_item ORDER BY normalized_name ASC, id ASC LIMIT ?`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item ORDER BY normalized_name ASC, id ASC LIMIT ?`,
       [limit],
     );
   }
 
   listFavorites(limit: number) {
     return this.readMany(
-      `SELECT ${columns} FROM exercise_catalog_item WHERE is_favorite = 1 ORDER BY normalized_name ASC, id ASC LIMIT ?`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE is_favorite = 1 ORDER BY normalized_name ASC, id ASC LIMIT ?`,
       [limit],
     );
   }
 
   async insert(item: ExerciseCatalogItem): Promise<void> {
     await this.write(
-      `INSERT INTO exercise_catalog_item (${columns}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO exercise_catalog_item (${exerciseColumns}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       parameters(item),
     );
   }
@@ -120,7 +108,7 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
     try {
       return Object.freeze(
         (await this.database.getAll<ExerciseRow>(statement, values)).map(
-          mapRow,
+          mapExerciseRow,
         ),
       );
     } catch (error: unknown) {
@@ -138,32 +126,6 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
       throw toPersistenceError(error, 'operation-failed');
     }
   }
-}
-
-function mapRow(row: ExerciseRow): ExerciseCatalogItem {
-  const id = DomainId.create(row.id);
-  if (
-    isErr(id) ||
-    normalizeExerciseName(row.display_name) !== row.normalized_name
-  )
-    throw new PersistenceError('operation-failed');
-  const definition = ExerciseDefinition.create({
-    equipment: row.equipment,
-    id: id.value,
-    loggingMode: row.logging_mode,
-    name: row.display_name,
-    notes: row.notes,
-    primaryMuscleGroup: row.primary_muscle_group,
-  });
-  const item = definition.isSuccess
-    ? ExerciseCatalogItem.create({
-        definition: definition.value,
-        isFavorite: row.is_favorite === 1,
-      })
-    : definition;
-  if (isErr(item) || (row.is_favorite !== 0 && row.is_favorite !== 1))
-    throw new PersistenceError('operation-failed');
-  return item.value;
 }
 
 function parameters(item: ExerciseCatalogItem): DatabaseParameters {

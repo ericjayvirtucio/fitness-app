@@ -18,7 +18,9 @@ and performed-exercise recents. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and
-This Month.
+This Month. Profile can also export everything stored on the device as one
+documented, versioned JSON file and hand it to the platform's own share and
+save controls.
 It intentionally contains no authentication, synchronization, cloud analytics,
 notifications, or AI integration.
 
@@ -58,6 +60,7 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh sprint 17 --platform ios
+./scripts/qa.sh sprint 18 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -124,14 +127,17 @@ are documented in
 Historical body weight, current-weight authority, and the Profile relationship
 are documented in
 [docs/architecture/body-measurement-history.md](docs/architecture/body-measurement-history.md).
+The export contract, canonical units, timestamp semantics, file handling, and
+known limitations are documented in
+[docs/architecture/offline-data-export.md](docs/architecture/offline-data-export.md).
 
 ## Current status
 
-Sprint 17: Body Measurement History. Weight check-ins are stored as immutable
-historical records with captured local-day semantics, so Progress can describe
-recorded first, latest, and change values instead of treating the mutable
-profile weight as history. The profile row remains the only source of current
-weight for Goals & Energy, and a check-in may update it only through one
-deliberate, atomic action. Other measurement types, trends, charts, target
-adherence, cloud behavior, external analytics, coaching, and AI remain
-deferred.
+Sprint 18: Offline Data Export. Profile can create one versioned
+`fitness-app-data-export` JSON file describing everything stored on the device,
+generated entirely offline from a single consistent read and handed to the
+platform's share and save controls by an explicit second action. Records keep
+their canonical units and captured local-day semantics, unknown values stay
+unknown, and derived figures such as BMI and energy targets are deliberately
+recomputable rather than exported. The file is not encrypted, and import,
+restore, backup, scheduled export, and cloud upload remain deferred.
