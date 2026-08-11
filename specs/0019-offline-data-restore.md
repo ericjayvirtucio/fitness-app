@@ -85,7 +85,9 @@ before any record is written.
 1. Picker result — cancellation is a neutral outcome, not a failure.
 2. File accessibility.
 3. File metadata and size, read before the contents.
-4. UTF-8 decoding.
+4. UTF-8 decoding. A decoding failure is reported only when the text both fails
+   to parse and carries replacement characters, so a valid export whose own note
+   text contains U+FFFD is never rejected as an encoding problem.
 5. JSON parsing.
 6. Top-level value is a non-array object.
 7. `format` discriminator.

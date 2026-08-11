@@ -9,9 +9,6 @@ export type DataRestoreFileContents =
   | Readonly<{ status: 'cancelled' }>
   | Readonly<{ status: 'selected'; text: string }>;
 
-/** U+FFFD only appears when a decoder could not represent the input bytes. */
-const replacementCharacter = '�';
-
 /**
  * Opens the system picker and reads exactly one selected file.
  *
@@ -33,8 +30,6 @@ export class SelectDataRestoreFileUseCase {
     if (text.trim() === '') throw new DataRestoreError('file-empty');
     if (text.length > dataRestorePolicy.maximumFileBytes)
       throw new DataRestoreError('file-too-large');
-    if (text.includes(replacementCharacter))
-      throw new DataRestoreError('invalid-encoding');
 
     return Object.freeze({ status: 'selected', text });
   }

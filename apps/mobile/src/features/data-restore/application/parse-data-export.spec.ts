@@ -137,6 +137,22 @@ describe('parseDataExport', () => {
     expectTextRejection('{ not json', 'invalid-json');
   });
 
+  it('reports contents that did not decode as text', () => {
+    expectTextRejection('{ "format": "��', 'invalid-encoding');
+  });
+
+  it('does not blame the encoding of a readable file that happens to contain a replacement character', () => {
+    const { data } = parse(
+      buildExport({
+        bodyMeasurements: {
+          weightCheckIns: [buildCheckIn({ note: 'E2E � note' })],
+        },
+      }),
+    );
+
+    expect(data.bodyWeightCheckIns[0]?.note).toBe('E2E � note');
+  });
+
   it('rejects a wrong primitive type', () => {
     expectRejection(
       buildExport({ profile: buildProfile({ weightGrams: '72000' }) }),

@@ -61,8 +61,8 @@ no parsed primitive reaches SQL.
 
 | Layer                             | Where                            |
 | --------------------------------- | -------------------------------- |
-| picker result, size, decoding     | `SelectDataRestoreFileUseCase`   |
-| JSON, format, version             | `parseDataExport`                |
+| picker result and size            | `SelectDataRestoreFileUseCase`   |
+| decoding, JSON, format, version   | `parseDataExport`                |
 | sections, keys, primitives, enums | `parse-data-export-v1.ts`        |
 | bounds and duplicate identifiers  | `data-restore-parsing.ts`        |
 | business invariants               | existing domain constructors     |
@@ -71,6 +71,10 @@ no parsed primitive reaches SQL.
 
 Everything except the final emptiness recheck completes before the write
 transaction opens.
+
+A decoding failure is reported only when the text both fails to parse and
+carries replacement characters. Requiring both means a valid export whose own
+note text contains U+FFFD is never rejected as an encoding problem.
 
 ### Unknown, missing, and null keys
 

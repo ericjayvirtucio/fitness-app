@@ -87,15 +87,6 @@ describe('SelectDataRestoreFileUseCase', () => {
     );
   });
 
-  it('refuses contents that did not decode as text', async () => {
-    await expectFailure(
-      new SelectDataRestoreFileUseCase(
-        new FakeFileSource(selected(8), '{"a":"�"}'),
-      ).execute(),
-      'invalid-encoding',
-    );
-  });
-
   it('reports an unavailable picker', async () => {
     const source: DataRestoreFileSource = {
       pick: () => Promise.reject(new Error('no picker')),
