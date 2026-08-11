@@ -7,6 +7,18 @@ import {
 } from '@testing-library/react-native';
 import { PersonalProfileScreen } from './PersonalProfileScreen';
 
+jest.mock('expo-router', () => ({
+  useFocusEffect: (() => {
+    const invoked = new WeakSet<() => void>();
+    return (callback: () => void) => {
+      if (!invoked.has(callback)) {
+        invoked.add(callback);
+        queueMicrotask(callback);
+      }
+    };
+  })(),
+}));
+
 function validProfile() {
   const result = UserProfile.create(
     {
@@ -42,6 +54,52 @@ describe('PersonalProfileScreen', () => {
     expect(
       screen.getByRole('button', { name: 'Create profile' }),
     ).toBeOnTheScreen();
+  });
+
+  it('offers restoring from the empty state, where a new device starts', async () => {
+    const onOpenDataRestore = jest.fn();
+    await render(
+      <PersonalProfileScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getProfile: { execute: () => Promise.resolve(null) },
+            saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
+          })
+        }
+        onOpenDataRestore={onOpenDataRestore}
+      />,
+    );
+
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore my data' }),
+    );
+
+    expect(onOpenDataRestore).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers restoring alongside exporting once a profile exists', async () => {
+    const onOpenDataRestore = jest.fn();
+    await render(
+      <PersonalProfileScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getProfile: { execute: () => Promise.resolve(validProfile()) },
+            saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
+          })
+        }
+        onOpenDataExport={jest.fn()}
+        onOpenDataRestore={onOpenDataRestore}
+      />,
+    );
+
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore my data' }),
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Export my data' }),
+    ).toBeOnTheScreen();
+    expect(onOpenDataRestore).toHaveBeenCalledTimes(1);
   });
 
   it('loads an existing profile into the edit form', async () => {
