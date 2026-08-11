@@ -15,11 +15,15 @@ import type {
 export const dataExportDirectoryName = 'data-export';
 
 export class ExpoDataExportFileWriter implements DataExportFileWriter {
+  // Asynchronous so a filesystem failure always reaches the caller as a
+  // rejection. The callers decide what a failed cleanup means; none of them can
+  // handle a synchronous throw from what looks like a promise.
   prepareDirectory(): Promise<void> {
-    const directory = this.directory();
-    if (directory.exists) directory.delete();
-    directory.create({ intermediates: true });
-    return Promise.resolve();
+    return Promise.resolve().then(() => {
+      const directory = this.directory();
+      if (directory.exists) directory.delete();
+      directory.create({ intermediates: true });
+    });
   }
 
   write(fileName: string, content: string): Promise<DataExportFile> {

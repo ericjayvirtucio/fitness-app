@@ -21,6 +21,7 @@ const result = {
 };
 
 type Overrides = Partial<{
+  clear: () => Promise<void>;
   create: (cancellation: { isCancelled: boolean }) => Promise<typeof result>;
   share: (target: DataExportFile) => Promise<void>;
 }>;
@@ -31,7 +32,7 @@ function createUseCases(overrides: Overrides = {}) {
     clearExports: {
       execute: () => {
         calls.clear += 1;
-        return Promise.resolve();
+        return overrides.clear?.() ?? Promise.resolve();
       },
     },
     createExport: {
@@ -249,5 +250,20 @@ describe('DataExportScreen', () => {
     await waitFor(() => {
       expect(view.queryByTestId('data-export-ready')).toBeNull();
     });
+  });
+
+  it('keeps working when the cache could not be cleared on entry', async () => {
+    // Cleanup reports its failure now, because erasing local data has to tell
+    // the user about a file it still owns. This screen does not: creating an
+    // export prepares the directory again.
+    const { loadUseCases } = createUseCases({
+      clear: () => Promise.reject(new Error('/cache/data-export is read-only')),
+    });
+    await render(<DataExportScreen loadUseCases={loadUseCases} />);
+
+    await fireEvent.press(await screen.findByTestId('create-data-export'));
+
+    expect(await screen.findByTestId('data-export-ready')).toBeOnTheScreen();
+    expect(screen.queryByTestId('data-export-error')).toBeNull();
   });
 });
