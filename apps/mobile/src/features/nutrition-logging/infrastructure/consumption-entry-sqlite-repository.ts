@@ -1,45 +1,12 @@
-import {
-  ConsumptionEntry,
-  DomainId,
-  Energy,
-  Mass,
-  NutritionFacts,
-  Volume,
-  isErr,
-  type NutritionReference,
-} from '@fitness/domain';
+import type { ConsumptionEntry, DomainId } from '@fitness/domain';
 import type { DatabaseConnection } from '../../../infrastructure/persistence/database';
-import {
-  PersistenceError,
-  toPersistenceError,
-} from '../../../infrastructure/persistence/persistence-error';
+import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import type { ConsumptionEntryRepository } from '../application/consumption-entry-repository';
-
-type ConsumptionEntryRow = Readonly<{
-  carbohydrate_grams: number | null;
-  consumed_amount: number;
-  description: string;
-  energy_kilojoules: number;
-  entry_kind: string;
-  fat_grams: number | null;
-  fiber_grams: number | null;
-  id: string;
-  local_calendar_date: string;
-  occurred_at_epoch_ms: number;
-  protein_grams: number | null;
-  provenance: string;
-  reference_amount: number;
-  reference_kind: string;
-  sodium_milligrams: number | null;
-  sugar_grams: number | null;
-  utc_offset_minutes: number;
-}>;
-
-const selectedColumns = `id, entry_kind, description, reference_kind,
-  reference_amount, consumed_amount, energy_kilojoules, protein_grams,
-  carbohydrate_grams, fat_grams, fiber_grams, sugar_grams,
-  sodium_milligrams, provenance, occurred_at_epoch_ms,
-  local_calendar_date, utc_offset_minutes`;
+import {
+  consumptionEntryColumns,
+  mapConsumptionEntryRow,
+  type ConsumptionEntryRow,
+} from './nutrition-row-mapping';
 
 export class ConsumptionEntrySqliteRepository implements ConsumptionEntryRepository {
   constructor(private readonly database: DatabaseConnection) {}
@@ -47,11 +14,11 @@ export class ConsumptionEntrySqliteRepository implements ConsumptionEntryReposit
   async getById(id: DomainId): Promise<ConsumptionEntry | null> {
     try {
       const row = await this.database.getFirst<ConsumptionEntryRow>(
-        `SELECT ${selectedColumns}
+        `SELECT ${consumptionEntryColumns}
          FROM nutrition_consumption_entry WHERE id = ?`,
         [id.value],
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapConsumptionEntryRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -60,13 +27,13 @@ export class ConsumptionEntrySqliteRepository implements ConsumptionEntryReposit
   async listByLocalDate(date: string): Promise<readonly ConsumptionEntry[]> {
     try {
       const rows = await this.database.getAll<ConsumptionEntryRow>(
-        `SELECT ${selectedColumns}
+        `SELECT ${consumptionEntryColumns}
          FROM nutrition_consumption_entry
          WHERE local_calendar_date = ?
          ORDER BY occurred_at_epoch_ms DESC, id ASC`,
         [date],
       );
-      return Object.freeze(rows.map(mapRow));
+      return Object.freeze(rows.map(mapConsumptionEntryRow));
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -121,59 +88,6 @@ export class ConsumptionEntrySqliteRepository implements ConsumptionEntryReposit
       throw toPersistenceError(error, 'operation-failed');
     }
   }
-}
-
-function mapRow(row: ConsumptionEntryRow): ConsumptionEntry {
-  const id = DomainId.create(row.id);
-  const reference = createReference(row.reference_kind, row.reference_amount);
-  const consumedQuantity = createReference(
-    row.reference_kind,
-    row.consumed_amount,
-  );
-  const energy = Energy.create(row.energy_kilojoules, 'kilojoule');
-  if (isErr(id) || isErr(energy)) {
-    throw new PersistenceError('operation-failed');
-  }
-  const facts = NutritionFacts.create({
-    description: row.description,
-    energy: energy.value,
-    nutrients: {
-      carbohydrateGrams: row.carbohydrate_grams,
-      fatGrams: row.fat_grams,
-      fiberGrams: row.fiber_grams,
-      proteinGrams: row.protein_grams,
-      sodiumMilligrams: row.sodium_milligrams,
-      sugarGrams: row.sugar_grams,
-    },
-    provenance: row.provenance,
-    reference,
-  });
-  if (isErr(facts)) throw new PersistenceError('operation-failed');
-  const entry = ConsumptionEntry.create({
-    consumedQuantity,
-    facts: facts.value,
-    id: id.value,
-    kind: row.entry_kind,
-    localCalendarDate: row.local_calendar_date,
-    occurredAtEpochMilliseconds: row.occurred_at_epoch_ms,
-    utcOffsetMinutes: row.utc_offset_minutes,
-  });
-  if (isErr(entry)) throw new PersistenceError('operation-failed');
-  return entry.value;
-}
-
-function createReference(kind: string, amount: number): NutritionReference {
-  if (kind === 'mass') {
-    const mass = Mass.create(amount, 'gram');
-    if (isErr(mass)) throw new PersistenceError('operation-failed');
-    return Object.freeze({ amount: mass.value, kind });
-  }
-  if (kind === 'volume') {
-    const volume = Volume.create(amount, 'milliliter');
-    if (isErr(volume)) throw new PersistenceError('operation-failed');
-    return Object.freeze({ amount: volume.value, kind });
-  }
-  throw new PersistenceError('operation-failed');
 }
 
 function toParameters(entry: ConsumptionEntry) {

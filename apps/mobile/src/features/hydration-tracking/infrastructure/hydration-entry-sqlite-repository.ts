@@ -1,23 +1,12 @@
-import { DomainId, HydrationEntry, Volume, isErr } from '@fitness/domain';
+import type { DomainId, HydrationEntry } from '@fitness/domain';
 import type { DatabaseConnection } from '../../../infrastructure/persistence/database';
-import {
-  PersistenceError,
-  toPersistenceError,
-} from '../../../infrastructure/persistence/persistence-error';
+import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import type { HydrationEntryRepository } from '../application/hydration-entry-repository';
-
-type HydrationEntryRow = Readonly<{
-  description: string | null;
-  fluid_type: string;
-  id: string;
-  local_calendar_date: string;
-  occurred_at_epoch_ms: number;
-  utc_offset_minutes: number;
-  volume_milliliters: number;
-}>;
-
-const selectedColumns = `id, fluid_type, volume_milliliters, description,
-  occurred_at_epoch_ms, local_calendar_date, utc_offset_minutes`;
+import {
+  hydrationEntryColumns,
+  mapHydrationEntryRow,
+  type HydrationEntryRow,
+} from './hydration-row-mapping';
 
 export class HydrationEntrySqliteRepository implements HydrationEntryRepository {
   constructor(private readonly database: DatabaseConnection) {}
@@ -25,10 +14,10 @@ export class HydrationEntrySqliteRepository implements HydrationEntryRepository 
   async getById(id: DomainId): Promise<HydrationEntry | null> {
     try {
       const row = await this.database.getFirst<HydrationEntryRow>(
-        `SELECT ${selectedColumns} FROM hydration_entry WHERE id = ?`,
+        `SELECT ${hydrationEntryColumns} FROM hydration_entry WHERE id = ?`,
         [id.value],
       );
-      return row === null ? null : mapRow(row);
+      return row === null ? null : mapHydrationEntryRow(row);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -37,12 +26,12 @@ export class HydrationEntrySqliteRepository implements HydrationEntryRepository 
   async listByLocalDate(date: string): Promise<readonly HydrationEntry[]> {
     try {
       const rows = await this.database.getAll<HydrationEntryRow>(
-        `SELECT ${selectedColumns} FROM hydration_entry
+        `SELECT ${hydrationEntryColumns} FROM hydration_entry
          WHERE local_calendar_date = ?
          ORDER BY occurred_at_epoch_ms DESC, id ASC`,
         [date],
       );
-      return Object.freeze(rows.map(mapRow));
+      return Object.freeze(rows.map(mapHydrationEntryRow));
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -88,25 +77,6 @@ export class HydrationEntrySqliteRepository implements HydrationEntryRepository 
       throw toPersistenceError(error, 'operation-failed');
     }
   }
-}
-
-function mapRow(row: HydrationEntryRow): HydrationEntry {
-  const id = DomainId.create(row.id);
-  const volume = Volume.create(row.volume_milliliters, 'milliliter');
-  if (isErr(id) || isErr(volume)) {
-    throw new PersistenceError('operation-failed');
-  }
-  const entry = HydrationEntry.create({
-    description: row.description,
-    fluidType: row.fluid_type,
-    id: id.value,
-    localCalendarDate: row.local_calendar_date,
-    occurredAtEpochMilliseconds: row.occurred_at_epoch_ms,
-    utcOffsetMinutes: row.utc_offset_minutes,
-    volume: volume.value,
-  });
-  if (isErr(entry)) throw new PersistenceError('operation-failed');
-  return entry.value;
 }
 
 function toParameters(entry: HydrationEntry) {
