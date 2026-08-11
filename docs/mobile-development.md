@@ -179,8 +179,7 @@ app stores on the device. Generation runs entirely offline inside a single
 exclusive SQLite read transaction, using bounded capability-owned readers, and
 is a separate step from the platform share and save controls. The app keeps at
 most one export in its cache directory and removes it when the export screen
-opens, before the next export, and on discard. The file is not encrypted and
-there is no import or restore. See
+opens, before the next export, and on discard. The file is not encrypted. See
 [offline data export architecture](architecture/offline-data-export.md), the
 [Sprint 18 manual checklist](manual-testing/sprint-18-offline-data-export.md),
 and [troubleshooting guidance](troubleshooting/offline-data-export.md).
@@ -188,6 +187,29 @@ and [troubleshooting guidance](troubleshooting/offline-data-export.md).
 Adding `expo-sharing` introduced a native module, so the first `expo run:ios`
 or explicit iOS QA run after pulling this change regenerates the native project
 and reinstalls pods.
+
+## Offline data restore
+
+The Profile tab can also read a saved `formatVersion` 1 export back in, and the
+entry point appears in the profile empty state as well as below the form,
+because a new device starts with nothing. A selected file is untrusted input: it
+is validated completely — format, version, sections, keys, primitives,
+enumerations, bounds, identifiers, duplicates, occurrence context, domain
+invariants, and references between records — before the write transaction opens.
+
+Restoring is supported only into an installation that holds no user-owned
+records. Emptiness is answered by a `StoredDataProbe` per capability, checked
+when the screen opens and again inside the write transaction. Writing reuses
+each capability's existing repository methods in one exclusive transaction and
+is all-or-nothing.
+
+No dependency was added: `expo-file-system` already provides the system file
+picker on SDK 57. No migration was added either; the migration version stays 11.
+The document picker is platform-owned, so no Maestro flow selects a file and a
+complete successful restore is verified by hand. See
+[offline data restore architecture](architecture/offline-data-restore.md), the
+[Sprint 19 manual checklist](manual-testing/sprint-19-offline-data-restore.md),
+and [troubleshooting guidance](troubleshooting/offline-data-restore.md).
 
 ## Troubleshooting
 

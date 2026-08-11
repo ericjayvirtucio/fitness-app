@@ -39,7 +39,7 @@ Phase 0 excludes all business features, authentication, databases, backend endpo
 4. **Cloud services:** authentication, authoritative API behavior, and secure synchronization.
 5. **Product expansion:** analytics, notifications, responsible AI assistance, and approved platform integrations.
 
-Offline data export shipped during the offline product capability phase rather than product expansion, because a local export needs no cloud service and portability should not wait behind one.
+Offline data export shipped during the offline product capability phase rather than product expansion, because a local export needs no cloud service and portability should not wait behind one. Offline restore followed in the same phase: portability that cannot be reversed leaves a user holding a file they cannot use after reinstalling or replacing a device. Restoring is deliberately limited to an installation that holds no information, because merging and replacing are synchronization and destruction problems that need their own reviewed designs.
 
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
@@ -59,5 +59,5 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Accessibility:** supported flows target WCAG-aligned mobile accessibility practices.
 - **Maintainability:** feature-first modules, strict types, pure domain rules, tests, and durable decisions reduce change risk.
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
-- **Portability:** users can export their information in documented formats.
+- **Portability:** users can export their information in documented formats and restore it offline into an installation that holds no information yet.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.

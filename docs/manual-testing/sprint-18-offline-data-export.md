@@ -25,16 +25,16 @@ automates.
 
 ## Accessibility and visual review
 
-| Check              | Expected result                                                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| VoiceOver/TalkBack | The notice, "Export ready" panel, file name, size, and each record count read in a sensible order; status changes are announced. |
-| Dynamic Type       | Largest practical sizes wrap the notice, the count rows, and the file name without clipping, overlap, or horizontal scrolling.   |
-| Loading state      | While generating, a labelled busy indicator is present, Cancel export is reachable, and Create export is visibly disabled.       |
-| Confirmation       | Success is a persistent panel, not a transient toast, and remains readable after focus moves away.                               |
-| Errors             | Failures state that nothing was saved, offer a retry, and contain no measurement, identifier, file path, or database detail.     |
-| Touch targets      | Create, Cancel, Open share options, and Discard all meet the minimum target on a physical device.                                |
-| Appearance         | Light and dark mode keep the notice, counts, status, and errors legible without color-only meaning.                              |
-| Language           | No screen implies the export is encrypted, is a backup, can be restored, or is uploaded anywhere.                                |
+| Check              | Expected result                                                                                                                                                  |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VoiceOver/TalkBack | The notice, "Export ready" panel, file name, size, and each record count read in a sensible order; status changes are announced.                                 |
+| Dynamic Type       | Largest practical sizes wrap the notice, the count rows, and the file name without clipping, overlap, or horizontal scrolling.                                   |
+| Loading state      | While generating, a labelled busy indicator is present, Cancel export is reachable, and Create export is visibly disabled.                                       |
+| Confirmation       | Success is a persistent panel, not a transient toast, and remains readable after focus moves away.                                                               |
+| Errors             | Failures state that nothing was saved, offer a retry, and contain no measurement, identifier, file path, or database detail.                                     |
+| Touch targets      | Create, Cancel, Open share options, and Discard all meet the minimum target on a physical device.                                                                |
+| Appearance         | Light and dark mode keep the notice, counts, status, and errors legible without color-only meaning.                                                              |
+| Language           | No screen implies the export is encrypted, is an automatic backup, or is uploaded anywhere; restoring is described as supported only into an empty installation. |
 
 ## Privacy review
 
