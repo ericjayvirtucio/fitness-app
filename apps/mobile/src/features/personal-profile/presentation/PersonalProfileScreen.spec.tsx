@@ -56,6 +56,64 @@ describe('PersonalProfileScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('returns to the first-run empty state once no profile is stored', async () => {
+    // Erasing local data leaves this tab mounted, and editing is state only
+    // this screen owns. Without a reset the screen would keep showing the
+    // blank create form instead of the first-run state a fresh install shows.
+    const useCases = {
+      getProfile: { execute: () => Promise.resolve(null) },
+      saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
+    };
+    const view = await render(
+      <PersonalProfileScreen loadUseCases={() => Promise.resolve(useCases)} />,
+    );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Create profile' }),
+    );
+    expect(screen.getByTestId('save-profile')).toBeOnTheScreen();
+
+    // A new loader identity refocuses the screen, as returning to the tab does.
+    await view.rerender(
+      <PersonalProfileScreen loadUseCases={() => Promise.resolve(useCases)} />,
+    );
+
+    expect(
+      await screen.findByRole('header', { name: 'Set up your profile' }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('save-profile')).toBeNull();
+  });
+
+  it('clears a save confirmation that the stored profile no longer justifies', async () => {
+    let storedProfile: UserProfile | null = validProfile();
+    const useCases = {
+      getProfile: { execute: () => Promise.resolve(storedProfile) },
+      saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
+    };
+    const view = await render(
+      <PersonalProfileScreen loadUseCases={() => Promise.resolve(useCases)} />,
+    );
+    await fireEvent.press(await screen.findByTestId('save-profile'));
+    expect(
+      await screen.findByText('Profile saved successfully.'),
+    ).toBeOnTheScreen();
+
+    storedProfile = null;
+    await view.rerender(
+      <PersonalProfileScreen loadUseCases={() => Promise.resolve(useCases)} />,
+    );
+
+    expect(
+      await screen.findByRole('header', { name: 'Set up your profile' }),
+    ).toBeOnTheScreen();
+    // Starting again must not carry a confirmation describing records that no
+    // longer exist.
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Create profile' }),
+    );
+    expect(screen.getByTestId('save-profile')).toBeOnTheScreen();
+    expect(screen.queryByText('Profile saved successfully.')).toBeNull();
+  });
+
   it('reaches the data controls from the empty state, where a new device starts', async () => {
     const onOpenDataControls = jest.fn();
     await render(

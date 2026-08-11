@@ -85,18 +85,26 @@ export function PersonalProfileScreen({
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
+    // A message about the last save cannot outlive the records it described.
+    setErrors({});
+    setSuccessMessage(undefined);
     void loadUseCases()
       .then(async (loadedUseCases) => {
         setUseCases(loadedUseCases);
         const profile = await loadedUseCases.getProfile.execute();
+        // Editing is this screen's own state, and nothing else resets it. An
+        // installation holding no profile is in its first-run state, so the
+        // empty state has to come back — otherwise erasing local data leaves
+        // the blank edit form the user happened to open earlier.
+        if (profile === null) setIsEditing(false);
         setState({ profile, status: 'ready' });
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
 
   // Reloads on focus like every other screen, so returning here after a
-  // restore shows the restored profile instead of the state this screen was
-  // mounted with.
+  // restore shows the restored profile, and returning after an erasure shows
+  // the first-run empty state rather than what this screen was mounted with.
   useFocusEffect(load);
 
   const save = async (input: SaveProfileInput) => {
