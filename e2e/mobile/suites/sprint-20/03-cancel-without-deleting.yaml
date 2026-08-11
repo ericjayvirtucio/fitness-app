@@ -1,0 +1,37 @@
+appId: com.fitnessapp.dev
+name: Cancel deletion without changing anything
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-lifecycle/open-data-controls.yaml
+- scrollUntilVisible:
+    element:
+      id: open-delete-local-data
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: open-delete-local-data
+- scrollUntilVisible:
+    element:
+      id: acknowledge-delete-local-data
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: acknowledge-delete-local-data
+- tapOn:
+    id: confirm-delete-local-data
+- assertVisible: Delete all local data?
+- tapOn: Cancel
+- assertNotVisible:
+    id: delete-local-data-complete
+# Deletion is a stack route without a tab bar, so the app returns to the tab
+# shell with a fresh launch rather than a back gesture. Relaunching without
+# clearing state also proves the cancellation deleted nothing.
+- stopApp
+- launchApp
+- runFlow: ../../flows/shared/assert-primary-navigation.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    id: profile-height

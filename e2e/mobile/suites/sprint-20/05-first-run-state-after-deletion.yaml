@@ -1,0 +1,23 @@
+appId: com.fitnessapp.dev
+name: Deleted information leaves a truthful first-run state
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml
+- runFlow: ../../flows/data-lifecycle/delete-all-local-data.yaml
+- tapOn:
+    id: finish-delete-local-data
+# The stack is dismissed, so the tab shell is reached without a fresh launch and
+# every mounted tab has to reload rather than keep showing deleted records.
+- runFlow: ../../flows/shared/assert-primary-navigation.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible: Set up your profile
+- tapOn:
+    id: tab-progress
+- assertVisible: No nutrition logged in this period.
+- assertVisible: No hydration logged in this period.
+- assertVisible: No completed workouts in this period.
+# The app stays usable: a new profile can be created immediately.
+- runFlow: ../../flows/profile/create-profile.yaml

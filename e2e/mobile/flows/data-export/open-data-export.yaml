@@ -1,9 +1,8 @@
 appId: com.fitnessapp.dev
 ---
-# The export entry point sits below the profile form, so the Profile tab has to
-# be scrolled before the control exists on screen.
-- tapOn:
-    id: tab-profile
+# Export now lives inside Data controls with restore and deletion, so the flow
+# goes through that screen rather than tapping a Profile action directly.
+- runFlow: ../data-lifecycle/open-data-controls.yaml
 - scrollUntilVisible:
     element:
       id: open-data-export
