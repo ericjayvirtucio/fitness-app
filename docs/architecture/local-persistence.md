@@ -88,9 +88,11 @@ to Nutrition tables. See
 
 Version 7 adds device-local `exercise_catalog_item` definitions with controlled
 logging modes, favorites, and search indexes. Version 8 adds recurring
-`planned_workout` and ordered `planned_exercise` rows. Workout-owned children
-cascade only when their workout is deliberately removed; catalog deletion is
-restricted and referenced logging-mode changes are blocked. See
+`planned_workout` and ordered `planned_exercise` rows. Workout-owned children are
+removed only when their workout is deliberately removed; the schema declares the
+cascade, and the repository also issues the child delete first so the rule holds
+on a transaction connection. Catalog deletion is restricted and referenced
+logging-mode changes are blocked. See
 [Offline Workout Planner architecture](offline-workout-planner.md).
 
 Version 9 adds independent workout sessions, exercise and plan snapshots, and
@@ -114,6 +116,20 @@ concrete context and exposes its repository rather than a database connection.
 Keep transaction callbacks short. Do not wait for network requests, user input,
 or unrelated work while holding a transaction. A thrown error rolls the work back
 and becomes a safe `transaction-failed` persistence error.
+
+Expo runs an exclusive transaction on a connection it opens itself, and
+`PRAGMA foreign_keys` is a per-connection setting that is a no-op once a
+transaction has begun. The `foreign_keys = ON` applied during initialization
+therefore does not reach work done inside `runExclusive`. Measured on an iOS 26.5
+simulator with `expo-sqlite` 57.0.1, the main connection reports
+`foreign_keys = 1` and the transaction connection reports `foreign_keys = 0`;
+issuing `PRAGMA foreign_keys = ON` inside the transaction leaves it at `0`. Do
+not rely on `ON DELETE CASCADE` or `ON DELETE RESTRICT` there: order the
+statements so a referencing row is written after, and deleted before, what it
+references. Referential rules that must hold are enforced by the capability that
+owns them — the restore parser validates references before writing, the catalog
+application checks Planner references before a hard delete, and repositories
+delete children explicitly.
 
 ## Errors and recovery
 
