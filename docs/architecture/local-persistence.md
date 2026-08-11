@@ -115,6 +115,30 @@ Keep transaction callbacks short. Do not wait for network requests, user input,
 or unrelated work while holding a transaction. A thrown error rolls the work back
 and becomes a safe `transaction-failed` persistence error.
 
+Expo runs an exclusive transaction on a connection it opens itself, and
+`PRAGMA foreign_keys` is a per-connection setting that is a no-op once a
+transaction has begun. The `foreign_keys = ON` applied during initialization
+therefore cannot be assumed to reach work done inside `runExclusive`. Do not
+rely on `ON DELETE CASCADE` or `ON DELETE RESTRICT` there: order the statements
+so a referencing row is written after, and deleted before, what it references.
+Referential rules that must hold are enforced by the capability that owns them —
+the restore parser validates references before writing, and the erasers delete
+children explicitly.
+
+## Erasing stored records
+
+`StoredDataProbe` answers whether a capability holds anything;
+`StoredDataEraser` removes it. Both are implemented once per capability in its
+own infrastructure folder, and both share one bounded statement —
+`hasStoredRows` and `deleteAllRows`. A new user-owned table is added to both, by
+its owner, in the same change that creates it.
+
+Deletion runs inside one exclusive transaction that verifies emptiness with the
+probes before committing, so a partial deletion is never committed. Checkpoint
+and `VACUUM` cannot run inside a transaction and are best-effort steps
+afterwards, through `StorageCompactor`. See
+[offline local data erasure architecture](offline-local-data-erasure.md).
+
 ## Errors and recovery
 
 `PersistenceError` exposes stable codes and generic messages. The original error
@@ -124,7 +148,9 @@ SQL, bound values, paths, identifiers, or fitness records.
 If startup fails, the app shows a retry action and does not render product routes.
 Repeated failure should be diagnosed; never add automatic database deletion as a
 recovery shortcut. A database newer than the running app requires installing a
-compatible binary. Production backup, export, and restore remain future work.
+compatible binary. Deleting local data is always a deliberate user action, never
+a recovery path the application takes on its own, and it removes rows rather
+than the database file.
 
 ## Testing
 

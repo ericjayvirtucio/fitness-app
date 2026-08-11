@@ -18,10 +18,11 @@ and performed-exercise recents. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and
-This Month. Profile can also export everything stored on the device as one
-documented, versioned JSON file and hand it to the platform's own share and
-save controls, and can restore such a file offline into an installation that
-holds no information yet.
+This Month. Profile groups its data controls in one place: export everything stored on the
+device as one documented, versioned JSON file and hand it to the platform's own
+share and save controls; restore such a file offline into an installation that
+holds no information yet; or deliberately delete everything the app stores on
+the device.
 It intentionally contains no authentication, synchronization, cloud analytics,
 notifications, or AI integration.
 
@@ -62,6 +63,7 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh sprint 17 --platform ios
 ./scripts/qa.sh sprint 18 --platform ios
+./scripts/qa.sh sprint 20 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -134,18 +136,24 @@ known limitations are documented in
 The restore trust boundary, validation layers, empty-installation policy,
 transaction behavior, and native-picker boundary are documented in
 [docs/architecture/offline-data-restore.md](docs/architecture/offline-data-restore.md).
+Capability-owned erasure, deletion order, in-transaction verification, temporary
+file cleanup, and the honest limits of what deletion guarantees are documented in
+[docs/architecture/offline-local-data-erasure.md](docs/architecture/offline-local-data-erasure.md).
 
 ## Current status
 
-Sprint 19: Offline Data Restore. Profile can read a saved version 1
-`fitness-app-data-export` file back into an installation that holds no
-information yet, entirely offline. The selected file is untrusted input: format,
-version, sections, keys, primitives, enumerations, bounds, identifiers,
-duplicates, occurrence context, domain invariants, and references between
-records are all validated before anything is written. Exported identifiers,
-canonical units, and captured local-day semantics are preserved exactly,
-historical snapshots stay historical, and derived figures such as BMI and energy
-targets are recomputed rather than imported. Restoring runs in one exclusive
-transaction and is all-or-nothing. The application refuses to restore over
-existing information; merging, replacing, encrypted archives, scheduled restore,
-and cloud recovery remain out of scope.
+Sprint 20: Offline Local Data Erasure. Profile now groups export, restore, and
+deletion under one Data controls screen, and the app can deliberately erase
+everything it stores on the device. Deleting takes three acts: opening its own
+screen, acknowledging that it cannot be undone, and confirming a destructive
+alert. Each capability erases its own tables through a narrow port beside the
+stored-data probe it already owned, children first, inside one exclusive
+transaction that verifies every capability is empty before it commits — so a
+partial deletion is rolled back rather than reported as success. Afterwards the
+app removes the export it still holds and, best effort, checkpoints and vacuums
+the database. The schema and migration version survive, the app is usable at
+once, restoring becomes eligible, and exports saved elsewhere are untouched. The
+app states that it holds no information; it does not claim the bytes are
+unrecoverable, and it deletes no account or cloud copy, of which it has neither.
+Replacement restore, merge import, selective or scheduled deletion, and remote
+wipe remain out of scope.

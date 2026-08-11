@@ -6,7 +6,8 @@ Data Export is an offline mobile capability owned by the Profile area:
 
 ```text
 Profile route
-  → PersonalProfileScreen ("Export my data")
+  → PersonalProfileScreen ("Data controls")
+  → /data-controls ("Export my data")
   → /data-export
   → DataExportScreen
   → CreateDataExportUseCase
@@ -238,11 +239,18 @@ the same instant as `generatedAt`, media type `application/json`. The directory
 is removed and recreated before every export, so exactly one export exists at a
 time and a same-second repeat cannot collide.
 
-Cleanup runs when the export screen opens, before every generation, and when the
-user discards an export. It deliberately does not run immediately after the
-share handoff resolves, because an Android receiver may still be reading the
-granted content URI. Cleanup failure is never fatal and never surfaces an error.
-The application never touches the destination the user chose.
+Cleanup runs when the export screen opens, before every generation, when the
+user discards an export, and when local data is erased. It deliberately does not
+run immediately after the share handoff resolves, because an Android receiver
+may still be reading the granted content URI. The application never touches the
+destination the user chose.
+
+`ClearDataExportsUseCase` reports a cleanup failure to its caller rather than
+swallowing it, because its callers owe the user different answers. The export
+screen ignores it, since generating an export prepares the directory again. An
+erasure reports it as a warning on an otherwise successful deletion, because a
+file the application still owns is exactly what the user asked to be gone; see
+[offline local data erasure architecture](offline-local-data-erasure.md).
 
 ## Failure, cancellation, and errors
 

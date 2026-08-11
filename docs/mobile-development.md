@@ -174,7 +174,12 @@ the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.
 
 ## Offline data export
 
-The Profile tab can create one versioned JSON file describing everything the
+Export, restore, and deletion share one entry point: Profile → Data controls
+(`/data-controls`). The Profile tab shows that single action in both its
+populated and its empty state, so a returning user and a long-time user reach
+every lifecycle operation the same way.
+
+The Data controls screen can create one versioned JSON file describing everything the
 app stores on the device. Generation runs entirely offline inside a single
 exclusive SQLite read transaction, using bounded capability-owned readers, and
 is a separate step from the platform share and save controls. The app keeps at
@@ -190,9 +195,9 @@ and reinstalls pods.
 
 ## Offline data restore
 
-The Profile tab can also read a saved `formatVersion` 1 export back in, and the
-entry point appears in the profile empty state as well as below the form,
-because a new device starts with nothing. A selected file is untrusted input: it
+Data controls can also read a saved `formatVersion` 1 export back in. Because a
+new device starts with nothing, Data controls is reachable from the profile
+empty state as well as from below the form. A selected file is untrusted input: it
 is validated completely — format, version, sections, keys, primitives,
 enumerations, bounds, identifiers, duplicates, occurrence context, domain
 invariants, and references between records — before the write transaction opens.
@@ -210,6 +215,29 @@ complete successful restore is verified by hand. See
 [offline data restore architecture](architecture/offline-data-restore.md), the
 [Sprint 19 manual checklist](manual-testing/sprint-19-offline-data-restore.md),
 and [troubleshooting guidance](troubleshooting/offline-data-restore.md).
+
+## Offline local data erasure
+
+Data controls can also delete everything the app stores on the device. It takes
+three deliberate acts — reaching `/delete-local-data`, ticking an
+acknowledgement that enables the destructive control, and confirming in a
+platform alert — and it is never triggered by navigation, startup, a failure, or
+a retry.
+
+Every capability exposes a `StoredDataEraser` beside its existing
+`StoredDataProbe`. One exclusive transaction runs every eraser children-first
+and then every probe; a probe that still reports records rolls the whole
+deletion back, so a partial deletion is never committed. Afterwards the app
+clears the export it owns and, best effort, checkpoints and vacuums the
+database. The database file, its schema, and migration version 11 all survive,
+and the app is usable immediately.
+
+Nothing outside the sandbox is touched, including exports the user saved
+elsewhere. The app claims that it holds no information, not that bytes are
+unrecoverable. No dependency and no migration was added. See
+[offline local data erasure architecture](architecture/offline-local-data-erasure.md),
+the [Sprint 20 manual checklist](manual-testing/sprint-20-offline-local-data-erasure.md),
+and [troubleshooting guidance](troubleshooting/offline-local-data-erasure.md).
 
 ## Troubleshooting
 
