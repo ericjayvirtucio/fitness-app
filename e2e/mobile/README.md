@@ -39,6 +39,8 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh sprint 16 --platform ios
+./scripts/qa.sh sprint 17 --platform ios
+./scripts/qa.sh sprint 18 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -74,7 +76,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15, 16, and 17. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–18. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -88,6 +90,14 @@ than the text inside it. Screens use `keyboardDismissMode="on-drag"`, so a
 short swipe or a scroll dismisses the keyboard between text fields; without
 one, the keyboard covers the next field and text lands in the previous one.
 Filling a form bottom-up avoids the problem entirely.
+
+Data-export flows stop at the application-owned "Export ready" confirmation and
+at the enabled share control. The platform share sheet is owned by iOS and
+Android, so no flow opens it or asserts anything inside it; automating a native
+sheet would add brittle platform selectors without testing application
+behavior. Exports created during QA contain only the synthetic data the suite
+entered, and the application removes its cached copy the next time the export
+screen opens.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two

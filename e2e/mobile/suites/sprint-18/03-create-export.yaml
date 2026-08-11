@@ -1,0 +1,9 @@
+appId: com.fitnessapp.dev
+name: Generate a local export
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-export/open-data-export.yaml
+- runFlow: ../../flows/data-export/create-data-export.yaml
+- assertVisible: '.*fitness-app-export-.*\.json.*'

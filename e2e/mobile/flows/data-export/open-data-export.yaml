@@ -1,0 +1,14 @@
+appId: com.fitnessapp.dev
+---
+# The export entry point sits below the profile form, so the Profile tab has to
+# be scrolled before the control exists on screen.
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: open-data-export
+    direction: DOWN
+- tapOn:
+    id: open-data-export
+- assertVisible:
+    id: data-export-screen

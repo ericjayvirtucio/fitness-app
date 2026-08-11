@@ -1,0 +1,13 @@
+appId: com.fitnessapp.dev
+---
+# Generation is a separate step from the platform share sheet, so the flow can
+# assert an application-owned confirmation without touching native controls.
+- scrollUntilVisible:
+    element:
+      id: create-data-export
+    direction: DOWN
+- tapOn:
+    id: create-data-export
+- assertVisible:
+    id: data-export-ready
+- assertVisible: Export ready

@@ -1,0 +1,12 @@
+appId: com.fitnessapp.dev
+name: Review the export privacy notice
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-export/open-data-export.yaml
+- assertVisible: What is included
+- assertVisible:
+    id: data-export-privacy-notice
+- assertVisible: '.*This app does not upload it anywhere.*'
+- assertVisible: '.*not encrypted.*'
