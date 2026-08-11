@@ -1,0 +1,19 @@
+appId: com.fitnessapp.dev
+name: Reach the file selection control on an empty installation
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/data-restore/open-data-restore.yaml
+# The suite stops at the application-owned control. The document picker itself
+# is owned by the operating system, so no flow opens it or asserts inside it;
+# automating a native sheet would add brittle platform selectors without
+# testing application behavior. A complete successful restore is covered by the
+# Sprint 19 manual checklist using a synthetic export.
+- scrollUntilVisible:
+    element:
+      id: choose-data-restore-file
+    direction: DOWN
+- assertVisible:
+    id: choose-data-restore-file
+- assertNotVisible:
+    id: data-restore-blocked

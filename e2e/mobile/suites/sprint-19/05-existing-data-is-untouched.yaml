@@ -1,0 +1,18 @@
+appId: com.fitnessapp.dev
+name: Return from a refused restore without changing anything
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-restore/open-data-restore.yaml
+- assertVisible: This app already has information
+# Restore is a stack route without a tab bar, so the app returns to the tab
+# shell with a fresh launch rather than a back gesture. Relaunching without
+# clearing state also proves the refusal deleted nothing.
+- stopApp
+- launchApp
+- runFlow: ../../flows/shared/assert-primary-navigation.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    id: profile-height

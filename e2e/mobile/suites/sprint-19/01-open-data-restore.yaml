@@ -1,0 +1,7 @@
+appId: com.fitnessapp.dev
+name: Open restore my data from Profile
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/data-restore/open-data-restore.yaml
+- assertVisible: Restore my data

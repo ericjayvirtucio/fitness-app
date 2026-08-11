@@ -1,0 +1,13 @@
+appId: com.fitnessapp.dev
+name: Review the offline and empty-installation explanation
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/data-restore/open-data-restore.yaml
+- scrollUntilVisible:
+    element:
+      id: data-restore-notice
+    direction: DOWN
+- assertVisible: '.*The file is read on this device. This app does not upload it.*'
+- assertVisible: '.*Restoring works only when this app contains no information yet.*'
+- assertVisible: '.*Restoring is all or nothing.*'

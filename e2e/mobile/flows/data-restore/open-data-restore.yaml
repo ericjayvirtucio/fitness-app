@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+---
+# The restore entry point exists in both profile states: below the form once a
+# profile exists, and under the empty state on a fresh install, which is where
+# someone returning to a new device actually starts. Scrolling first works for
+# either, because scrollUntilVisible succeeds immediately when the control is
+# already on screen.
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: open-data-restore
+    direction: DOWN
+- tapOn:
+    id: open-data-restore
+- assertVisible:
+    id: data-restore-screen
