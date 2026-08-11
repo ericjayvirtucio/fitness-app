@@ -19,17 +19,17 @@ describe('tab destinations', () => {
     ]);
   });
 
-  it('provides future-facing copy only for unfinished destinations', () => {
-    for (const destination of tabDestinations.filter(({ route }) =>
-      ['profile', 'progress'].includes(route),
-    )) {
-      expect(destination.description).toMatch(/later phase/);
+  it('describes what each destination does today', () => {
+    for (const destination of tabDestinations) {
+      expect(destination.description).not.toMatch(/later phase/);
     }
     expect(getTabDestination('nutrition').description).toMatch(/offline/);
     expect(getTabDestination('workout').description).toMatch(/offline/);
     expect(getTabDestination('index').description).toMatch(
       /hydration.*offline/,
     );
+    expect(getTabDestination('progress').description).toMatch(/summaries/);
+    expect(getTabDestination('profile').description).toMatch(/data export/);
   });
 
   it('fails explicitly for an unknown destination', () => {

@@ -24,21 +24,22 @@ export const tabDestinations = [
     title: 'Nutrition',
   },
   {
-    description: 'Build an offline exercise library for future workouts.',
+    description: 'Plan, log, and review offline workouts.',
     icon: 'barbell-outline',
     route: 'workout',
     testID: 'tab-workout',
     title: 'Workout',
   },
   {
-    description: 'Progress insights will be introduced in a later phase.',
+    description:
+      'Review offline nutrition, hydration, workout, and weight summaries.',
     icon: 'trending-up-outline',
     route: 'progress',
     testID: 'tab-progress',
     title: 'Progress',
   },
   {
-    description: 'Profile settings will be introduced in a later phase.',
+    description: 'Manage your profile, goals, measurements, and data export.',
     icon: 'person-outline',
     route: 'profile',
     testID: 'tab-profile',
