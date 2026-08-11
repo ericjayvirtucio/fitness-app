@@ -11,3 +11,10 @@ appId: com.fitnessapp.dev
 - assertVisible:
     id: data-export-ready
 - assertVisible: Export ready
+# The ready panel is inserted above the actions, so the confirmation appears
+# while "Open share options" is still below the fold. Leave the flow with the
+# post-export actions on screen for whatever asserts next.
+- scrollUntilVisible:
+    element:
+      id: share-data-export
+    direction: DOWN

@@ -10,5 +10,9 @@ name: Reach the share handoff control
 # immediately before handoff rather than adding brittle native selectors.
 - assertVisible:
     id: share-data-export
+- scrollUntilVisible:
+    element:
+      id: discard-data-export
+    direction: DOWN
 - assertVisible:
     id: discard-data-export

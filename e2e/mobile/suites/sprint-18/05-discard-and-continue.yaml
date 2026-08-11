@@ -6,10 +6,22 @@ name: Discard an export and keep using the app
 - runFlow: ../../flows/profile/create-profile.yaml
 - runFlow: ../../flows/data-export/open-data-export.yaml
 - runFlow: ../../flows/data-export/create-data-export.yaml
+- scrollUntilVisible:
+    element:
+      id: discard-data-export
+    direction: DOWN
 - tapOn:
     id: discard-data-export
 - assertNotVisible:
     id: data-export-ready
+- scrollUntilVisible:
+    element:
+      id: create-data-export
+    direction: DOWN
 - assertVisible:
     id: create-data-export
+# Export is a stack route without a tab bar, so the primary navigation check
+# runs from a fresh launch rather than from a back gesture.
+- stopApp
+- launchApp
 - runFlow: ../../flows/shared/assert-primary-navigation.yaml

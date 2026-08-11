@@ -91,6 +91,13 @@ short swipe or a scroll dismisses the keyboard between text fields; without
 one, the keyboard covers the next field and text lands in the previous one.
 Filling a form bottom-up avoids the problem entirely.
 
+The export screen is longer than one viewport: the privacy notice runs past the
+fold, and the ready panel is inserted above the post-export actions, so
+"Open share options" moves further down as soon as the export succeeds. Assert
+those elements after `scrollUntilVisible` rather than assuming the tap position
+is still in view. Export is a stack route with no tab bar, so a flow returns to
+the tab shell with `stopApp` and `launchApp` instead of a back gesture.
+
 Data-export flows stop at the application-owned "Export ready" confirmation and
 at the enabled share control. The platform share sheet is owned by iOS and
 Android, so no flow opens it or asserts anything inside it; automating a native
