@@ -424,9 +424,10 @@ duplicate or racing restore.
 `file-empty`, `file-too-large`, `invalid-encoding`, `invalid-json`,
 `unsupported-format`, `unsupported-format-version`, `invalid-structure`,
 `invalid-record`, `duplicate-identifier`, `unresolved-reference`,
-`too-many-records`, `target-not-empty`, or `write-failed`, each with a fixed
-safe message, mirroring `PersistenceError` and `DataExportError`. Distinct codes
-exist where they change what the user should do next.
+`too-many-records`, `storage-unavailable`, `target-not-empty`, or
+`write-failed`, each with a fixed safe message, mirroring `PersistenceError` and
+`DataExportError`. Distinct codes exist where they change what the user should
+do next.
 
 No SQL, stack trace, raw JSON fragment, file content, identifier, measurement,
 personal detail, or internal path reaches a user-facing message. The capability

@@ -8,6 +8,7 @@ export type DataRestoreErrorCode =
   | 'invalid-record'
   | 'invalid-structure'
   | 'picker-unavailable'
+  | 'storage-unavailable'
   | 'target-not-empty'
   | 'too-many-records'
   | 'unresolved-reference'
@@ -37,6 +38,8 @@ const messages: Readonly<Record<DataRestoreErrorCode, string>> = {
   'invalid-structure':
     'The selected export does not match the Fitness App export format.',
   'picker-unavailable': 'This device cannot open the file picker.',
+  'storage-unavailable':
+    'This app could not check its local storage, so nothing was restored.',
   'target-not-empty':
     'This app already contains information, so nothing was restored. Restoring is only supported on an installation with no data.',
   'too-many-records':

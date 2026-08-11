@@ -1,228 +1,24 @@
 import type { DataRestoreErrorCode } from './data-restore-error';
 import { parseDataExport } from './parse-data-export';
 import type { ParsedDataExport } from './restore-data';
-
-/**
- * Synthetic records only. Nothing here is a real person, a real measurement, or
- * a real meal, and nothing is copied from a device.
- */
-const today = '2026-08-11';
-const occurredAt = Date.UTC(2026, 7, 4, 4);
-const utcOffsetMinutes = 480;
-const localCalendarDate = '2026-08-04';
-
-const ids = Object.freeze({
-  activeSession: '123e4567-e89b-42d3-a456-426614174010',
-  activeSessionExercise: '123e4567-e89b-42d3-a456-426614174011',
-  activeSessionSet: '123e4567-e89b-42d3-a456-426614174012',
-  catalogItem: '123e4567-e89b-42d3-a456-426614174002',
-  checkIn: '123e4567-e89b-42d3-a456-426614174009',
-  hydrationEntry: '123e4567-e89b-42d3-a456-426614174003',
-  nutritionEntry: '123e4567-e89b-42d3-a456-426614174001',
-  plannedExercise: '123e4567-e89b-42d3-a456-426614174006',
-  plannedWorkout: '123e4567-e89b-42d3-a456-426614174005',
-  session: '123e4567-e89b-42d3-a456-426614174007',
-  sessionExercise: '123e4567-e89b-42d3-a456-426614174008',
-  sessionSet: '123e4567-e89b-42d3-a456-42661417400a',
-  squat: '123e4567-e89b-42d3-a456-426614174004',
-});
-
-type Json = Record<string, unknown>;
-
-const occurrence = (): Json => ({
-  localCalendarDate,
-  occurredAtEpochMilliseconds: occurredAt,
-  utcOffsetMinutes,
-});
-
-const buildProfile = (overrides: Json = {}): Json => ({
-  activityLevel: 'moderately-active',
-  biologicalSex: 'female',
-  dateOfBirth: '1990-05-04',
-  heightMillimeters: 1750,
-  preferredUnitSystem: 'metric',
-  weightGrams: 72_000,
-  ...overrides,
-});
-
-/** A known zero and an unknown amount, side by side, on purpose. */
-const buildNutrition = (overrides: Json = {}): Json => ({
-  carbohydrateGrams: 0,
-  energyKilojoules: 1_500,
-  fatGrams: null,
-  fiberGrams: null,
-  proteinGrams: 12.5,
-  sodiumMilligrams: null,
-  sugarGrams: null,
-  ...overrides,
-});
-
-const buildNutritionEntry = (overrides: Json = {}): Json => ({
-  ...occurrence(),
-  consumedQuantity: { amountGrams: 150, kind: 'mass' },
-  description: 'E2E Oats',
-  id: ids.nutritionEntry,
-  kind: 'food',
-  provenance: 'provided',
-  reference: { amountGrams: 100, kind: 'mass' },
-  referenceNutrition: buildNutrition(),
-  ...overrides,
-});
-
-const buildCatalogItem = (overrides: Json = {}): Json => ({
-  description: 'E2E Oat Drink',
-  id: ids.catalogItem,
-  isFavorite: true,
-  kind: 'beverage',
-  lastUsedAtEpochMilliseconds: occurredAt,
-  provenance: 'estimated',
-  reference: { amountMilliliters: 250, kind: 'volume' },
-  referenceNutrition: buildNutrition(),
-  useCount: 2,
-  ...overrides,
-});
-
-const buildHydrationEntry = (overrides: Json = {}): Json => ({
-  ...occurrence(),
-  description: null,
-  fluidType: 'plain-water',
-  id: ids.hydrationEntry,
-  volumeMilliliters: 500,
-  ...overrides,
-});
-
-const buildExercise = (overrides: Json = {}): Json => ({
-  equipment: 'barbell',
-  id: ids.squat,
-  isFavorite: false,
-  loggingMode: 'external-load-and-repetitions',
-  name: 'E2E Squat',
-  notes: null,
-  primaryMuscleGroup: 'quadriceps',
-  ...overrides,
-});
-
-const buildPrescription = (overrides: Json = {}): Json => ({
-  kind: 'resistance-and-repetitions',
-  repetitions: 5,
-  resistanceGrams: 60_000,
-  sets: 3,
-  ...overrides,
-});
-
-const buildResult = (overrides: Json = {}): Json => ({
-  kind: 'resistance-and-repetitions',
-  repetitions: 5,
-  resistanceGrams: 60_000,
-  ...overrides,
-});
-
-const buildPlannedWorkout = (overrides: Json = {}): Json => ({
-  exercises: [
-    {
-      exerciseId: ids.squat,
-      id: ids.plannedExercise,
-      position: 0,
-      prescription: buildPrescription(),
-    },
-  ],
-  id: ids.plannedWorkout,
-  name: 'E2E Monday',
-  weekday: 1,
-  ...overrides,
-});
-
-const buildSessionExercise = (overrides: Json = {}): Json => ({
-  id: ids.sessionExercise,
-  loggingModeSnapshot: 'external-load-and-repetitions',
-  nameSnapshot: 'E2E Squat',
-  plannedPrescriptionSnapshot: buildPrescription(),
-  position: 0,
-  sets: [{ id: ids.sessionSet, position: 0, result: buildResult() }],
-  sourceExerciseId: ids.squat,
-  sourcePlannedExerciseId: ids.plannedExercise,
-  ...overrides,
-});
-
-const buildCompletedSession = (overrides: Json = {}): Json => ({
-  completedAtEpochMilliseconds: occurredAt + 3_600_000,
-  exercises: [buildSessionExercise()],
-  id: ids.session,
-  name: 'E2E Leg Day',
-  sourcePlannedWorkoutId: ids.plannedWorkout,
-  sourceWeekday: 1,
-  startedAtEpochMilliseconds: occurredAt,
-  startedLocalCalendarDate: localCalendarDate,
-  startedUtcOffsetMinutes: utcOffsetMinutes,
-  status: 'completed',
-  ...overrides,
-});
-
-const buildActiveSession = (overrides: Json = {}): Json => ({
-  completedAtEpochMilliseconds: null,
-  exercises: [
-    buildSessionExercise({
-      id: ids.activeSessionExercise,
-      sets: [{ id: ids.activeSessionSet, position: 0, result: buildResult() }],
-    }),
-  ],
-  id: ids.activeSession,
-  name: 'E2E Today',
-  sourcePlannedWorkoutId: null,
-  sourceWeekday: null,
-  startedAtEpochMilliseconds: occurredAt,
-  startedLocalCalendarDate: localCalendarDate,
-  startedUtcOffsetMinutes: utcOffsetMinutes,
-  status: 'active',
-  ...overrides,
-});
-
-const buildCheckIn = (overrides: Json = {}): Json => ({
-  ...occurrence(),
-  id: ids.checkIn,
-  massGrams: 71_500,
-  note: null,
-  ...overrides,
-});
-
-const buildExport = (overrides: Json = {}): Json => ({
-  application: { name: 'Fitness App', version: '0.0.0' },
-  bodyMeasurements: { weightCheckIns: [buildCheckIn()] },
-  exerciseCatalog: { exercises: [buildExercise()] },
-  format: 'fitness-app-data-export',
-  formatVersion: 1,
-  generatedAt: '2026-08-11T09:15:04.123Z',
-  goalsAndEnergy: {
-    goal: { adjustmentKilocalories: 300, goalType: 'lose-weight' },
-  },
-  hydration: {
-    currentTarget: { targetMilliliters: 2_000 },
-    entries: [buildHydrationEntry()],
-  },
-  nutrition: {
-    catalogItems: [buildCatalogItem()],
-    entries: [buildNutritionEntry()],
-  },
-  profile: buildProfile(),
-  workoutPlanner: { plannedWorkouts: [buildPlannedWorkout()] },
-  workoutSessions: {
-    activeSession: null,
-    completedSessions: [buildCompletedSession()],
-  },
-  ...overrides,
-});
-
-const emptyExport = (): Json =>
-  buildExport({
-    bodyMeasurements: { weightCheckIns: [] },
-    exerciseCatalog: { exercises: [] },
-    goalsAndEnergy: { goal: null },
-    hydration: { currentTarget: null, entries: [] },
-    nutrition: { catalogItems: [], entries: [] },
-    profile: null,
-    workoutPlanner: { plannedWorkouts: [] },
-    workoutSessions: { activeSession: null, completedSessions: [] },
-  });
+import {
+  buildCheckIn,
+  buildCompletedSession,
+  buildActiveSession,
+  buildEmptyExport,
+  buildExport,
+  buildHydrationEntry,
+  buildPlannedWorkout,
+  buildProfile,
+  buildResult,
+  buildSessionExercise,
+  syntheticIds as ids,
+  syntheticLocalCalendarDate as localCalendarDate,
+  syntheticOccurredAt as occurredAt,
+  syntheticToday as today,
+  syntheticUtcOffsetMinutes as utcOffsetMinutes,
+  type Json,
+} from './synthetic-data-export.spec-helper';
 
 function parse(document: Json): ParsedDataExport {
   const result = parseDataExport(JSON.stringify(document), today);
@@ -264,7 +60,7 @@ describe('parseDataExport', () => {
   });
 
   it('reads a valid empty export as a success', () => {
-    const { data, preview } = parse(emptyExport());
+    const { data, preview } = parse(buildEmptyExport());
 
     expect(preview.hasProfile).toBe(false);
     expect(preview.nutritionEntries).toBe(0);
@@ -305,6 +101,15 @@ describe('parseDataExport', () => {
 
     expect(nutrients?.fatGrams).toBeNull();
     expect(nutrients?.carbohydrateGrams).toBe(0);
+  });
+
+  it('preserves saved nutrition item favourite and usage state', () => {
+    const { data } = parse(buildExport());
+    const item = data.nutritionCatalogItems[0];
+
+    expect(item?.isFavorite).toBe(true);
+    expect(item?.usage.useCount).toBe(2);
+    expect(item?.usage.lastUsedAtEpochMilliseconds).toBe(occurredAt);
   });
 
   it('ignores an unknown key', () => {
@@ -541,7 +346,7 @@ describe('parseDataExport referential integrity', () => {
                     {
                       id: ids.sessionSet,
                       position: 0,
-                      result: { kind: 'duration', durationSeconds: 60 },
+                      result: { durationSeconds: 60, kind: 'duration' },
                     },
                   ],
                 }),
