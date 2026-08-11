@@ -134,6 +134,7 @@ export function NutritionCatalogBrowserScreen({
       <TextField
         label="Search saved foods and beverages"
         onChangeText={setQuery}
+        testID="catalog-search"
         value={query}
       />
       {query.trim() !== '' ? (

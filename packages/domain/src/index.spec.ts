@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  BodyWeightEntry,
   DomainError,
   DomainId,
   Duration,
@@ -37,6 +38,7 @@ import {
 describe('@fitness/domain public API', () => {
   it('exports every approved runtime concept', () => {
     expect([
+      BodyWeightEntry,
       DomainError,
       DomainId,
       Duration,

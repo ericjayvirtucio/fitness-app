@@ -66,6 +66,89 @@ describe('ProgressScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('describes recorded body weight without claiming a trend', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: { execute: jest.fn(() => Promise.resolve(summary)) },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('First recorded, 83.0 kg'),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.getByLabelText('Latest recorded, 81.8 kg')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Recorded change, −1.2 kg')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        'Body weight progress. First recorded weight 83.0 kilograms. Latest recorded weight 81.8 kilograms. Recorded change minus 1.2 kilograms. 2 check-ins. This describes recorded check-ins, not a measured trend.',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText(/not a measured trend/)).toBeOnTheScreen();
+  });
+
+  it('shows a single check-in without a recorded change', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  bodyWeight: {
+                    changeGrams: null,
+                    entryCount: 1,
+                    firstGrams: 82_400,
+                    firstLocalCalendarDate: '2026-08-04',
+                    latestGrams: 82_400,
+                    latestLocalCalendarDate: '2026-08-04',
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Check-ins, 1')).toBeOnTheScreen(),
+    );
+    expect(screen.queryByLabelText(/Recorded change,/)).toBeNull();
+    expect(screen.getByText(/at least two check-ins/)).toBeOnTheScreen();
+  });
+
+  it('renders recorded weight in the profile display unit', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  preferredUnitSystem: 'imperial' as const,
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('First recorded, 183.0 lb'),
+      ).toBeOnTheScreen(),
+    );
+  });
+
   it('offers retry after a loading failure', async () => {
     await render(
       <ProgressScreen
@@ -80,6 +163,14 @@ describe('ProgressScreen', () => {
 });
 
 const summary: ProgressSummary = {
+  bodyWeight: {
+    changeGrams: -1_200,
+    entryCount: 2,
+    firstGrams: 83_000,
+    firstLocalCalendarDate: '2026-08-02',
+    latestGrams: 81_800,
+    latestLocalCalendarDate: '2026-08-08',
+  },
   days: [
     {
       hydration: {
@@ -132,6 +223,7 @@ const summary: ProgressSummary = {
       totalGrams: null,
     },
   },
+  preferredUnitSystem: 'metric',
   range: {
     endLocalCalendarDate: '2026-08-08',
     startLocalCalendarDate: '2026-08-02',
@@ -149,6 +241,7 @@ const summary: ProgressSummary = {
 };
 
 const emptySummary: ProgressSummary = {
+  bodyWeight: null,
   days: [],
   hydration: {
     averageFluidMillilitersPerLoggedDay: null,
@@ -176,6 +269,7 @@ const emptySummary: ProgressSummary = {
       totalGrams: 0,
     },
   },
+  preferredUnitSystem: 'metric',
   range: {
     endLocalCalendarDate: '2026-08-08',
     startLocalCalendarDate: '2026-08-02',

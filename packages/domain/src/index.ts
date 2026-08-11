@@ -5,6 +5,12 @@ export { isErr, isOk, err, ok } from './shared/result';
 export type { Result } from './shared/result';
 
 export {
+  BodyWeightEntry,
+  bodyWeightEntryPolicy,
+} from './body-measurement/body-weight-entry';
+export type { BodyWeightEntryInput } from './body-measurement/body-weight-entry';
+
+export {
   HydrationEntry,
   hydrationEntryPolicy,
   hydrationFluidTypes,

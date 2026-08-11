@@ -97,11 +97,11 @@ resolve_suite() {
         6 | 8 | 9 | 10 | 11 | 12 | 13 | 15)
           printf '%s/sprint-%s.yaml\n' "${suite_root}" "${sprint_number}"
           ;;
-        16) printf '%s/sprint-16\n' "${suite_root}" ;;
+        16 | 17) printf '%s/sprint-%s\n' "${suite_root}" "${sprint_number}" ;;
         5 | 7)
           fail "Sprint ${sprint_number} has no repository manual QA specification."
           ;;
-        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15, 16." ;;
+        *) fail "Unsupported sprint '${sprint_number}'. Available: 6, 8, 9, 10, 11, 12, 13, 15, 16, 17." ;;
       esac
       ;;
     *) fail "Unknown suite '${command_name}'." ;;

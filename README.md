@@ -14,8 +14,11 @@ Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
 Workout Sessions with individual actual-set logging and restart recovery. It
 also provides bounded completed Workout History, read-only snapshot detail,
 deterministic Day/Week/Month progress summaries, per-exercise history foundations,
-and performed-exercise recents. The Progress tab derives text-first Nutrition,
-Hydration, and completed-workout summaries for Today, This Week, and This Month.
+and performed-exercise recents. The Profile area records historical body
+weight check-ins that can also update the current profile weight in one
+deliberate action. The Progress tab derives text-first Nutrition, Hydration,
+completed-workout, and recorded body-weight summaries for Today, This Week, and
+This Month.
 It intentionally contains no authentication, synchronization, cloud analytics,
 notifications, or AI integration.
 
@@ -54,6 +57,7 @@ Native mobile E2E QA uses the repository-owned Maestro wrapper:
 ./scripts/qa.sh sprint 13 --platform android
 ./scripts/qa.sh sprint 15 --platform ios
 ./scripts/qa.sh sprint 16 --platform ios
+./scripts/qa.sh sprint 17 --platform ios
 ./scripts/qa.sh regression
 ```
 
@@ -117,11 +121,17 @@ Completed history, progress semantics, pagination, and performed recents are in
 Cross-capability period summaries, missing-data semantics, and Progress ownership
 are documented in
 [docs/architecture/offline-progress-analytics.md](docs/architecture/offline-progress-analytics.md).
+Historical body weight, current-weight authority, and the Profile relationship
+are documented in
+[docs/architecture/body-measurement-history.md](docs/architecture/body-measurement-history.md).
 
 ## Current status
 
-Sprint 16: Progress Analytics and Human-Readable QA Reporting. Progress derives
-local-calendar Nutrition, Hydration, and completed-workout summaries without a
-schema migration. Maestro runs now retain raw JUnit and produce scenario-level
-terminal, text, and JSON reports. Weight/goal trends, target adherence, charts,
-cloud behavior, external analytics, coaching, and AI remain deferred.
+Sprint 17: Body Measurement History. Weight check-ins are stored as immutable
+historical records with captured local-day semantics, so Progress can describe
+recorded first, latest, and change values instead of treating the mutable
+profile weight as history. The profile row remains the only source of current
+weight for Goals & Energy, and a check-in may update it only through one
+deliberate, atomic action. Other measurement types, trends, charts, target
+adherence, cloud behavior, external analytics, coaching, and AI remain
+deferred.

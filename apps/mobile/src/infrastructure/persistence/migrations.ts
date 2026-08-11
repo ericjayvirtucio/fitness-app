@@ -574,4 +574,38 @@ export const migrations: readonly Migration[] = [
     },
     version: 10,
   },
+  {
+    description: 'Add historical body weight check-ins.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        CREATE TABLE body_weight_entry (
+          id TEXT PRIMARY KEY,
+          mass_grams REAL NOT NULL CHECK (
+            mass_grams >= 2000 AND mass_grams <= 500000
+          ),
+          note TEXT CHECK (
+            note IS NULL OR length(trim(note)) BETWEEN 1 AND 200
+          ),
+          occurred_at_epoch_ms INTEGER NOT NULL CHECK (
+            occurred_at_epoch_ms >= 0
+          ),
+          local_calendar_date TEXT NOT NULL CHECK (
+            local_calendar_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+          ),
+          utc_offset_minutes INTEGER NOT NULL CHECK (
+            utc_offset_minutes BETWEEN -840 AND 840
+          )
+        )
+      `);
+      await transaction.exec(`
+        CREATE INDEX body_weight_entry_local_date_occurred_at
+        ON body_weight_entry (
+          local_calendar_date DESC,
+          occurred_at_epoch_ms DESC,
+          id DESC
+        )
+      `);
+    },
+    version: 11,
+  },
 ];

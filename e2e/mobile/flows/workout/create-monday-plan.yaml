@@ -2,25 +2,56 @@ appId: com.fitnessapp.dev
 ---
 - tapOn:
     id: tab-workout
+# Weekday cards are keyed by the domain Weekday value, where Monday is 1.
 - tapOn:
-    id: weekday-card-monday
+    id: weekday-card-1
 - assertVisible: Plan Monday
-- tapOn: Workout name
+# A short drag dismisses the keyboard between fields, because the screen uses
+# keyboardDismissMode="on-drag". Without it the keyboard covers the next
+# control and text lands in the previous field.
+- tapOn:
+    id: planned-workout-name
 - inputText: E2E Push Day
-- tapOn: Add exercise
-- tapOn: Add E2E Push-upa
-- tapOn: Sets
-- inputText: '3'
-- tapOn: Repetitions
-- inputText: '8'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
 - scrollUntilVisible:
     element:
-      text: Save workout
+      text: Add exercise
     direction: DOWN
-- tapOn: Save workout
-- assertVisible: E2E Push Day
+- tapOn: Add exercise
+- tapOn: Add E2E Push-upa
+- scrollUntilVisible:
+    element:
+      id: planned-sets-0
+    direction: DOWN
+- tapOn:
+    id: planned-sets-0
+- eraseText: 6
+- inputText: '3'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: planned-repetitions-0
+    direction: DOWN
+- tapOn:
+    id: planned-repetitions-0
+- eraseText: 6
+- inputText: '8'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: save-planned-workout
+    direction: DOWN
+- tapOn:
+    id: save-planned-workout
+- assertVisible: 'Edit Monday, E2E Push Day'
 - stopApp
 - launchApp
 - tapOn:
     id: tab-workout
-- assertVisible: E2E Push Day
+- assertVisible: 'Edit Monday, E2E Push Day'

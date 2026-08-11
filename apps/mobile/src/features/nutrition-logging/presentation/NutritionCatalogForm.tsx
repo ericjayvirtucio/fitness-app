@@ -90,6 +90,7 @@ export function NutritionCatalogForm({
       <TextField
         error={errors.description}
         label="Name"
+        testID="catalog-name"
         onChangeText={(value) => set('description', value)}
         value={values.description}
       />
@@ -98,6 +99,7 @@ export function NutritionCatalogForm({
         helperText={`Nutrition values below apply to this amount in ${unit}.`}
         keyboardType="decimal-pad"
         label={`Reference amount (${unit})`}
+        testID="catalog-reference-amount"
         onChangeText={(value) => set('referenceAmount', value)}
         value={values.referenceAmount}
       />
@@ -105,6 +107,7 @@ export function NutritionCatalogForm({
         error={errors.energyKilocalories}
         keyboardType="decimal-pad"
         label="Energy per reference (kcal)"
+        testID="catalog-energy"
         onChangeText={(value) => set('energyKilocalories', value)}
         value={values.energyKilocalories}
       />
@@ -137,6 +140,7 @@ export function NutritionCatalogForm({
       <AppButton
         isLoading={isSaving}
         label="Save reusable item"
+        testID="save-catalog-item"
         onPress={() => onSave(values)}
       />
       <AppButton label="Cancel" onPress={onCancel} variant="ghost" />

@@ -223,6 +223,7 @@ export function PlannedWorkoutEditorScreen({
           <TextField
             error={errors.name}
             label="Workout name"
+            testID="planned-workout-name"
             onChangeText={(name) => update({ ...state.draft, name })}
             value={state.draft.name}
           />
@@ -271,6 +272,7 @@ export function PlannedWorkoutEditorScreen({
           <AppButton
             isLoading={isSaving}
             label="Save workout"
+            testID="save-planned-workout"
             onPress={() => void save()}
           />
           <AppButton label="Cancel" onPress={onDone} variant="ghost" />
@@ -329,6 +331,7 @@ function PlannedExerciseFields({
         error={errors[`${draft.id}.sets`]}
         keyboardType="number-pad"
         label="Sets"
+        testID={`planned-sets-${index}`}
         onChangeText={(value) => set('sets', value)}
         value={draft.sets}
       />
@@ -336,6 +339,7 @@ function PlannedExerciseFields({
         <TextField
           keyboardType="number-pad"
           label="Repetitions"
+          testID={`planned-repetitions-${index}`}
           onChangeText={(value) => set('repetitions', value)}
           value={draft.repetitions}
         />

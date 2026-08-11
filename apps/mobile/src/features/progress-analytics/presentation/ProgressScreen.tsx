@@ -18,6 +18,14 @@ import {
   SelectionField,
   spacing,
 } from '../../../design-system';
+import {
+  describeBodyWeight,
+  describeBodyWeightChange,
+  formatBodyWeight,
+  formatBodyWeightChange,
+  getBodyWeightDisplayUnit,
+  type BodyWeightDisplayUnit,
+} from '../../body-measurement-history/presentation/body-weight-formatting';
 import type {
   ProgressDay,
   ProgressSummary,
@@ -73,13 +81,13 @@ export function ProgressScreen({
 
   if (isLoading && !summary)
     return (
-      <Screen accessibilityLabel="Loading progress" isCentered>
+      <Screen accessibilityLabel="Loading progress" hasTabBar isCentered>
         <LoadingIndicator label="Loading progress" />
       </Screen>
     );
   if (!summary)
     return (
-      <Screen accessibilityLabel="Progress error" isCentered>
+      <Screen accessibilityLabel="Progress error" hasTabBar isCentered>
         <AppText accessibilityRole="header" variant="heading">
           Progress unavailable
         </AppText>
@@ -93,6 +101,7 @@ export function ProgressScreen({
   return (
     <Screen
       contentContainerStyle={{ gap: spacing.xl }}
+      hasTabBar
       testID="progress-screen"
     >
       <View style={{ gap: spacing.sm }}>
@@ -147,6 +156,7 @@ export function ProgressScreen({
       <NutritionSummary summary={summary} />
       <HydrationSummary summary={summary} />
       <WorkoutSummary summary={summary} />
+      <BodyWeightSummary summary={summary} />
       {period !== 'day' ? (
         <DailyActivity days={summary.days} period={period} />
       ) : null}
@@ -263,6 +273,70 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
       )}
     </Card>
   );
+}
+
+function BodyWeightSummary({
+  summary,
+}: Readonly<{ summary: ProgressSummary }>) {
+  const value = summary.bodyWeight;
+  const unit = getBodyWeightDisplayUnit(summary.preferredUnitSystem);
+  if (value === null)
+    return (
+      <Card testID="progress-body-weight" variant="outlined">
+        <SectionHeader title="Body weight" />
+        <AppText color="secondary">No weight check-ins in this period.</AppText>
+      </Card>
+    );
+
+  // The card itself stays non-accessible so each metric remains individually
+  // navigable, matching the other Progress cards. The closing caption carries
+  // the combined spoken summary.
+  return (
+    <Card testID="progress-body-weight" variant="outlined">
+      <SectionHeader title="Body weight" />
+      <Metric
+        label="First recorded"
+        value={formatBodyWeight(value.firstGrams, unit)}
+      />
+      <Metric
+        label="Latest recorded"
+        value={formatBodyWeight(value.latestGrams, unit)}
+      />
+      {value.changeGrams === null ? null : (
+        <Metric
+          label="Recorded change"
+          value={formatBodyWeightChange(value.changeGrams, unit)}
+        />
+      )}
+      <Metric label="Check-ins" value={String(value.entryCount)} />
+      <AppText
+        accessibilityLabel={describeSummary(value, unit)}
+        color="secondary"
+        variant="bodySmall"
+      >
+        {value.changeGrams === null
+          ? 'A recorded change needs at least two check-ins in this period.'
+          : 'This is the difference between your first and latest recorded check-ins, not a measured trend.'}
+      </AppText>
+    </Card>
+  );
+}
+
+function describeSummary(
+  value: NonNullable<ProgressSummary['bodyWeight']>,
+  unit: BodyWeightDisplayUnit,
+): string {
+  const parts = [
+    'Body weight progress',
+    `First recorded weight ${describeBodyWeight(value.firstGrams, unit)}`,
+    `Latest recorded weight ${describeBodyWeight(value.latestGrams, unit)}`,
+    value.changeGrams === null
+      ? 'Recorded change needs at least two check-ins'
+      : `Recorded change ${describeBodyWeightChange(value.changeGrams, unit)}`,
+    `${value.entryCount} check-ins`,
+    'This describes recorded check-ins, not a measured trend',
+  ];
+  return `${parts.join('. ')}.`;
 }
 
 function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
