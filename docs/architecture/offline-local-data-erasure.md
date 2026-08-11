@@ -63,14 +63,21 @@ Workout Session → Workout Planner → Exercise Catalog → Nutrition
   → Hydration → Body Measurement → Goals & Energy → Personal Profile
 ```
 
-`ON DELETE CASCADE` is not relied on. `PRAGMA foreign_keys` is per-connection
-and a no-op once a transaction has begun, and `withExclusiveTransactionAsync`
-opens the transaction on a connection it creates itself, so the
-`foreign_keys = ON` applied during initialization does not necessarily reach the
-write transaction. Every eraser therefore lists its child tables first, which is
-correct whether or not enforcement is active. The restricted reference from
-`planned_exercise` to `exercise_catalog_item` is handled by the same ordering
-rather than treated as a safety net.
+`ON DELETE CASCADE` is not relied on, because it does not run here.
+`PRAGMA foreign_keys` is per-connection and a no-op once a transaction has
+begun, and `withExclusiveTransactionAsync` opens the transaction on a connection
+it creates itself, so the `foreign_keys = ON` applied during initialization
+never reaches the write transaction. Measured on an iOS 26.5 simulator with
+`expo-sqlite` 57.0.1, the transaction connection reports `foreign_keys = 0` and
+issuing the pragma inside the transaction leaves it there; the measurement and
+its consequences for ordinary repository writes are recorded in
+[local persistence architecture](local-persistence.md).
+
+Every eraser therefore lists its child tables first, and a test asserts that
+each child table is deleted by an explicit statement rather than left to a
+cascade. The restricted reference from `planned_exercise` to
+`exercise_catalog_item` is handled by the same ordering rather than treated as a
+safety net, since `ON DELETE RESTRICT` is unenforced there for the same reason.
 
 ## Transaction and verification
 

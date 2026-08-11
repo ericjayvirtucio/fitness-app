@@ -35,12 +35,15 @@ statement. The coordinator owns no table and issues no SQL of its own; it owns
 the order, the verification, and the workflow.
 
 Rows are deleted children first, and `ON DELETE CASCADE` is deliberately not
-relied on. `PRAGMA foreign_keys` is a per-connection setting that is a no-op
-once a transaction has begun, and Expo's `withExclusiveTransactionAsync` opens
-its own connection, so the setting applied during initialization cannot be
-assumed to reach the write transaction. Explicit child-first deletion is correct
-either way, and a test asserts that every child table is deleted by an explicit
-statement rather than left to a cascade.
+relied on, because it does not run here. `PRAGMA foreign_keys` is a
+per-connection setting that is a no-op once a transaction has begun, and Expo's
+`withExclusiveTransactionAsync` opens its own connection, so the setting applied
+during initialization never reaches the write transaction. This was inferred
+from the SDK source during design and has since been measured on an iOS 26.5
+simulator: the transaction connection reports `foreign_keys = 0`, and issuing
+the pragma inside the transaction leaves it there. Explicit child-first deletion
+is what makes erasure correct, and a test asserts that every child table is
+deleted by an explicit statement rather than left to a cascade.
 
 Verification runs inside the transaction: after every eraser, every stored-data
 probe runs, and any probe still reporting records rolls the whole deletion back
@@ -106,7 +109,9 @@ rebuilt. It does not claim that bytes are unrecoverable.
   shortcut.
 - **Rely on `ON DELETE CASCADE` for child rows.** Rejected on evidence: the
   transaction runs on a connection whose foreign-key enforcement the application
-  does not control.
+  does not control, and measurement later confirmed that enforcement is off
+  there. The same measurement found repositories outside this capability
+  relying on the same cascade; they were corrected separately.
 - **Verify after the transaction commits.** Rejected. A probe that finds
   surviving records after a commit can only report a problem it can no longer
   fix; inside the transaction it can undo it.

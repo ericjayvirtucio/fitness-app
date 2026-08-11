@@ -121,17 +121,24 @@ Rows are deleted children first:
 `hydration_target` → `body_weight_entry` → `goal_configuration` →
 `personal_profile`.
 
-`ON DELETE CASCADE` is deliberately not relied upon. `PRAGMA foreign_keys` is a
-per-connection setting and a no-op once a transaction has begun, and Expo's
-`withExclusiveTransactionAsync` runs the transaction on a connection it opens
-itself, so the `foreign_keys = ON` applied during initialization cannot be
-assumed to hold inside the write transaction. Explicit child-first deletion is
-correct whether or not it does, and a test asserts that every child table is
-deleted by an explicit statement rather than left to a cascade.
+`ON DELETE CASCADE` is deliberately not relied upon, because it does not run
+here. `PRAGMA foreign_keys` is a per-connection setting and a no-op once a
+transaction has begun, and Expo's `withExclusiveTransactionAsync` runs the
+transaction on a connection it opens itself, so the `foreign_keys = ON` applied
+during initialization never reaches the write transaction. Measured on an iOS
+26.5 simulator with `expo-sqlite` 57.0.1, the main connection reports
+`foreign_keys = 1`, the transaction connection reports `foreign_keys = 0`, and
+issuing the pragma inside the transaction leaves it at `0`.
 
-The same reasoning means the restricted reference from `planned_exercise` to
-`exercise_catalog_item` is not treated as a safety net; the order above removes
-the reference before its target either way.
+Explicit child-first deletion is what makes erasure correct, and a test asserts
+that every child table is deleted by an explicit statement rather than left to a
+cascade.
+
+The same measurement means the restricted reference from `planned_exercise` to
+`exercise_catalog_item` is not treated as a safety net: a delete of a referenced
+catalog row succeeds inside a transaction. The order above removes the reference
+before its target, and the Exercise Catalog's own delete use case refuses a
+referenced definition before issuing any statement.
 
 ## Transaction strategy
 
