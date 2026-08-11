@@ -94,10 +94,7 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
           session.id.value,
         ],
       );
-      await this.database.run(
-        'DELETE FROM workout_session_exercise WHERE workout_session_id = ?',
-        [session.id.value],
-      );
+      await this.deleteChildren(session.id.value);
       await this.insertChildren(session);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
@@ -111,6 +108,7 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
         [id.value, 'active'],
       );
       if (existing === null) return false;
+      await this.deleteChildren(id.value);
       await this.database.run('DELETE FROM workout_session WHERE id = ?', [
         id.value,
       ]);
@@ -144,6 +142,26 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
+  }
+
+  /**
+   * Removes a session's owned rows child-first. Expo opens an exclusive
+   * transaction on a connection of its own, where `PRAGMA foreign_keys` is off
+   * and cannot be turned on once the transaction has begun, so
+   * `ON DELETE CASCADE` would leave orphan `workout_set` and
+   * `workout_session_exercise` rows that no read path can see.
+   */
+  private async deleteChildren(sessionId: string): Promise<void> {
+    await this.database.run(
+      `DELETE FROM workout_set WHERE workout_session_exercise_id IN (
+         SELECT id FROM workout_session_exercise WHERE workout_session_id = ?
+       )`,
+      [sessionId],
+    );
+    await this.database.run(
+      'DELETE FROM workout_session_exercise WHERE workout_session_id = ?',
+      [sessionId],
+    );
   }
 
   private async insertChildren(session: WorkoutSession): Promise<void> {

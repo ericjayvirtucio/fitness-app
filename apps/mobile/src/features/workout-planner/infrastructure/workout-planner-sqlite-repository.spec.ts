@@ -127,11 +127,8 @@ describe('WorkoutPlannerSqliteRepository', () => {
   it('replaces a workout and ordered children with bound canonical values', async () => {
     const database = new FakeDatabase();
     await new WorkoutPlannerSqliteRepository(database).replace(workout());
-    expect(database.runs).toHaveLength(3);
-    expect(database.runs[0]?.statement).toContain(
-      'DELETE FROM planned_workout',
-    );
-    expect(database.runs[2]?.parameters).toEqual([
+    expect(database.runs).toHaveLength(4);
+    expect(database.runs[3]?.parameters).toEqual([
       plannedId,
       workoutId,
       exerciseId,
@@ -143,6 +140,48 @@ describe('WorkoutPlannerSqliteRepository', () => {
       null,
       null,
     ]);
+  });
+
+  it('replaces planned exercises before the workout that owns them', async () => {
+    const database = new FakeDatabase();
+    await new WorkoutPlannerSqliteRepository(database).replace(workout());
+    expect(database.runs[0]?.statement).toContain(
+      'DELETE FROM planned_exercise',
+    );
+    expect(database.runs[0]?.parameters).toEqual([1]);
+    expect(database.runs[1]?.statement).toContain(
+      'DELETE FROM planned_workout',
+    );
+    expect(database.runs[1]?.parameters).toEqual([1]);
+  });
+
+  it('deletes planned exercises before the workout that owns them', async () => {
+    const database = new FakeDatabase();
+    database.first = { id: workoutId };
+    await expect(
+      new WorkoutPlannerSqliteRepository(database).deleteByWeekday(
+        value(Weekday.create(1)),
+      ),
+    ).resolves.toBe(true);
+    expect(database.runs).toHaveLength(2);
+    expect(database.runs[0]?.statement).toContain(
+      'DELETE FROM planned_exercise',
+    );
+    expect(database.runs[0]?.parameters).toEqual([1]);
+    expect(database.runs[1]?.statement).toContain(
+      'DELETE FROM planned_workout',
+    );
+  });
+
+  it('deletes nothing when the weekday holds no workout', async () => {
+    const database = new FakeDatabase();
+    database.first = null;
+    await expect(
+      new WorkoutPlannerSqliteRepository(database).deleteByWeekday(
+        value(Weekday.create(1)),
+      ),
+    ).resolves.toBe(false);
+    expect(database.runs).toHaveLength(0);
   });
 
   it('returns focused references and validates their weekday', async () => {
