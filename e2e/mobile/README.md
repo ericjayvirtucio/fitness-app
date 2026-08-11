@@ -118,6 +118,13 @@ a production seeder to close that gap is not acceptable — the gap is documente
 instead. The restore entry point appears both under the profile empty state and
 below the profile form, so flows scroll to it rather than assuming a position.
 
+Maestro judges visibility against the device rectangle, not against what a
+scroll view has actually revealed. A control inside the tab-bar clearance is
+therefore reported as fully visible, `scrollUntilVisible` scrolls zero times,
+and the following `tapOn` taps a point the user cannot see. Pass
+`centerElement: true` when scrolling to the last control on a long screen, as
+the restore flow does.
+
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two
 check-ins must be ordered, the earlier one uses the synthetic time `00:01` and
