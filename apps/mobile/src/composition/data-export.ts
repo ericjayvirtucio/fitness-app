@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { BodyWeightExportSqliteReader } from '../features/body-measurement-history/infrastructure/body-weight-export-sqlite-reader';
+import { ClearDataExportsUseCase } from '../features/data-export/application/clear-data-exports-use-case';
 import { CreateDataExportUseCase } from '../features/data-export/application/create-data-export-use-case';
 import type { DataExportTransactionContext } from '../features/data-export/application/data-export-transaction-context';
 import { ShareDataExportUseCase } from '../features/data-export/application/share-data-export-use-case';
@@ -20,6 +21,7 @@ import { getDatabase, initializePersistence } from './persistence';
 export async function createDataExportUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const fileWriter = new ExpoDataExportFileWriter();
   // Every capability reader is built from the same exclusive transaction so
   // one export cannot mix records written at different moments.
   const transactionRunner =
@@ -40,9 +42,10 @@ export async function createDataExportUseCases() {
     );
 
   return Object.freeze({
+    clearExports: new ClearDataExportsUseCase(fileWriter),
     createExport: new CreateDataExportUseCase(
       transactionRunner,
-      new ExpoDataExportFileWriter(),
+      fileWriter,
       () => Constants.expoConfig?.version ?? null,
       () => new Date(),
     ),
