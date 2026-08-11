@@ -5,8 +5,7 @@ export default function ProfileScreen() {
   return (
     <PersonalProfileScreen
       onOpenBodyMeasurements={() => router.push('/body-measurements')}
-      onOpenDataExport={() => router.push('/data-export')}
-      onOpenDataRestore={() => router.push('/data-restore')}
+      onOpenDataControls={() => router.push('/data-controls')}
       onOpenGoals={() => router.push('/goals-energy')}
     />
   );

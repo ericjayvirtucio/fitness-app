@@ -38,8 +38,7 @@ type ScreenState =
 type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
   onOpenBodyMeasurements?: () => void;
-  onOpenDataExport?: () => void;
-  onOpenDataRestore?: () => void;
+  onOpenDataControls?: () => void;
   onOpenGoals?: () => void;
 }>;
 
@@ -74,8 +73,7 @@ function formValues(profile: UserProfile | null): ProfileFormValues {
 export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
   onOpenBodyMeasurements,
-  onOpenDataExport,
-  onOpenDataRestore,
+  onOpenDataControls,
   onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -163,14 +161,16 @@ export function PersonalProfileScreen({
         />
         {/*
           Restoring is only supported on an installation with no information,
-          so this is exactly where someone returning to a new device needs it.
+          so someone returning to a new device starts exactly here. It sits one
+          step inside Data controls with export and deletion, rather than as a
+          lone action, so every lifecycle operation has the same home.
         */}
-        {onOpenDataRestore ? (
+        {onOpenDataControls ? (
           <AppButton
-            label="Restore my data"
-            onPress={onOpenDataRestore}
+            label="Data controls"
+            onPress={onOpenDataControls}
             style={{ marginTop: spacing.lg }}
-            testID="open-data-restore"
+            testID="open-data-controls"
             variant="outline"
           />
         ) : null}
@@ -205,21 +205,12 @@ export function PersonalProfileScreen({
           variant="outline"
         />
       ) : null}
-      {onOpenDataExport ? (
+      {onOpenDataControls ? (
         <AppButton
-          label="Export my data"
-          onPress={onOpenDataExport}
+          label="Data controls"
+          onPress={onOpenDataControls}
           style={{ marginTop: spacing.md }}
-          testID="open-data-export"
-          variant="outline"
-        />
-      ) : null}
-      {onOpenDataRestore ? (
-        <AppButton
-          label="Restore my data"
-          onPress={onOpenDataRestore}
-          style={{ marginTop: spacing.md }}
-          testID="open-data-restore"
+          testID="open-data-controls"
           variant="outline"
         />
       ) : null}

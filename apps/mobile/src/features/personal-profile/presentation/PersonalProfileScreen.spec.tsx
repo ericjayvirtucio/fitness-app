@@ -56,8 +56,8 @@ describe('PersonalProfileScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('offers restoring from the empty state, where a new device starts', async () => {
-    const onOpenDataRestore = jest.fn();
+  it('reaches the data controls from the empty state, where a new device starts', async () => {
+    const onOpenDataControls = jest.fn();
     await render(
       <PersonalProfileScreen
         loadUseCases={() =>
@@ -66,19 +66,19 @@ describe('PersonalProfileScreen', () => {
             saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
           })
         }
-        onOpenDataRestore={onOpenDataRestore}
+        onOpenDataControls={onOpenDataControls}
       />,
     );
 
     await fireEvent.press(
-      await screen.findByRole('button', { name: 'Restore my data' }),
+      await screen.findByRole('button', { name: 'Data controls' }),
     );
 
-    expect(onOpenDataRestore).toHaveBeenCalledTimes(1);
+    expect(onOpenDataControls).toHaveBeenCalledTimes(1);
   });
 
-  it('offers restoring alongside exporting once a profile exists', async () => {
-    const onOpenDataRestore = jest.fn();
+  it('reaches the data controls once a profile exists', async () => {
+    const onOpenDataControls = jest.fn();
     await render(
       <PersonalProfileScreen
         loadUseCases={() =>
@@ -87,19 +87,15 @@ describe('PersonalProfileScreen', () => {
             saveProfile: { execute: () => Promise.resolve(ok(validProfile())) },
           })
         }
-        onOpenDataExport={jest.fn()}
-        onOpenDataRestore={onOpenDataRestore}
+        onOpenDataControls={onOpenDataControls}
       />,
     );
 
     await fireEvent.press(
-      await screen.findByRole('button', { name: 'Restore my data' }),
+      await screen.findByRole('button', { name: 'Data controls' }),
     );
 
-    expect(
-      screen.getByRole('button', { name: 'Export my data' }),
-    ).toBeOnTheScreen();
-    expect(onOpenDataRestore).toHaveBeenCalledTimes(1);
+    expect(onOpenDataControls).toHaveBeenCalledTimes(1);
   });
 
   it('loads an existing profile into the edit form', async () => {
@@ -190,8 +186,8 @@ describe('PersonalProfileScreen', () => {
     );
     expect(screen.queryByText('raw SQL')).not.toBeOnTheScreen();
   });
-  it('opens data export from the profile', async () => {
-    const openDataExport = jest.fn();
+  it('offers one data control entry point rather than one action per operation', async () => {
+    const openDataControls = jest.fn();
     await render(
       <PersonalProfileScreen
         loadUseCases={() =>
@@ -202,12 +198,14 @@ describe('PersonalProfileScreen', () => {
             },
           })
         }
-        onOpenDataExport={openDataExport}
+        onOpenDataControls={openDataControls}
       />,
     );
 
-    await fireEvent.press(await screen.findByTestId('open-data-export'));
+    await fireEvent.press(await screen.findByTestId('open-data-controls'));
 
-    expect(openDataExport).toHaveBeenCalledTimes(1);
+    expect(openDataControls).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('open-data-export')).toBeNull();
+    expect(screen.queryByTestId('open-data-restore')).toBeNull();
   });
 });
