@@ -4,7 +4,8 @@ import {
   type UserProfile,
   type UserProfileValidationErrors,
 } from '@fitness/domain';
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { createPersonalProfileUseCases } from '../../../composition/personal-profile';
 import {
   AppButton,
@@ -38,6 +39,7 @@ type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
   onOpenBodyMeasurements?: () => void;
   onOpenDataExport?: () => void;
+  onOpenDataRestore?: () => void;
   onOpenGoals?: () => void;
 }>;
 
@@ -73,6 +75,7 @@ export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
   onOpenBodyMeasurements,
   onOpenDataExport,
+  onOpenDataRestore,
   onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -93,7 +96,10 @@ export function PersonalProfileScreen({
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
 
-  useEffect(load, [load]);
+  // Reloads on focus like every other screen, so returning here after a
+  // restore shows the restored profile instead of the state this screen was
+  // mounted with.
+  useFocusEffect(load);
 
   const save = async (input: SaveProfileInput) => {
     if (!useCases) return;
@@ -155,6 +161,19 @@ export function PersonalProfileScreen({
           onAction={() => setIsEditing(true)}
           title="Set up your profile"
         />
+        {/*
+          Restoring is only supported on an installation with no information,
+          so this is exactly where someone returning to a new device needs it.
+        */}
+        {onOpenDataRestore ? (
+          <AppButton
+            label="Restore my data"
+            onPress={onOpenDataRestore}
+            style={{ marginTop: spacing.lg }}
+            testID="open-data-restore"
+            variant="outline"
+          />
+        ) : null}
       </Screen>
     );
   }
@@ -192,6 +211,15 @@ export function PersonalProfileScreen({
           onPress={onOpenDataExport}
           style={{ marginTop: spacing.md }}
           testID="open-data-export"
+          variant="outline"
+        />
+      ) : null}
+      {onOpenDataRestore ? (
+        <AppButton
+          label="Restore my data"
+          onPress={onOpenDataRestore}
+          style={{ marginTop: spacing.md }}
+          testID="open-data-restore"
           variant="outline"
         />
       ) : null}

@@ -1,0 +1,22 @@
+appId: com.fitnessapp.dev
+---
+# The restore entry point exists in both profile states: under the empty state
+# on a fresh install, which is where someone returning to a new device actually
+# starts, and below the form and the other actions once a profile exists.
+#
+# In the second case it is the last control on a long screen and lands inside
+# the tab-bar clearance. Maestro judges visibility against the device rect, not
+# against what the scroll view has actually revealed, so it reports the control
+# as fully visible, scrolls zero times, and taps a point the user cannot see.
+# Centering forces a real scroll first, which is correct in both profile states.
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: open-data-restore
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: open-data-restore
+- assertVisible:
+    id: data-restore-screen

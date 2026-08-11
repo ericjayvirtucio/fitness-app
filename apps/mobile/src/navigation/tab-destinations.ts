@@ -39,7 +39,8 @@ export const tabDestinations = [
     title: 'Progress',
   },
   {
-    description: 'Manage your profile, goals, measurements, and data export.',
+    description:
+      'Manage your profile, goals, measurements, and data export and restore.',
     icon: 'person-outline',
     route: 'profile',
     testID: 'tab-profile',

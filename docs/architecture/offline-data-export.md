@@ -268,8 +268,8 @@ The export contains sensitive personal and fitness information, including date
 of birth, biological sex, and body measurements. It is produced only by an
 explicit user action, after a notice stating what is included, that the file is
 created on this device, that the application does not upload it, that the user
-chooses the destination, that the file is not encrypted, and that importing data
-back in is not supported.
+chooses the destination, that the file is not encrypted, and that it can be
+restored later only into an application that holds no information yet.
 
 There is no network call, telemetry, or analytics in the capability, and no
 logging at all, so no log can leak export contents. No storage permission is
@@ -303,8 +303,12 @@ never treats a presentation-formatted Progress summary as export data.
 
 ## Known limitations
 
-- Import, restore, and backup do not exist. An export is a copy, not a way back
-  in.
+- An export is a copy the user controls, not an automatic backup. Nothing
+  creates one on a schedule and nothing recovers one from a cloud service.
+- A saved export can be read back in through
+  [offline data restore](offline-data-restore.md), but only into an
+  installation that holds no information yet. Merging and replacing are not
+  supported.
 - The file is not encrypted once it leaves the application sandbox.
 - The whole document is held in memory while it is written, which caps practical
   exports at roughly 25 MB.

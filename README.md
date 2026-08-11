@@ -20,7 +20,8 @@ deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and
 This Month. Profile can also export everything stored on the device as one
 documented, versioned JSON file and hand it to the platform's own share and
-save controls.
+save controls, and can restore such a file offline into an installation that
+holds no information yet.
 It intentionally contains no authentication, synchronization, cloud analytics,
 notifications, or AI integration.
 
@@ -130,14 +131,21 @@ are documented in
 The export contract, canonical units, timestamp semantics, file handling, and
 known limitations are documented in
 [docs/architecture/offline-data-export.md](docs/architecture/offline-data-export.md).
+The restore trust boundary, validation layers, empty-installation policy,
+transaction behavior, and native-picker boundary are documented in
+[docs/architecture/offline-data-restore.md](docs/architecture/offline-data-restore.md).
 
 ## Current status
 
-Sprint 18: Offline Data Export. Profile can create one versioned
-`fitness-app-data-export` JSON file describing everything stored on the device,
-generated entirely offline from a single consistent read and handed to the
-platform's share and save controls by an explicit second action. Records keep
-their canonical units and captured local-day semantics, unknown values stay
-unknown, and derived figures such as BMI and energy targets are deliberately
-recomputable rather than exported. The file is not encrypted, and import,
-restore, backup, scheduled export, and cloud upload remain deferred.
+Sprint 19: Offline Data Restore. Profile can read a saved version 1
+`fitness-app-data-export` file back into an installation that holds no
+information yet, entirely offline. The selected file is untrusted input: format,
+version, sections, keys, primitives, enumerations, bounds, identifiers,
+duplicates, occurrence context, domain invariants, and references between
+records are all validated before anything is written. Exported identifiers,
+canonical units, and captured local-day semantics are preserved exactly,
+historical snapshots stay historical, and derived figures such as BMI and energy
+targets are recomputed rather than imported. Restoring runs in one exclusive
+transaction and is all-or-nothing. The application refuses to restore over
+existing information; merging, replacing, encrypted archives, scheduled restore,
+and cloud recovery remain out of scope.

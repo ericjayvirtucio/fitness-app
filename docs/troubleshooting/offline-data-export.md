@@ -101,10 +101,14 @@ are documented in [Goals & Energy](../architecture/goals-and-energy.md).
 
 ## Can the file be imported back?
 
-Not currently. Export is a copy of your information in a documented, versioned
-format; it is not a backup and there is no restore. The file records
-`formatVersion` so future import tooling can read it, but no such tooling
-exists yet.
+Yes, into an installation that holds no information yet. Profile has a "Restore
+my data" screen that reads a `formatVersion` 1 export back in, entirely offline.
+It refuses when the app already contains records, and it never merges or
+replaces. See
+[offline data restore troubleshooting](offline-data-restore.md).
+
+An export is still a copy you control, not an automatic backup: nothing creates
+it for you and nothing recovers it from a cloud service.
 
 ## Is the file protected?
 

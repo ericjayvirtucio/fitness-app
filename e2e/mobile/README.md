@@ -41,6 +41,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 16 --platform ios
 ./scripts/qa.sh sprint 17 --platform ios
 ./scripts/qa.sh sprint 18 --platform ios
+./scripts/qa.sh sprint 19 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -76,7 +77,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–18. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–19. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -105,6 +106,24 @@ sheet would add brittle platform selectors without testing application
 behavior. Exports created during QA contain only the synthetic data the suite
 entered, and the application removes its cached copy the next time the export
 screen opens.
+
+Data-restore flows stop at the application-owned "Choose file" control and at
+the refusal panel shown when the installation already holds information. The
+document picker is owned by iOS and Android, so no flow opens it or selects a
+file, for the same reason no flow opens the share sheet. A complete successful
+restore therefore cannot be automated here: it is covered by the
+[Sprint 19 manual checklist](../../docs/manual-testing/sprint-19-offline-data-restore.md)
+using a synthetic export. Adding a hidden import route, a database fixture, or
+a production seeder to close that gap is not acceptable — the gap is documented
+instead. The restore entry point appears both under the profile empty state and
+below the profile form, so flows scroll to it rather than assuming a position.
+
+Maestro judges visibility against the device rectangle, not against what a
+scroll view has actually revealed. A control inside the tab-bar clearance is
+therefore reported as fully visible, `scrollUntilVisible` scrolls zero times,
+and the following `tapOn` taps a point the user cannot see. Pass
+`centerElement: true` when scrolling to the last control on a long screen, as
+the restore flow does.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two

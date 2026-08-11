@@ -55,7 +55,7 @@ const beforeYouExport = [
   'This app does not upload it anywhere.',
   'You choose where it goes next. Once it leaves this app, this app can no longer protect it.',
   'The file is not encrypted.',
-  'Bringing exported data back into the app is not supported yet.',
+  'This file can be restored later, but only into an app that has no information in it yet.',
 ];
 
 export function DataExportScreen({

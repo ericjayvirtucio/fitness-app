@@ -94,7 +94,7 @@ describe('DataExportScreen', () => {
     expect(screen.getByText('• The file is not encrypted.')).toBeTruthy();
     expect(
       screen.getByText(
-        '• Bringing exported data back into the app is not supported yet.',
+        '• This file can be restored later, but only into an app that has no information in it yet.',
       ),
     ).toBeTruthy();
   });
