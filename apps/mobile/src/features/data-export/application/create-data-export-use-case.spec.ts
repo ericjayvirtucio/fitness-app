@@ -222,6 +222,23 @@ describe('CreateDataExportUseCase', () => {
     expect(requested[0]?.limit).toBe(200);
   });
 
+  it('reads sessions in smaller batches because they carry nested records', async () => {
+    const requested: ExportPageQuery<never>[] = [];
+    const context = createContext({
+      workoutHistory: {
+        listCompletedSessionsPage: (query) => {
+          requested.push(query as ExportPageQuery<never>);
+          return emptyPage();
+        },
+      },
+    });
+    const { useCase } = createUseCase(context);
+
+    await useCase.execute(neverCancelled);
+
+    expect(requested[0]?.limit).toBe(25);
+  });
+
   it('fails the whole export when a capability read fails', async () => {
     const context = createContext({
       nutrition: {

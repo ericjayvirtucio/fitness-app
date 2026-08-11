@@ -7,6 +7,13 @@
  */
 
 export const exportPagePolicy = Object.freeze({
+  /**
+   * Records that carry nested children page in smaller batches. A completed
+   * workout may hold up to 100 exercises of up to 100 sets, so a full-size
+   * page of sessions could pull an implausible but unbounded number of child
+   * rows into memory at once.
+   */
+  nestedPageSize: 25,
   pageSize: 200,
 });
 

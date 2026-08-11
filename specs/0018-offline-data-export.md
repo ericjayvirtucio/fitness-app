@@ -265,8 +265,9 @@ index-ordered, and no new locking primitive is introduced.
 
 ## Bounded reads
 
-Every unbounded table is read with keyset paging of 200 records per page, in the
-declared order, with no `OFFSET`. Each page is converted to text immediately and
+Every unbounded table is read with keyset paging in the declared order, with no
+`OFFSET`: 200 records per page for flat records, and 25 for completed workout
+sessions because each one carries its exercises and sets. Each page is converted to text immediately and
 the domain objects are released.
 
 Text chunks are accumulated and written once. A streaming file writer is not

@@ -72,8 +72,11 @@ new locking primitive was introduced.
 
 ## Bounded reads
 
-Every unbounded table is read with ascending keyset paging of 200 records
-(`exportPagePolicy`), with no `OFFSET`. Cursor predicates live in
+Every unbounded table is read with ascending keyset paging, with no `OFFSET`.
+`exportPagePolicy` sets 200 records per page for flat records and 25 for
+completed workout sessions, because a session may hold up to 100 exercises of
+up to 100 sets and a full-size page of sessions could pull an implausible but
+unbounded number of child rows into memory at once. Cursor predicates live in
 `infrastructure/persistence/export-keyset.ts`; the shared page and cursor types
 live in `application/persistence/export-paging.ts`. Each page is turned into
 text immediately by `JsonDocumentWriter`, so the export never holds lifetime

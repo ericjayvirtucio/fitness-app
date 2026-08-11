@@ -123,6 +123,7 @@ export class CreateDataExportUseCase {
           (query) => context.workoutHistory.listCompletedSessionsPage(query),
           (session) => serializer.writeCompletedSession(session),
           cancellation,
+          exportPagePolicy.nestedPageSize,
         );
         serializer.closeWorkoutSessionsSection();
 
@@ -176,14 +177,13 @@ async function forEachPage<TItem, TCursor>(
   ) => Promise<ExportPage<TItem, TCursor>>,
   write: (item: TItem) => void,
   cancellation: DataExportCancellation,
+  limit: number = exportPagePolicy.pageSize,
 ): Promise<void> {
   let cursor: TCursor | undefined;
   do {
     assertNotCancelled(cancellation);
     const query: ExportPageQuery<TCursor> =
-      cursor === undefined
-        ? { limit: exportPagePolicy.pageSize }
-        : { cursor, limit: exportPagePolicy.pageSize };
+      cursor === undefined ? { limit } : { cursor, limit };
     const page: ExportPage<TItem, TCursor> = await read(query);
     for (const item of page.items) write(item);
     cursor = page.nextCursor ?? undefined;
