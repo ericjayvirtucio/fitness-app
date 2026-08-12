@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: Keep every record after visiting replacement
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml
+- runFlow: ../../flows/data-lifecycle/open-replace-local-data.yaml
+- scrollUntilVisible:
+    element:
+      id: choose-replace-local-data-file
+    direction: DOWN
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-today
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'

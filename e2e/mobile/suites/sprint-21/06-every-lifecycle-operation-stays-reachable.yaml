@@ -1,0 +1,21 @@
+appId: com.fitnessapp.dev
+name: Reach export, restore, replacement, and deletion separately
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-lifecycle/open-data-controls.yaml
+# Each operation keeps its own named control. Nothing here infers which one the
+# user meant, and adding replacement did not fold the other three together.
+- scrollUntilVisible:
+    element:
+      id: open-data-export
+    direction: DOWN
+- assertVisible:
+    id: open-data-export
+- assertVisible:
+    id: open-data-restore
+- assertVisible:
+    id: open-replace-local-data
+- assertVisible:
+    id: open-delete-local-data

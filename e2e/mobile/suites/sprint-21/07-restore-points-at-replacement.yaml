@@ -1,0 +1,15 @@
+appId: com.fitnessapp.dev
+name: Send a blocked restore to replacement instead
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-restore/open-data-restore.yaml
+- scrollUntilVisible:
+    element:
+      id: data-restore-blocked
+    direction: DOWN
+- assertVisible: This app already has information
+- assertVisible: '.*choose Replace local data from an export.*'
+- assertNotVisible:
+    id: choose-data-restore-file
