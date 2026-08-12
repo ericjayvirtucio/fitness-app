@@ -41,6 +41,15 @@ Phase 0 excludes all business features, authentication, databases, backend endpo
 
 Offline data export shipped during the offline product capability phase rather than product expansion, because a local export needs no cloud service and portability should not wait behind one. Offline restore followed in the same phase: portability that cannot be reversed leaves a user holding a file they cannot use after reinstalling or replacing a device. Restoring is deliberately limited to an installation that holds no information, because merging and replacing are synchronization and destruction problems that need their own reviewed designs. Deliberate local erasure came next: owning your information includes removing it, and reaching an empty installation should not require hunting through operating-system settings. Deleting is explicit, confirmed, verified before it commits, and never something the application does on its own. Safe replacement then closed the remaining gap, because composing those three operations by hand asked people to delete before they could find out whether their replacement file was usable. Replacing validates the incoming file completely first, offers a copy of the current information without pretending it was saved anywhere, and changes the database in one transaction that either preserves the previous dataset or commits the whole replacement. Merging remains a synchronization problem and remains unbuilt.
 
+With that lifecycle complete, the offline capability phase returned to core
+fitness value. Completed workout history now yields deterministic personal
+records for a performed exercise, each tied to the workout that proves it. A
+record states what the application recorded; it is never a claim about
+physiology, strength, or what someone should do next. Comparisons that cannot be
+made truthfully are declined rather than approximated, so unlike ways of
+recording an exercise are never combined and assisted work is explained instead
+of ranked.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

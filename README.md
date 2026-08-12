@@ -13,8 +13,9 @@ and stable local-day history. The Workout area includes an offline Exercise
 Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
 Workout Sessions with individual actual-set logging and restart recovery. It
 also provides bounded completed Workout History, read-only snapshot detail,
-deterministic Day/Week/Month progress summaries, per-exercise history foundations,
-and performed-exercise recents. The Profile area records historical body
+deterministic Day/Week/Month progress summaries, per-exercise history, and
+deterministic personal records for a performed exercise, each linked to the
+completed workout that proves it. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and
@@ -125,6 +126,9 @@ Workout execution, snapshots, results, and recovery are documented in
 [docs/architecture/offline-workout-sessions.md](docs/architecture/offline-workout-sessions.md).
 Completed history, progress semantics, pagination, and performed recents are in
 [docs/architecture/offline-workout-history.md](docs/architecture/offline-workout-history.md).
+Personal-record categories, comparison semantics, tie behavior, evidence links,
+and query strategy are documented in
+[docs/architecture/workout-personal-records.md](docs/architecture/workout-personal-records.md).
 Cross-capability period summaries, missing-data semantics, and Progress ownership
 are documented in
 [docs/architecture/offline-progress-analytics.md](docs/architecture/offline-progress-analytics.md).

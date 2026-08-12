@@ -163,6 +163,17 @@ current Catalog definitions. See
 [Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md), and
 [troubleshooting guidance](troubleshooting/offline-workout-history.md).
 
+## Workout personal records
+
+Opening a performed exercise from Workout History shows its best recorded
+results, derived only from completed actual sets and each linked to the workout
+that proves it. Categories are defined per logging mode, assisted work is
+explained rather than ranked, and nothing derived is stored or exported. See the
+[personal records architecture](architecture/workout-personal-records.md),
+[ADR 0017](decisions/0017-deterministic-workout-personal-records.md), the
+[Sprint 22 manual checklist](manual-testing/sprint-22-workout-personal-records.md),
+and [troubleshooting guidance](troubleshooting/workout-personal-records.md).
+
 ## Offline Progress analytics
 
 The Progress tab combines bounded, capability-owned Nutrition, Hydration, and
