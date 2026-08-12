@@ -1,0 +1,16 @@
+appId: com.fitnessapp.dev
+---
+# Replacement lives inside Data controls beside export, restore, and deletion,
+# so the flow goes through that screen rather than tapping a Profile action.
+# Data controls is reachable from both profile states, so this one flow works on
+# a fresh install and on a populated one.
+- runFlow: open-data-controls.yaml
+- scrollUntilVisible:
+    element:
+      id: open-replace-local-data
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: open-replace-local-data
+- assertVisible:
+    id: replace-local-data-screen

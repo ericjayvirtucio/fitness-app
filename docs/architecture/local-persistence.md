@@ -145,6 +145,12 @@ and `VACUUM` cannot run inside a transaction and are best-effort steps
 afterwards, through `StorageCompactor`. See
 [offline local data erasure architecture](offline-local-data-erasure.md).
 
+Replacing local data composes both directions in one transaction: the erasers
+run, the probes prove the result is empty, the validated dataset is written
+through the same repositories, and capability presence is verified before the
+commit. The previous dataset survives intact or the whole replacement lands. See
+[safe replacement restore architecture](safe-replacement-restore.md).
+
 ## Errors and recovery
 
 `PersistenceError` exposes stable codes and generic messages. The original error
@@ -161,9 +167,23 @@ than the database file.
 ## Testing
 
 Jest tests use narrow deterministic fakes to verify orchestration, migration,
-transaction, error, and startup behavior. They do not claim to execute the native
-SQLite engine. Before merge, verify initialization, migration, restart, and cold
-start on an iOS simulator or device and on Android when available.
+transaction, error, and startup behavior. Those fakes do not execute a SQLite
+engine and never claim to.
+
+Where a guarantee belongs to the engine rather than to the orchestration, a test
+may run against a real one. `NodeSqliteDatabase`, under
+`infrastructure/persistence/testing`, implements this application's own
+`DatabaseConnection` over Node's built-in SQLite, applies the real migration
+list, and runs `BEGIN EXCLUSIVE`, `COMMIT`, and `ROLLBACK` with foreign-key
+enforcement disabled around the transaction so it matches the measured behavior
+of the connection Expo opens. It exists so replacement's rollback guarantee is
+asserted rather than assumed. It is not the production adapter, is never
+imported by application code, and does not execute Expo's native module;
+`composition/persistence.ts` remains the only place a production database is
+opened.
+
+Before merge, verify initialization, migration, restart, and cold start on an
+iOS simulator or device and on Android when available.
 
 ## Troubleshooting
 

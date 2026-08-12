@@ -12,19 +12,23 @@ type Props = Readonly<{
   onOpenDataExport?: () => void;
   onOpenDataRestore?: () => void;
   onOpenLocalDataDeletion?: () => void;
+  onOpenLocalDataReplacement?: () => void;
 }>;
 
 /**
- * One home for taking information out, bringing it back, and removing it.
+ * One home for taking information out, bringing it back, replacing it, and
+ * removing it.
  *
- * Grouping them keeps the Profile form from growing a fourth and fifth action
- * below the fold, and puts the destructive one behind a deliberate step rather
- * than beside the buttons a user presses every week.
+ * Grouping them keeps the Profile form from growing more actions below the
+ * fold, and puts the destructive ones behind a deliberate step rather than
+ * beside the buttons a user presses every week. Each row names one operation,
+ * so nothing here has to infer which one the user meant.
  */
 export function DataControlsScreen({
   onOpenDataExport,
   onOpenDataRestore,
   onOpenLocalDataDeletion,
+  onOpenLocalDataReplacement,
 }: Props) {
   return (
     <Screen accessibilityLabel="Data controls" testID="data-controls-screen">
@@ -47,6 +51,10 @@ export function DataControlsScreen({
             holds no information yet.
           </AppText>
           <AppText color="secondary" style={styles.item}>
+            • Replacing swaps everything stored on this device for a file this
+            app exported. It does not combine the two.
+          </AppText>
+          <AppText color="secondary" style={styles.item}>
             • Deleting removes everything stored on this device. Files you
             already saved elsewhere are not deleted.
           </AppText>
@@ -65,6 +73,14 @@ export function DataControlsScreen({
             label="Restore my data"
             onPress={onOpenDataRestore}
             testID="open-data-restore"
+            variant="outline"
+          />
+        ) : null}
+        {onOpenLocalDataReplacement ? (
+          <AppButton
+            label="Replace local data from an export"
+            onPress={onOpenLocalDataReplacement}
+            testID="open-replace-local-data"
             variant="outline"
           />
         ) : null}

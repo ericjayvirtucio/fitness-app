@@ -21,8 +21,9 @@ completed-workout, and recorded body-weight summaries for Today, This Week, and
 This Month. Profile groups its data controls in one place: export everything stored on the
 device as one documented, versioned JSON file and hand it to the platform's own
 share and save controls; restore such a file offline into an installation that
-holds no information yet; or deliberately delete everything the app stores on
-the device.
+holds no information yet; replace everything stored on the device with a
+validated export in one all-or-nothing operation; or deliberately delete
+everything the app stores on the device.
 It intentionally contains no authentication, synchronization, cloud analytics,
 notifications, or AI integration.
 
@@ -139,21 +140,26 @@ transaction behavior, and native-picker boundary are documented in
 Capability-owned erasure, deletion order, in-transaction verification, temporary
 file cleanup, and the honest limits of what deletion guarantees are documented in
 [docs/architecture/offline-local-data-erasure.md](docs/architecture/offline-local-data-erasure.md).
+Validation before destruction, the atomic replacement transaction, the recovery
+copy and its retention, verification, and the rollback guarantee are documented in
+[docs/architecture/safe-replacement-restore.md](docs/architecture/safe-replacement-restore.md).
 
 ## Current status
 
-Sprint 20: Offline Local Data Erasure. Profile now groups export, restore, and
-deletion under one Data controls screen, and the app can deliberately erase
-everything it stores on the device. Deleting takes three acts: opening its own
-screen, acknowledging that it cannot be undone, and confirming a destructive
-alert. Each capability erases its own tables through a narrow port beside the
-stored-data probe it already owned, children first, inside one exclusive
-transaction that verifies every capability is empty before it commits — so a
-partial deletion is rolled back rather than reported as success. Afterwards the
-app removes the export it still holds and, best effort, checkpoints and vacuums
-the database. The schema and migration version survive, the app is usable at
-once, restoring becomes eligible, and exports saved elsewhere are untouched. The
-app states that it holds no information; it does not claim the bytes are
-unrecoverable, and it deletes no account or cloud copy, of which it has neither.
-Replacement restore, merge import, selective or scheduled deletion, and remote
-wipe remain out of scope.
+Sprint 21: Safe Replacement Restore. Data controls now offers a fourth
+operation: replacing everything stored on the device with a validated export.
+The incoming file is read, parsed, domain-checked, and referentially validated
+before any destructive control exists at all, so nothing is ever erased to
+discover whether the replacement file is usable. A copy of the current
+information is prominently offered and can be declined with its own separate
+acknowledgement; it is created before the replacement begins, so it can contain
+nothing incoming, and it deliberately survives the replacement because the app
+cannot tell whether a share sheet saved it anywhere. The database change is one
+exclusive transaction that erases every capability children first, proves the
+result is empty, writes the validated dataset through the same repositories
+empty-installation restore uses, and verifies every capability before it
+commits. Any failure before that commit rolls back to the previous dataset,
+which is asserted against a real SQLite engine rather than a fake. Export,
+restore into an empty installation, and deletion remain separately available and
+unchanged. Merge import, synchronization, cloud backup, selective or scheduled
+replacement, and database-file swapping remain out of scope.

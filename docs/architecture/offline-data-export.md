@@ -245,6 +245,15 @@ run immediately after the share handoff resolves, because an Android receiver
 may still be reading the granted content URI. The application never touches the
 destination the user chose.
 
+Replacing local data is a second caller of this exporter. It produces the
+recovery copy through `CreateDataExportUseCase` unchanged, so the same directory
+rule applies and a recovery copy replaces any export the application was still
+holding. That copy is deliberately **not** cleaned up when the replacement
+commits — it is the user's way back, and the application cannot tell whether a
+share sheet saved it — so it survives until the export screen next prepares the
+directory or the system reclaims the cache. See
+[safe replacement restore architecture](safe-replacement-restore.md).
+
 `ClearDataExportsUseCase` reports a cleanup failure to its caller rather than
 swallowing it, because its callers owe the user different answers. The export
 screen ignores it, since generating an export prepares the directory again. An

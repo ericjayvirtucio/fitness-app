@@ -6,6 +6,7 @@ export default function DataControlsRoute() {
     <DataControlsScreen
       onOpenDataExport={() => router.push('/data-export')}
       onOpenDataRestore={() => router.push('/data-restore')}
+      onOpenLocalDataReplacement={() => router.push('/replace-local-data')}
       onOpenLocalDataDeletion={() => router.push('/delete-local-data')}
     />
   );

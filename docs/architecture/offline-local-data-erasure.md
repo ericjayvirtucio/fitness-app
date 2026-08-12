@@ -213,8 +213,17 @@ Export is unchanged and deletes nothing. Restore is unchanged and still requires
 an installation holding no records — after a successful erasure it becomes
 eligible, and the user reaches it deliberately from Data controls. Nothing opens
 the picker, retains a source path, or restores anything automatically, and
-deletion and restoration never share a transaction. Replacement restore remains
-a separate future design, with the seam ADR 0014 left for it.
+deletion and restoration never share a transaction here.
+
+Replacement restore, added later and described in
+[safe replacement restore architecture](safe-replacement-restore.md), reuses
+this capability's erasers and probes but is a separate operation the user
+chooses separately. It is the one place where deletion and restoration do share
+a transaction, deliberately, because committing an empty database between them
+is exactly the failure that design exists to prevent. Deleting all local data
+still restores nothing, and it clears the app-owned export cache — which
+replacement deliberately does not, because there the copy is the user's way
+back.
 
 ## Persistence and migration
 

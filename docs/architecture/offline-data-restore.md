@@ -194,7 +194,9 @@ first. No overwrite option is offered.
 ## Writes and transaction
 
 `RestoreDataExportUseCase` opens one exclusive transaction through the existing
-`SqliteTransactionRunner`, rechecks emptiness, and writes in schema order:
+`SqliteTransactionRunner`, rechecks emptiness, and writes in schema order
+through the shared `writeRestoreData`, which replacement restore also calls so
+the order has one definition:
 
 1. profile
 2. goal configuration
@@ -267,14 +269,18 @@ the documentation.
 
 ## Known limitations
 
-- Restoring works only on an installation that holds no information. A user who
-  already has records must export first and then delete all local data, which
-  is a separate deliberate action described in
-  [offline local data erasure architecture](offline-local-data-erasure.md).
-  Restoring itself never deletes anything.
-- Merging an export with existing information, and replacing existing
-  information, are not supported. Both need their own reviewed design; the
-  seam is described in ADR 0014.
+- Restoring works only on an installation that holds no information. Restoring
+  itself never deletes anything. A user who already has records has two
+  supported paths: delete all local data first, described in
+  [offline local data erasure architecture](offline-local-data-erasure.md), or
+  replace the current dataset with the file in one operation, described in
+  [safe replacement restore architecture](safe-replacement-restore.md). The
+  refusal panel points at the second one.
+- Merging an export with existing information is still not supported and needs
+  its own reviewed design; the seam is described in ADR 0014. Replacement,
+  which ADR 0014 also deferred, was designed separately in
+  [ADR 0016](../decisions/0016-atomic-local-data-replacement.md) and reuses this
+  capability's parser, repositories, and insertion order unchanged.
 - Only `formatVersion` 1 is accepted.
 - Encrypted or compressed archives are not supported.
 - Restoration issues one statement per record, so a very large history is bound

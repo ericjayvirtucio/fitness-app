@@ -3,6 +3,7 @@ import type { TransactionRunner } from '../../../application/persistence/transac
 import { DataRestoreError } from './data-restore-error';
 import type { DataRestoreTransactionContext } from './data-restore-transaction-context';
 import type { RestoreData } from './restore-data';
+import { writeRestoreData } from './write-restore-data';
 
 type TransactionOutcome = 'restored' | 'target-not-empty';
 
@@ -15,9 +16,8 @@ type TransactionOutcome = 'restored' | 'target-not-empty';
  * out through the transaction runner's error translation, where its meaning
  * would be flattened into a generic persistence failure.
  *
- * Insertion order follows the schema: exercise definitions precede the planner
- * that references them. Sessions carry no foreign key to the catalog by design,
- * so completed history restores whether or not its definitions still exist.
+ * The writes themselves live in {@link writeRestoreData}, which replacement
+ * restore shares, so the schema-shaped insertion order has one definition.
  */
 export class RestoreDataExportUseCase {
   constructor(
@@ -34,41 +34,11 @@ export class RestoreDataExportUseCase {
     try {
       return await this.transactionRunner.run(async (context) => {
         if (await holdsStoredData(context.probes)) return 'target-not-empty';
-        await write(context, data);
+        await writeRestoreData(context, data);
         return 'restored';
       });
     } catch (error: unknown) {
       throw new DataRestoreError('write-failed', { cause: error });
     }
   }
-}
-
-async function write(
-  context: DataRestoreTransactionContext,
-  data: RestoreData,
-): Promise<void> {
-  if (data.profile !== null) await context.profile.save(data.profile);
-  if (data.goal !== null) await context.goals.save(data.goal);
-
-  for (const item of data.nutritionCatalogItems)
-    await context.nutritionCatalog.insert(item);
-  for (const entry of data.nutritionEntries)
-    await context.nutritionEntries.insert(entry);
-
-  for (const entry of data.hydrationEntries)
-    await context.hydrationEntries.insert(entry);
-  if (data.hydrationTarget !== null)
-    await context.hydrationTarget.save(data.hydrationTarget);
-
-  for (const item of data.exercises) await context.exerciseCatalog.insert(item);
-  for (const workout of data.plannedWorkouts)
-    await context.planner.replace(workout);
-
-  for (const session of data.completedSessions)
-    await context.sessions.insert(session);
-  if (data.activeSession !== null)
-    await context.sessions.insert(data.activeSession);
-
-  for (const entry of data.bodyWeightCheckIns)
-    await context.bodyWeight.insert(entry);
 }

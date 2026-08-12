@@ -1,0 +1,16 @@
+appId: com.fitnessapp.dev
+name: Review the destructive and recovery explanation
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- runFlow: ../../flows/data-lifecycle/open-replace-local-data.yaml
+- scrollUntilVisible:
+    element:
+      id: replace-local-data-notice
+    direction: DOWN
+- assertVisible: '.*The file is checked completely before anything is replaced.*'
+- assertVisible: '.*Replacing does not combine the file with what is already here.*'
+- assertVisible: '.*You can save a copy of your current information first.*'
+- assertVisible: '.*If replacing fails, what is already on this device is kept.*'
+- assertVisible: '.*Both files stay on this device. This app does not upload them.*'

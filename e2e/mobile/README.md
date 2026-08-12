@@ -43,6 +43,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 18 --platform ios
 ./scripts/qa.sh sprint 19 --platform ios
 ./scripts/qa.sh sprint 20 --platform ios
+./scripts/qa.sh sprint 21 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -78,7 +79,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–20. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–21. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -127,11 +128,25 @@ using a synthetic export. Adding a hidden import route, a database fixture, or
 a production seeder to close that gap is not acceptable — the gap is documented
 instead.
 
-Export, restore, and deletion are all reached through Profile → Data controls,
-so `flows/data-lifecycle/open-data-controls.yaml` is the single entry point the
-export and restore flows compose. Data controls appears in both profile states,
-under the empty state and below the profile form, so flows scroll to it rather
-than assuming a position.
+Replacement flows stop earlier still. The screen offers no destructive control
+at all until a file has been read and validated, and both the picker and the
+share sheet used for the recovery copy are platform-owned, so a suite can prove
+that the gate exists and that visiting the screen changed nothing, but it cannot
+drive a replacement to completion. A complete successful replacement, a forced
+failure that preserves the original dataset, and the recovery-copy handoff are
+covered by the
+[Sprint 21 manual checklist](../../docs/manual-testing/sprint-21-safe-replacement-restore.md)
+together with the parser, orchestration, and real-SQLite tests in
+`apps/mobile`. The same rule applies: no hidden replacement route, no database
+fixture, no production seeder, and no test-only bypass is added to close that
+gap.
+
+Export, restore, replacement, and deletion are all reached through
+Profile → Data controls, so `flows/data-lifecycle/open-data-controls.yaml` is
+the single entry point the other lifecycle flows compose. Data controls appears
+in both profile states, under the empty state and below the profile form, so
+flows scroll to it rather than assuming a position. Each lifecycle operation
+keeps its own named control there; nothing infers which one the user meant.
 
 Data-erasure flows are fully automatable and genuinely destructive, so they run
 only against the disposable QA target every suite already clears. The flow
