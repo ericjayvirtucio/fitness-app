@@ -25,6 +25,11 @@ import {
   moveWorkoutHistoryPeriod,
   type WorkoutHistoryPeriod,
 } from './workout-history-period';
+import {
+  formatCapturedDate,
+  formatRecordedDistance,
+  formatRecordedLoadVolume,
+} from './workout-history-formatting';
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
@@ -229,15 +234,14 @@ function ProgressSummary({
   const distance =
     summary.distanceMillimeters === null
       ? null
-      : unitSystem === 'metric'
-        ? `${summary.distanceMillimeters / 1_000_000} km`
-        : `${summary.distanceMillimeters / 1_609_344} mi`;
+      : formatRecordedDistance(summary.distanceMillimeters, unitSystem);
   const volume =
     summary.recordedLoadVolumeGramRepetitions === null
       ? null
-      : unitSystem === 'metric'
-        ? `${summary.recordedLoadVolumeGramRepetitions / 1_000} kg-reps`
-        : `${summary.recordedLoadVolumeGramRepetitions / 453.59237} lb-reps`;
+      : formatRecordedLoadVolume(
+          summary.recordedLoadVolumeGramRepetitions,
+          unitSystem,
+        );
   return (
     <Card accessibilityLabel="Workout progress summary" variant="elevated">
       <AppText variant="heading">Performed summary</AppText>
@@ -285,16 +289,4 @@ function HistoryCard({
       <AppText color="secondary">{formatDuration(item.elapsedSeconds)}</AppText>
     </Card>
   );
-}
-
-function formatCapturedDate(value: string): string {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(
-    Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1),
-  ).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-    timeZone: 'UTC',
-    year: 'numeric',
-  });
 }

@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import type { UnitSystem } from '@fitness/domain';
+import { View } from 'react-native';
+import type { ExerciseLoggingMode, UnitSystem } from '@fitness/domain';
 import { createWorkoutHistoryUseCases } from '../../../composition/workout-history';
 import {
   AppButton,
@@ -9,12 +10,30 @@ import {
   EmptyState,
   LoadingIndicator,
   Screen,
+  SectionHeader,
   spacing,
 } from '../../../design-system';
+import {
+  labelFor,
+  loggingModeOptions,
+} from '../../exercise-catalog/presentation/exercise-options';
+import {
+  personalRecordDescriptor,
+  type ExercisePersonalRecord,
+  type ExercisePersonalRecords,
+} from '../application/exercise-personal-records';
 import type {
   ExercisePerformanceItem,
   ExercisePerformancePage,
 } from '../application/workout-history-models';
+import {
+  describePersonalRecord,
+  formatCapturedDate,
+  formatPersonalRecordValue,
+  formatRecordedDistance,
+  formatRecordedLoadVolume,
+  formatRecordedMass,
+} from './workout-history-formatting';
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
@@ -31,22 +50,54 @@ export function ExercisePerformanceHistoryScreen({
   onOpenSession: (id: string) => void;
 }>) {
   const [page, setPage] = useState<ExercisePerformancePage>();
+  const [records, setRecords] = useState<ExercisePersonalRecords>();
+  const [recordsError, setRecordsError] = useState<string>();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [useCases, setUseCases] = useState<UseCases>();
   const [error, setError] = useState<string>();
+  /**
+   * The screen reloads whenever it regains focus, so a slow earlier response
+   * must not overwrite a newer one.
+   */
+  const requestRef = useRef(0);
+
+  const loadRecords = useCallback(
+    (loaded: UseCases, request: number) => {
+      setRecordsError(undefined);
+      return loaded.getPersonalRecords
+        .execute(exerciseDefinitionId)
+        .then((found) => {
+          if (request !== requestRef.current || found === null) return;
+          setRecords(found);
+        })
+        .catch(() => {
+          if (request !== requestRef.current) return;
+          setRecordsError('Personal records could not be loaded.');
+        });
+    },
+    [exerciseDefinitionId],
+  );
+
   const load = useCallback(() => {
+    const request = requestRef.current + 1;
+    requestRef.current = request;
     void loadUseCases()
       .then(async (loaded) => {
         const [history, profile] = await Promise.all([
           loaded.listExercisePerformance.execute(exerciseDefinitionId),
           loaded.getProfile.execute(),
         ]);
+        if (request !== requestRef.current) return;
         setUseCases(loaded);
         setPage(history ?? { items: [], nextCursor: null });
         setUnitSystem(profile?.preferredUnitSystem ?? 'metric');
+        void loadRecords(loaded, request);
       })
-      .catch(() => setError('Exercise performance could not be loaded.'));
-  }, [exerciseDefinitionId, loadUseCases]);
+      .catch(() => {
+        if (request !== requestRef.current) return;
+        setError('Exercise performance could not be loaded.');
+      });
+  }, [exerciseDefinitionId, loadRecords, loadUseCases]);
   useFocusEffect(load);
 
   if (!page && !error)
@@ -66,7 +117,10 @@ export function ExercisePerformanceHistoryScreen({
       </Screen>
     );
 
-  const name = page.items[0]?.exerciseNameSnapshot ?? 'Exercise performance';
+  const name =
+    records?.latestExerciseNameSnapshot ??
+    page.items[0]?.exerciseNameSnapshot ??
+    'Exercise performance';
   const loadMore = () => {
     if (!page.nextCursor || !useCases) return;
     void useCases.listExercisePerformance
@@ -79,6 +133,10 @@ export function ExercisePerformanceHistoryScreen({
         });
       })
       .catch(() => setError('More exercise performance could not be loaded.'));
+  };
+  const retryRecords = () => {
+    if (useCases) void loadRecords(useCases, requestRef.current);
+    else load();
   };
 
   return (
@@ -103,14 +161,25 @@ export function ExercisePerformanceHistoryScreen({
           title="No exercise history"
         />
       ) : (
-        page.items.map((item, index) => (
-          <PerformanceCard
-            item={item}
-            key={`${item.sessionId.value}-${item.startedAtEpochMilliseconds}-${index}`}
+        <>
+          <PersonalRecords
+            error={recordsError}
+            exerciseName={name}
             onOpenSession={onOpenSession}
+            onRetry={retryRecords}
+            records={records}
             unitSystem={unitSystem}
           />
-        ))
+          <SectionHeader title="Performed sessions" />
+          {page.items.map((item, index) => (
+            <PerformanceCard
+              item={item}
+              key={`${item.sessionId.value}-${item.startedAtEpochMilliseconds}-${index}`}
+              onOpenSession={onOpenSession}
+              unitSystem={unitSystem}
+            />
+          ))}
+        </>
       )}
       {page.nextCursor ? (
         <AppButton
@@ -122,6 +191,136 @@ export function ExercisePerformanceHistoryScreen({
       <AppButton label="Back to History" onPress={onClose} variant="ghost" />
     </Screen>
   );
+}
+
+function PersonalRecords({
+  error,
+  exerciseName,
+  onOpenSession,
+  onRetry,
+  records,
+  unitSystem,
+}: Readonly<{
+  error: string | undefined;
+  exerciseName: string;
+  onOpenSession: (id: string) => void;
+  onRetry: () => void;
+  records: ExercisePersonalRecords | undefined;
+  unitSystem: UnitSystem;
+}>) {
+  const modes = records ? recordedLoggingModes(records) : [];
+  return (
+    <View style={{ gap: spacing.md }} testID="exercise-personal-records">
+      <SectionHeader title="Personal records" />
+      {error ? (
+        <>
+          <AppText accessibilityLiveRegion="polite" color="danger">
+            {error}
+          </AppText>
+          <AppButton label="Try Again" onPress={onRetry} variant="outline" />
+        </>
+      ) : null}
+      {!records && !error ? (
+        <LoadingIndicator label="Loading personal records" />
+      ) : null}
+      {records
+        ? modes.map((mode) => (
+            <View key={mode} style={{ gap: spacing.md }}>
+              {modes.length > 1 ? (
+                <AppText accessibilityRole="header" variant="heading">
+                  Recorded as {labelFor(loggingModeOptions, mode)}
+                </AppText>
+              ) : null}
+              {records.records
+                .filter((record) => record.loggingMode === mode)
+                .map((record) => (
+                  <PersonalRecordCard
+                    exerciseName={exerciseName}
+                    key={record.category}
+                    onOpenSession={onOpenSession}
+                    record={record}
+                    unitSystem={unitSystem}
+                  />
+                ))}
+              {records.unsupportedLoggingModes.includes(mode) ? (
+                <AppText color="secondary">
+                  {mode === 'assistance-and-repetitions'
+                    ? 'Personal records are not available for assisted work, because less assistance and more repetitions cannot be compared as one value.'
+                    : 'Personal records are not available for this way of recording yet.'}
+                </AppText>
+              ) : null}
+            </View>
+          ))
+        : null}
+    </View>
+  );
+}
+
+function PersonalRecordCard({
+  exerciseName,
+  onOpenSession,
+  record,
+  unitSystem,
+}: Readonly<{
+  exerciseName: string;
+  onOpenSession: (id: string) => void;
+  record: ExercisePersonalRecord;
+  unitSystem: UnitSystem;
+}>) {
+  /**
+   * History owns its own names, so a record keeps the name captured when it was
+   * set. It is only worth showing when it differs from the heading above.
+   */
+  const showsCapturedName =
+    record.occurrence.exerciseNameSnapshot !== exerciseName;
+  return (
+    <Card
+      accessibilityLabel={describePersonalRecord(
+        record,
+        unitSystem,
+        showsCapturedName,
+      )}
+      onPress={() => onOpenSession(record.occurrence.sessionId.value)}
+      testID="personal-record-card"
+      variant="outlined"
+    >
+      <AppText variant="heading">
+        {personalRecordDescriptor(record.category).label}
+      </AppText>
+      <AppText variant="display">
+        {formatPersonalRecordValue(record, unitSystem)}
+      </AppText>
+      <AppText>
+        First recorded on{' '}
+        {formatCapturedDate(record.occurrence.startedLocalCalendarDate)}
+      </AppText>
+      <AppText color="secondary">
+        {record.occurrence.sessionNameSnapshot} · Set{' '}
+        {record.occurrence.setPosition + 1}
+      </AppText>
+      {showsCapturedName ? (
+        <AppText color="secondary">
+          Recorded as {record.occurrence.exerciseNameSnapshot}
+        </AppText>
+      ) : null}
+    </Card>
+  );
+}
+
+/**
+ * Modes in the order the reader returned them: recorded modes first, then any
+ * this version cannot compare, so an unsupported mode is explained rather than
+ * dropped.
+ */
+function recordedLoggingModes(
+  records: ExercisePersonalRecords,
+): readonly ExerciseLoggingMode[] {
+  return [
+    ...new Set([
+      ...records.records.map((record) => record.loggingMode),
+      ...records.unsupportedLoggingModes,
+    ]),
+  ];
 }
 
 function PerformanceCard({
@@ -155,17 +354,17 @@ function formatPerformance(
   if (item.repetitions !== null) values.push(`${item.repetitions} repetitions`);
   if (item.maximumResistanceGrams !== null)
     values.push(
-      `${item.maximumResistanceGrams / (unitSystem === 'metric' ? 1_000 : 453.59237)} ${unitSystem === 'metric' ? 'kg' : 'lb'} maximum ${item.loggingModeSnapshot === 'assistance-and-repetitions' ? 'assistance' : 'resistance'}`,
+      `${formatRecordedMass(item.maximumResistanceGrams, unitSystem)} maximum ${item.loggingModeSnapshot === 'assistance-and-repetitions' ? 'assistance' : 'resistance'}`,
     );
   if (item.durationSeconds !== null)
     values.push(`${formatDuration(item.durationSeconds)} duration`);
   if (item.distanceMillimeters !== null)
     values.push(
-      `${item.distanceMillimeters / (unitSystem === 'metric' ? 1_000_000 : 1_609_344)} ${unitSystem === 'metric' ? 'km' : 'mi'} distance`,
+      `${formatRecordedDistance(item.distanceMillimeters, unitSystem)} distance`,
     );
   if (item.recordedLoadVolumeGramRepetitions !== null)
     values.push(
-      `${item.recordedLoadVolumeGramRepetitions / (unitSystem === 'metric' ? 1_000 : 453.59237)} ${unitSystem === 'metric' ? 'kg-reps' : 'lb-reps'} recorded load volume`,
+      `${formatRecordedLoadVolume(item.recordedLoadVolumeGramRepetitions, unitSystem)} recorded load volume`,
     );
   return values;
 }
