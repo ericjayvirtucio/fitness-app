@@ -11,5 +11,4 @@ name: Personal records survive a relaunch
 - stopApp
 - launchApp
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
-- assertVisible: Most recorded repetitions in a set
-- assertVisible: 12 reps
+- assertVisible: 'Most recorded repetitions in a set, 12 repetitions, .*'

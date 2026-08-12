@@ -13,8 +13,7 @@ name: Exercise personal records
     env:
       REPETITIONS: '15'
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
-- assertVisible: Most recorded repetitions in a set
-- assertVisible: 15 reps
+- assertVisible: 'Most recorded repetitions in a set, 15 repetitions, .*'
 - tapOn:
     id: personal-record-card
 - assertVisible: 'Performed set 1: 15 reps'

@@ -9,6 +9,7 @@ name: A completed set becomes the first personal record
     env:
       REPETITIONS: '12'
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
-- assertVisible: Most recorded repetitions in a set
-- assertVisible: 12 reps
-- assertVisible: 'Workout · Set 1'
+# A record card is one accessibility element, so the assertion reads the claim
+# the way a screen reader does: category, value with spoken units, when it was
+# first recorded, the workout that proves it, and the set.
+- assertVisible: 'Most recorded repetitions in a set, 12 repetitions, first recorded on .*, in Workout, set 1'
