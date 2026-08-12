@@ -1,0 +1,15 @@
+appId: com.fitnessapp.dev
+name: A record opens the completed workout that proves it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- tapOn:
+    id: personal-record-card
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: Edit set

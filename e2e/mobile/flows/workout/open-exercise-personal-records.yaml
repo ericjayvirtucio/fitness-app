@@ -1,0 +1,18 @@
+appId: com.fitnessapp.dev
+---
+# Reaches the personal records of a performed exercise the way the product does:
+# Workout, History, then the exercise as completed history names it.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+- scrollUntilVisible:
+    element:
+      text: Exercise progress
+    direction: DOWN
+- tapOn: Open performance history for E2E Push-up
+- assertVisible: Personal records

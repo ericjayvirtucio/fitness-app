@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: A better completed set updates the record
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '15'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 15 reps
+- assertNotVisible: 12 reps
