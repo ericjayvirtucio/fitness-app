@@ -1,4 +1,3 @@
-import type { StoredDataProbe } from '../../../application/persistence/stored-data-probe';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
 import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import { isDataRestoreError } from './data-restore-error';
@@ -8,25 +7,14 @@ import { parseDataExport } from './parse-data-export';
 import { RestoreDataExportUseCase } from './restore-data-export-use-case';
 import type { RestoreData } from './restore-data';
 import {
+  buildRestoreTransactionContext,
+  restoreWriteOrder,
+  ScriptedProbe,
+} from './restore-transaction-context.spec-helper';
+import {
   buildExport,
   syntheticToday,
 } from './synthetic-data-export.spec-helper';
-
-const unsupported = (): never => {
-  throw new Error('the restore called a repository method it should not use');
-};
-
-class ScriptedProbe implements StoredDataProbe {
-  private index = 0;
-
-  constructor(private readonly answers: readonly boolean[]) {}
-
-  hasStoredRecords(): Promise<boolean> {
-    const answer = this.answers[this.index] ?? this.answers.at(-1) ?? false;
-    this.index += 1;
-    return Promise.resolve(answer);
-  }
-}
 
 class FakeTransactionRunner implements TransactionRunner<DataRestoreTransactionContext> {
   runCount = 0;
@@ -53,99 +41,8 @@ class UnavailableTransactionRunner implements TransactionRunner<DataRestoreTrans
   }
 }
 
-const writeOrder = [
-  'profile',
-  'goal',
-  'nutritionCatalogItem',
-  'nutritionEntry',
-  'hydrationEntry',
-  'hydrationTarget',
-  'exercise',
-  'plannedWorkout',
-  'completedSession',
-  'bodyWeightCheckIn',
-];
-
-function buildContext(
-  calls: string[],
-  probes: readonly StoredDataProbe[],
-  failOn?: string,
-): DataRestoreTransactionContext {
-  const write = (name: string) => (): Promise<void> => {
-    calls.push(name);
-    return name === failOn
-      ? Promise.reject(new Error('the write failed'))
-      : Promise.resolve();
-  };
-
-  return {
-    bodyWeight: {
-      delete: unsupported,
-      getById: unsupported,
-      getLatest: unsupported,
-      insert: write('bodyWeightCheckIn'),
-      listPage: unsupported,
-      update: unsupported,
-    },
-    exerciseCatalog: {
-      delete: unsupported,
-      findByNormalizedName: unsupported,
-      getById: unsupported,
-      getByIds: unsupported,
-      insert: write('exercise'),
-      listAll: unsupported,
-      listFavorites: unsupported,
-      search: unsupported,
-      setFavorite: unsupported,
-      update: unsupported,
-    },
-    goals: { get: unsupported, save: write('goal') },
-    hydrationEntries: {
-      delete: unsupported,
-      getById: unsupported,
-      insert: write('hydrationEntry'),
-      listByLocalDate: unsupported,
-      update: unsupported,
-    },
-    hydrationTarget: { get: unsupported, save: write('hydrationTarget') },
-    nutritionCatalog: {
-      delete: unsupported,
-      findByNormalizedName: unsupported,
-      getById: unsupported,
-      insert: write('nutritionCatalogItem'),
-      listFavorites: unsupported,
-      listRecent: unsupported,
-      recordUsage: unsupported,
-      search: unsupported,
-      setFavorite: unsupported,
-      update: unsupported,
-    },
-    nutritionEntries: {
-      delete: unsupported,
-      getById: unsupported,
-      insert: write('nutritionEntry'),
-      listByLocalDate: unsupported,
-      update: unsupported,
-    },
-    planner: {
-      deleteByWeekday: unsupported,
-      getByWeekday: unsupported,
-      getWeeklyWorkouts: unsupported,
-      listUsages: unsupported,
-      replace: write('plannedWorkout'),
-    },
-    probes,
-    profile: { get: unsupported, save: write('profile') },
-    sessions: {
-      complete: unsupported,
-      discard: unsupported,
-      getActive: unsupported,
-      getById: unsupported,
-      insert: write('completedSession'),
-      replace: unsupported,
-    },
-  };
-}
+const writeOrder = restoreWriteOrder;
+const buildContext = buildRestoreTransactionContext;
 
 function restoreData(): RestoreData {
   const parsed = parseDataExport(JSON.stringify(buildExport()), syntheticToday);
