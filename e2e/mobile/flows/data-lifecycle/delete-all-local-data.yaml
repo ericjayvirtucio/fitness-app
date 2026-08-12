@@ -1,0 +1,30 @@
+appId: com.fitnessapp.dev
+---
+# Deletion is deliberately three acts: reach the screen, acknowledge, confirm.
+# The flow performs all three, so a change that removes any of them fails here.
+- runFlow: open-data-controls.yaml
+- scrollUntilVisible:
+    element:
+      id: open-delete-local-data
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: open-delete-local-data
+- assertVisible:
+    id: delete-local-data-screen
+- scrollUntilVisible:
+    element:
+      id: acknowledge-delete-local-data
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: acknowledge-delete-local-data
+- tapOn:
+    id: confirm-delete-local-data
+# The confirmation is a platform alert, so its destructive option is matched by
+# text. It reads differently from the screen's own control on purpose, so no
+# positional selector is needed to tell them apart.
+- assertVisible: Delete all local data?
+- tapOn: Delete everything
+- assertVisible:
+    id: delete-local-data-complete

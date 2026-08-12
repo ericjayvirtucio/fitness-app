@@ -38,8 +38,7 @@ type ScreenState =
 type PersonalProfileScreenProps = Readonly<{
   loadUseCases?: () => Promise<ProfileUseCases>;
   onOpenBodyMeasurements?: () => void;
-  onOpenDataExport?: () => void;
-  onOpenDataRestore?: () => void;
+  onOpenDataControls?: () => void;
   onOpenGoals?: () => void;
 }>;
 
@@ -74,8 +73,7 @@ function formValues(profile: UserProfile | null): ProfileFormValues {
 export function PersonalProfileScreen({
   loadUseCases = createPersonalProfileUseCases,
   onOpenBodyMeasurements,
-  onOpenDataExport,
-  onOpenDataRestore,
+  onOpenDataControls,
   onOpenGoals,
 }: PersonalProfileScreenProps) {
   const [state, setState] = useState<ScreenState>({ status: 'loading' });
@@ -87,18 +85,26 @@ export function PersonalProfileScreen({
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
+    // A message about the last save cannot outlive the records it described.
+    setErrors({});
+    setSuccessMessage(undefined);
     void loadUseCases()
       .then(async (loadedUseCases) => {
         setUseCases(loadedUseCases);
         const profile = await loadedUseCases.getProfile.execute();
+        // Editing is this screen's own state, and nothing else resets it. An
+        // installation holding no profile is in its first-run state, so the
+        // empty state has to come back — otherwise erasing local data leaves
+        // the blank edit form the user happened to open earlier.
+        if (profile === null) setIsEditing(false);
         setState({ profile, status: 'ready' });
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
 
   // Reloads on focus like every other screen, so returning here after a
-  // restore shows the restored profile instead of the state this screen was
-  // mounted with.
+  // restore shows the restored profile, and returning after an erasure shows
+  // the first-run empty state rather than what this screen was mounted with.
   useFocusEffect(load);
 
   const save = async (input: SaveProfileInput) => {
@@ -163,14 +169,16 @@ export function PersonalProfileScreen({
         />
         {/*
           Restoring is only supported on an installation with no information,
-          so this is exactly where someone returning to a new device needs it.
+          so someone returning to a new device starts exactly here. It sits one
+          step inside Data controls with export and deletion, rather than as a
+          lone action, so every lifecycle operation has the same home.
         */}
-        {onOpenDataRestore ? (
+        {onOpenDataControls ? (
           <AppButton
-            label="Restore my data"
-            onPress={onOpenDataRestore}
+            label="Data controls"
+            onPress={onOpenDataControls}
             style={{ marginTop: spacing.lg }}
-            testID="open-data-restore"
+            testID="open-data-controls"
             variant="outline"
           />
         ) : null}
@@ -205,21 +213,12 @@ export function PersonalProfileScreen({
           variant="outline"
         />
       ) : null}
-      {onOpenDataExport ? (
+      {onOpenDataControls ? (
         <AppButton
-          label="Export my data"
-          onPress={onOpenDataExport}
+          label="Data controls"
+          onPress={onOpenDataControls}
           style={{ marginTop: spacing.md }}
-          testID="open-data-export"
-          variant="outline"
-        />
-      ) : null}
-      {onOpenDataRestore ? (
-        <AppButton
-          label="Restore my data"
-          onPress={onOpenDataRestore}
-          style={{ marginTop: spacing.md }}
-          testID="open-data-restore"
+          testID="open-data-controls"
           variant="outline"
         />
       ) : null}

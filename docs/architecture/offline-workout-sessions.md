@@ -49,7 +49,14 @@ numbers. Adds append; deletes compact later positions transactionally; edits kee
 identity and position. Quick-entry values remain UI drafts until Save succeeds.
 
 Migration 9 creates `workout_session`, `workout_session_exercise`, and
-`workout_set`. Children cascade only on session deletion. Strict checks encode
+`workout_set`. Children are removed only on session deletion or aggregate
+replacement. Migration 9 declares `ON DELETE CASCADE`, but the repository does
+not depend on it: it deletes `workout_set` rows, then `workout_session_exercise`
+rows, then the session, because the connection Expo opens for `runExclusive` has
+foreign keys off (see [local persistence](local-persistence.md)). Discarding runs
+on the main connection today and replacement runs inside a transaction; the
+explicit order makes both correct without depending on which connection is in
+use. Strict checks encode
 planned and actual unions. A fixed three-query read reconstructs and validates an
 active aggregate. Exercise and set changes replace the small active aggregate;
 completion updates only the parent status and completion timestamp so immutable

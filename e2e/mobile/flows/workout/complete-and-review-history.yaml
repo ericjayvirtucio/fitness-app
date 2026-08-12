@@ -5,8 +5,8 @@ appId: com.fitnessapp.dev
 - tapOn: Start Empty Workout
 - assertVisible: Workout
 - tapOn: Add Exercise
-- tapOn: Add E2E Push-upa
-- tapOn: Add Set for E2E Push-upa
+- tapOn: Add E2E Push-up
+- tapOn: Add Set for E2E Push-up
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: '12'
@@ -41,7 +41,7 @@ appId: com.fitnessapp.dev
     element:
       text: Exercise progress
     direction: DOWN
-- tapOn: Open performance history for E2E Push-upa
+- tapOn: Open performance history for E2E Push-up
 - assertVisible: 'Open Workout,.*1 actual sets, 12 repetitions'
 - tapOn: 'Open Workout,.*1 actual sets, 12 repetitions'
 - assertVisible: 'Performed set 1: 12 reps'

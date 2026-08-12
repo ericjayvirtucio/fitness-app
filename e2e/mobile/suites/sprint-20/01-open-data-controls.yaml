@@ -1,0 +1,19 @@
+appId: com.fitnessapp.dev
+name: Open data controls from Profile
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/data-lifecycle/open-data-controls.yaml
+- assertVisible: Data controls
+- assertVisible:
+    id: open-data-export
+- assertVisible:
+    id: open-data-restore
+# The destructive option is the last control on the screen, so it is scrolled to
+# rather than assumed to sit above the fold on every device size.
+- scrollUntilVisible:
+    element:
+      id: open-delete-local-data
+    direction: DOWN
+- assertVisible:
+    id: open-delete-local-data

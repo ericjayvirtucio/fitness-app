@@ -1,7 +1,7 @@
+import { holdsStoredData } from '../../../application/persistence/stored-data-probe';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
 import { DataRestoreError } from './data-restore-error';
 import type { DataRestoreTransactionContext } from './data-restore-transaction-context';
-import { holdsStoredData } from './restore-data-export-use-case';
 
 /**
  * Answers whether this installation can accept a restore at all.

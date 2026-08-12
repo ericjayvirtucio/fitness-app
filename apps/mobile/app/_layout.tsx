@@ -18,8 +18,10 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="body-measurements/index" />
+          <Stack.Screen name="data-controls" />
           <Stack.Screen name="data-export" />
           <Stack.Screen name="data-restore" />
+          <Stack.Screen name="delete-local-data" />
           <Stack.Screen name="body-measurements/new" />
           <Stack.Screen name="body-measurements/[id]" />
           <Stack.Screen name="goals-energy" />

@@ -64,16 +64,22 @@ form a strict SQL encoding of the closed domain union: checks require exactly th
 applicable repetitions, resistance, duration, and distance values. Canonical
 grams, seconds, and millimeters are stored.
 
-Deleting a workout deliberately cascades to its owned children. Deleting an
-Exercise Definition is restricted. An index on exercise definition and workout
-supports reference checks. One ordered joined query loads workouts, children,
-and current definitions; the repository groups, reconstructs, and validates the
-result before filling Rest days. There are no N+1 reads.
+Removing a workout deliberately removes its owned children. Migration 8 declares
+`ON DELETE CASCADE`, but that cascade cannot be relied on: Planner writes run
+inside `runExclusive`, whose connection has foreign keys off (see
+[local persistence](local-persistence.md)). The repository therefore deletes the
+weekday's `planned_exercise` rows first and the `planned_workout` row second, so
+the outcome is the same on either connection and no orphan child can survive.
+Deleting an Exercise Definition is restricted. An index on exercise definition
+and workout supports reference checks. One ordered joined query loads workouts,
+children, and current definitions; the repository groups, reconstructs, and
+validates the result before filling Rest days. There are no N+1 reads.
 
-Saving replaces one aggregate inside the existing `TransactionRunner`: delete
-the current weekday row, insert the workout, then insert ordered children. Any
-failure rolls back the complete replacement. Catalog reference checks and
-protected mutation also share one transaction-scoped catalog/Planner context.
+Saving replaces one aggregate inside the existing `TransactionRunner`: delete the
+current weekday's children, delete the weekday row, insert the workout, then
+insert ordered children. Any failure rolls back the complete replacement. Catalog
+reference checks and protected mutation also share one transaction-scoped
+catalog/Planner context.
 
 ## Units, experience, accessibility, and privacy
 

@@ -164,8 +164,38 @@ describe('WorkoutSessionSqliteRepository', () => {
     await expect(
       new WorkoutSessionSqliteRepository(database).discard(id(sessionId)),
     ).resolves.toBe(true);
-    expect(database.runs[0]?.statement).toContain(
-      'DELETE FROM workout_session',
+    expect(database.runs.at(-1)?.statement).toContain(
+      'DELETE FROM workout_session WHERE id = ?',
     );
+  });
+
+  it('discards sets and exercises before the session that owns them', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [{ id: sessionId }];
+    await new WorkoutSessionSqliteRepository(database).discard(id(sessionId));
+    expect(database.runs).toHaveLength(3);
+    expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
+    expect(database.runs[1]?.statement).toContain(
+      'DELETE FROM workout_session_exercise',
+    );
+    expect(database.runs[2]?.statement).toContain(
+      'DELETE FROM workout_session WHERE id = ?',
+    );
+    expect(database.runs.map((entry) => entry.parameters)).toEqual([
+      [sessionId],
+      [sessionId],
+      [sessionId],
+    ]);
+  });
+
+  it('replaces sets before the exercises that own them', async () => {
+    const database = new FakeDatabase();
+    await new WorkoutSessionSqliteRepository(database).replace(session());
+    expect(database.runs[1]?.statement).toContain('DELETE FROM workout_set');
+    expect(database.runs[1]?.parameters).toEqual([sessionId]);
+    expect(database.runs[2]?.statement).toContain(
+      'DELETE FROM workout_session_exercise',
+    );
+    expect(database.runs[2]?.parameters).toEqual([sessionId]);
   });
 });

@@ -1,4 +1,4 @@
-import type { StoredDataProbe } from '../../../application/persistence/stored-data-probe';
+import { holdsStoredData } from '../../../application/persistence/stored-data-probe';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
 import { DataRestoreError } from './data-restore-error';
 import type { DataRestoreTransactionContext } from './data-restore-transaction-context';
@@ -41,15 +41,6 @@ export class RestoreDataExportUseCase {
       throw new DataRestoreError('write-failed', { cause: error });
     }
   }
-}
-
-export async function holdsStoredData(
-  probes: readonly StoredDataProbe[],
-): Promise<boolean> {
-  for (const probe of probes) {
-    if (await probe.hasStoredRecords()) return true;
-  }
-  return false;
 }
 
 async function write(

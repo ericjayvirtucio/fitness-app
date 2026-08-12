@@ -71,12 +71,16 @@ export function DataExportScreen({
 
   useEffect(() => {
     isMounted.current = true;
-    void loadUseCases().then((loaded) => {
-      if (!isMounted.current) return;
-      setUseCases(loaded);
-      // Removes anything a previous visit or a crash left in the cache.
-      return loaded.clearExports.execute();
-    });
+    void loadUseCases()
+      .then((loaded) => {
+        if (!isMounted.current) return;
+        setUseCases(loaded);
+        // Removes anything a previous visit or a crash left in the cache.
+        return loaded.clearExports.execute();
+      })
+      // Cleanup here is best effort: creating an export prepares the directory
+      // again, so a stale file cannot survive an actual export.
+      .catch(() => undefined);
 
     return () => {
       isMounted.current = false;
@@ -149,7 +153,7 @@ export function DataExportScreen({
     requestSequence.current += 1;
     setHandoffMessage(undefined);
     setState({ status: 'idle' });
-    void useCases?.clearExports.execute();
+    void useCases?.clearExports.execute().catch(() => undefined);
   };
 
   return (

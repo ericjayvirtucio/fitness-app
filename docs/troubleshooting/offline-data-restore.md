@@ -12,9 +12,12 @@ should be invented inside a restore screen. See
 workout, and weight records all count, and so do a goal configuration and a
 daily fluid target on their own.
 
-If you want to restore anyway, export what is on the device first, then remove
-the application's data through the operating system's settings and reinstall.
-Nothing in the app deletes your records for you.
+If you want to restore anyway, export what is on the device first, then use
+Profile → Data controls → Delete all local data. That empties the installation
+deliberately, and restoring becomes possible afterwards. Deleting is a separate
+action you have to confirm: nothing here removes your records for you, and
+restoring never deletes anything. See
+[local data erasure troubleshooting](offline-local-data-erasure.md).
 
 ## Nothing was changed after a failure
 

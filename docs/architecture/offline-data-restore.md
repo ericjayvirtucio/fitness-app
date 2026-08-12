@@ -6,7 +6,8 @@ Data Restore is an offline mobile capability owned by the Profile area:
 
 ```text
 Profile route
-  → PersonalProfileScreen ("Restore my data")
+  → PersonalProfileScreen ("Data controls")
+  → /data-controls ("Restore my data")
   → /data-restore
   → DataRestoreScreen
   → GetRestoreTargetUseCase        → capability stored-data probes
@@ -267,8 +268,10 @@ the documentation.
 ## Known limitations
 
 - Restoring works only on an installation that holds no information. A user who
-  already has records must export first and clear application data before
-  restoring.
+  already has records must export first and then delete all local data, which
+  is a separate deliberate action described in
+  [offline local data erasure architecture](offline-local-data-erasure.md).
+  Restoring itself never deletes anything.
 - Merging an export with existing information, and replacing existing
   information, are not supported. Both need their own reviewed design; the
   seam is described in ADR 0014.

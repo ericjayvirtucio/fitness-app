@@ -96,9 +96,7 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
 
   async replace(workout: PlannedWorkout): Promise<void> {
     try {
-      await this.database.run('DELETE FROM planned_workout WHERE weekday = ?', [
-        workout.weekday.value,
-      ]);
+      await this.deleteWeekday(workout.weekday);
       await this.database.run(
         'INSERT INTO planned_workout (id, weekday, display_name) VALUES (?, ?, ?)',
         [workout.id.value, workout.weekday.value, workout.name],
@@ -126,9 +124,7 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
         [weekday.value],
       );
       if (existing === null) return false;
-      await this.database.run('DELETE FROM planned_workout WHERE weekday = ?', [
-        weekday.value,
-      ]);
+      await this.deleteWeekday(weekday);
       return true;
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
@@ -165,6 +161,24 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
+  }
+
+  /**
+   * Removes a weekday's plan child-first. Expo opens an exclusive transaction
+   * on a connection of its own, where `PRAGMA foreign_keys` is off and cannot
+   * be turned on once the transaction has begun, so `ON DELETE CASCADE` would
+   * leave orphan `planned_exercise` rows that no read path can see.
+   */
+  private async deleteWeekday(weekday: Weekday): Promise<void> {
+    await this.database.run(
+      `DELETE FROM planned_exercise WHERE planned_workout_id IN (
+         SELECT id FROM planned_workout WHERE weekday = ?
+       )`,
+      [weekday.value],
+    );
+    await this.database.run('DELETE FROM planned_workout WHERE weekday = ?', [
+      weekday.value,
+    ]);
   }
 }
 

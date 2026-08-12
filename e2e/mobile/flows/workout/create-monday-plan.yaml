@@ -20,7 +20,7 @@ appId: com.fitnessapp.dev
       text: Add exercise
     direction: DOWN
 - tapOn: Add exercise
-- tapOn: Add E2E Push-upa
+- tapOn: Add E2E Push-up
 - scrollUntilVisible:
     element:
       id: planned-sets-0

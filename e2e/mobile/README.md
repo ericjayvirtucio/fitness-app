@@ -42,6 +42,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 17 --platform ios
 ./scripts/qa.sh sprint 18 --platform ios
 ./scripts/qa.sh sprint 19 --platform ios
+./scripts/qa.sh sprint 20 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -77,7 +78,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–19. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–20. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -91,6 +92,15 @@ than the text inside it. Screens use `keyboardDismissMode="on-drag"`, so a
 short swipe or a scroll dismisses the keyboard between text fields; without
 one, the keyboard covers the next field and text lands in the previous one.
 Filling a form bottom-up avoids the problem entirely.
+
+The keyboard also covers controls that are not text fields, and a tap meant for
+one of them lands on a key instead — appending a character to the field that
+still has focus. How far down that reaches depends on the device, so the same
+flow can pass on one simulator and fail on a taller one. Never record the
+resulting value in an assertion: a flow that expects a mistyped name has
+encoded a defect as the expected result and will break the moment the device
+changes. Dismiss the keyboard before tapping the next control instead, and
+prefer running a suite on more than one screen size before trusting it.
 
 The export screen is longer than one viewport: the privacy notice runs past the
 fold, and the ready panel is inserted above the post-export actions, so
@@ -115,15 +125,28 @@ restore therefore cannot be automated here: it is covered by the
 [Sprint 19 manual checklist](../../docs/manual-testing/sprint-19-offline-data-restore.md)
 using a synthetic export. Adding a hidden import route, a database fixture, or
 a production seeder to close that gap is not acceptable — the gap is documented
-instead. The restore entry point appears both under the profile empty state and
-below the profile form, so flows scroll to it rather than assuming a position.
+instead.
+
+Export, restore, and deletion are all reached through Profile → Data controls,
+so `flows/data-lifecycle/open-data-controls.yaml` is the single entry point the
+export and restore flows compose. Data controls appears in both profile states,
+under the empty state and below the profile form, so flows scroll to it rather
+than assuming a position.
+
+Data-erasure flows are fully automatable and genuinely destructive, so they run
+only against the disposable QA target every suite already clears. The flow
+performs all three deliberate acts — opening the deletion screen, ticking the
+acknowledgement, and confirming the platform alert — so a change that removes
+any of them fails here. The alert's destructive option reads "Delete
+everything", deliberately different from the screen's own "Delete all local
+data", so no positional selector is needed to tell them apart.
 
 Maestro judges visibility against the device rectangle, not against what a
 scroll view has actually revealed. A control inside the tab-bar clearance is
 therefore reported as fully visible, `scrollUntilVisible` scrolls zero times,
 and the following `tapOn` taps a point the user cannot see. Pass
 `centerElement: true` when scrolling to the last control on a long screen, as
-the restore flow does.
+the data-controls flow does.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two

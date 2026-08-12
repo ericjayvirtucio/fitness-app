@@ -11,3 +11,18 @@
 export interface StoredDataProbe {
   hasStoredRecords(): Promise<boolean>;
 }
+
+/**
+ * Answers the same question for a whole installation, stopping at the first
+ * capability that holds something. It lives beside the port because more than
+ * one capability needs it: restoring refuses when this is true, and erasing
+ * fails verification when it is still true afterwards.
+ */
+export async function holdsStoredData(
+  probes: readonly StoredDataProbe[],
+): Promise<boolean> {
+  for (const probe of probes) {
+    if (await probe.hasStoredRecords()) return true;
+  }
+  return false;
+}

@@ -88,9 +88,11 @@ to Nutrition tables. See
 
 Version 7 adds device-local `exercise_catalog_item` definitions with controlled
 logging modes, favorites, and search indexes. Version 8 adds recurring
-`planned_workout` and ordered `planned_exercise` rows. Workout-owned children
-cascade only when their workout is deliberately removed; catalog deletion is
-restricted and referenced logging-mode changes are blocked. See
+`planned_workout` and ordered `planned_exercise` rows. Workout-owned children are
+removed only when their workout is deliberately removed; the schema declares the
+cascade, and the repository also issues the child delete first so the rule holds
+on a transaction connection. Catalog deletion is restricted and referenced
+logging-mode changes are blocked. See
 [Offline Workout Planner architecture](offline-workout-planner.md).
 
 Version 9 adds independent workout sessions, exercise and plan snapshots, and
@@ -115,6 +117,34 @@ Keep transaction callbacks short. Do not wait for network requests, user input,
 or unrelated work while holding a transaction. A thrown error rolls the work back
 and becomes a safe `transaction-failed` persistence error.
 
+Expo runs an exclusive transaction on a connection it opens itself, and
+`PRAGMA foreign_keys` is a per-connection setting that is a no-op once a
+transaction has begun. The `foreign_keys = ON` applied during initialization
+therefore does not reach work done inside `runExclusive`. Measured on an iOS 26.5
+simulator with `expo-sqlite` 57.0.1, the main connection reports
+`foreign_keys = 1` and the transaction connection reports `foreign_keys = 0`;
+issuing `PRAGMA foreign_keys = ON` inside the transaction leaves it at `0`. Do
+not rely on `ON DELETE CASCADE` or `ON DELETE RESTRICT` there: order the
+statements so a referencing row is written after, and deleted before, what it
+references. Referential rules that must hold are enforced by the capability that
+owns them — the restore parser validates references before writing, the catalog
+application checks Planner references before a hard delete, and the erasers and
+repositories delete children explicitly.
+
+## Erasing stored records
+
+`StoredDataProbe` answers whether a capability holds anything;
+`StoredDataEraser` removes it. Both are implemented once per capability in its
+own infrastructure folder, and both share one bounded statement —
+`hasStoredRows` and `deleteAllRows`. A new user-owned table is added to both, by
+its owner, in the same change that creates it.
+
+Deletion runs inside one exclusive transaction that verifies emptiness with the
+probes before committing, so a partial deletion is never committed. Checkpoint
+and `VACUUM` cannot run inside a transaction and are best-effort steps
+afterwards, through `StorageCompactor`. See
+[offline local data erasure architecture](offline-local-data-erasure.md).
+
 ## Errors and recovery
 
 `PersistenceError` exposes stable codes and generic messages. The original error
@@ -124,7 +154,9 @@ SQL, bound values, paths, identifiers, or fitness records.
 If startup fails, the app shows a retry action and does not render product routes.
 Repeated failure should be diagnosed; never add automatic database deletion as a
 recovery shortcut. A database newer than the running app requires installing a
-compatible binary. Production backup, export, and restore remain future work.
+compatible binary. Deleting local data is always a deliberate user action, never
+a recovery path the application takes on its own, and it removes rows rather
+than the database file.
 
 ## Testing
 
