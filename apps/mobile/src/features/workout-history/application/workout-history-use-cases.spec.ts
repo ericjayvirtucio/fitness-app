@@ -13,6 +13,7 @@ import {
   GetCompletedWorkoutSessionUseCase,
   GetExercisePersonalRecordsUseCase,
   GetWorkoutProgressSummaryUseCase,
+  ListPerformedExercisesUseCase,
   ListRecentlyPerformedExerciseIdsUseCase,
   ListWorkoutHistoryUseCase,
 } from './workout-history-use-cases';
@@ -42,6 +43,10 @@ class Repository implements WorkoutHistoryRepository {
   listExercisePerformancePage() {
     return Promise.resolve({ items: [], nextCursor: null });
   }
+  listPerformedExercises(limit: number) {
+    this.lastLimit = limit;
+    return Promise.resolve([]);
+  }
   listRecentlyPerformedExerciseIds(limit: number) {
     this.lastLimit = limit;
     return Promise.resolve([]);
@@ -70,6 +75,8 @@ describe('workout history use cases', () => {
     await new ListWorkoutHistoryUseCase(repository).execute({ limit: 500 });
     expect(repository.lastLimit).toBe(50);
     await new ListRecentlyPerformedExerciseIdsUseCase(repository).execute(500);
+    expect(repository.lastLimit).toBe(20);
+    await new ListPerformedExercisesUseCase(repository).execute(500);
     expect(repository.lastLimit).toBe(20);
   });
 

@@ -72,6 +72,19 @@ export type ExercisePerformanceItem = Readonly<{
   startedLocalCalendarDate: string;
 }>;
 
+/**
+ * A performed exercise as completed history knows it.
+ *
+ * The name is the snapshot captured at the most recent completed occurrence
+ * rather than a current Catalog name, so a renamed definition keeps its
+ * historical label and a deleted one stays reachable.
+ */
+export type PerformedExerciseSummary = Readonly<{
+  exerciseNameSnapshot: string;
+  latestStartedLocalCalendarDate: string;
+  sourceExerciseDefinitionId: DomainId;
+}>;
+
 export type ExercisePerformancePage = Readonly<{
   items: readonly ExercisePerformanceItem[];
   nextCursor: WorkoutHistoryCursor | null;

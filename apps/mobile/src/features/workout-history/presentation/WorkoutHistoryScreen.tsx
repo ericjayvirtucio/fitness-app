@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import type { UnitSystem } from '@fitness/domain';
-import type { ExerciseCatalogItem } from '../../exercise-catalog/application/exercise-catalog-item';
 import { createWorkoutHistoryUseCases } from '../../../composition/workout-history';
 import {
   AppButton,
@@ -16,6 +15,7 @@ import {
   spacing,
 } from '../../../design-system';
 import type {
+  PerformedExerciseSummary,
   WorkoutHistoryListItem,
   WorkoutHistoryPage,
   WorkoutProgressSummary,
@@ -30,7 +30,7 @@ import { formatDuration } from '../../workout-session/presentation/workout-resul
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
 type ReadyState = Readonly<{
   page: WorkoutHistoryPage;
-  recentExercises: readonly ExerciseCatalogItem[];
+  performedExercises: readonly PerformedExerciseSummary[];
   summary: WorkoutProgressSummary;
   unitSystem: UnitSystem;
   useCases: UseCases;
@@ -57,15 +57,15 @@ export function WorkoutHistoryScreen({
     setError(undefined);
     void loadUseCases()
       .then(async (useCases) => {
-        const [page, summary, profile, recentExercises] = await Promise.all([
+        const [page, summary, profile, performedExercises] = await Promise.all([
           useCases.list.execute(),
           useCases.getSummary.execute(periodDetails.range),
           useCases.getProfile.execute(),
-          useCases.browseRecentExercises.listRecentlyPerformed(),
+          useCases.listPerformedExercises.execute(),
         ]);
         setReady({
           page,
-          recentExercises,
+          performedExercises,
           summary,
           unitSystem: profile?.preferredUnitSystem ?? 'metric',
           useCases,
@@ -198,18 +198,22 @@ export function WorkoutHistoryScreen({
           variant="outline"
         />
       ) : null}
-      {ready.recentExercises.length > 0 ? (
+      {ready.performedExercises.length > 0 ? (
         <View style={{ gap: spacing.md }}>
           <SectionHeader title="Exercise progress" />
-          {ready.recentExercises.map((item) => (
+          {ready.performedExercises.map((item) => (
             <Card
-              accessibilityLabel={`Open performance history for ${item.definition.name}`}
-              key={item.definition.id.value}
-              onPress={() => onOpenExercise(item.definition.id.value)}
+              accessibilityLabel={`Open performance history for ${item.exerciseNameSnapshot}`}
+              key={item.sourceExerciseDefinitionId.value}
+              onPress={() =>
+                onOpenExercise(item.sourceExerciseDefinitionId.value)
+              }
               variant="outlined"
             >
-              <AppText variant="heading">{item.definition.name}</AppText>
-              <AppText color="secondary">Review performed sessions</AppText>
+              <AppText variant="heading">{item.exerciseNameSnapshot}</AppText>
+              <AppText color="secondary">
+                Review performed sessions and personal records
+              </AppText>
             </Card>
           ))}
         </View>

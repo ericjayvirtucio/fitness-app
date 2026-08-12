@@ -3,6 +3,7 @@ import {
   GetExercisePersonalRecordsUseCase,
   GetWorkoutProgressSummaryUseCase,
   ListExercisePerformanceHistoryUseCase,
+  ListPerformedExercisesUseCase,
   ListRecentlyPerformedExerciseIdsUseCase,
   ListWorkoutHistoryUseCase,
 } from '../features/workout-history/application/workout-history-use-cases';
@@ -10,8 +11,6 @@ import { WorkoutHistorySqliteRepository } from '../features/workout-history/infr
 import { WorkoutPersonalRecordsSqliteReader } from '../features/workout-history/infrastructure/workout-personal-records-sqlite-reader';
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
-import { BrowseExercisesUseCase } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
-import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
 import { getDatabase, initializePersistence } from './persistence';
 
 export async function createWorkoutHistoryUseCases() {
@@ -31,11 +30,8 @@ export async function createWorkoutHistoryUseCases() {
     listExercisePerformance: new ListExercisePerformanceHistoryUseCase(
       repository,
     ),
+    listPerformedExercises: new ListPerformedExercisesUseCase(repository),
     listRecentExerciseIds: new ListRecentlyPerformedExerciseIdsUseCase(
-      repository,
-    ),
-    browseRecentExercises: new BrowseExercisesUseCase(
-      new ExerciseCatalogSqliteRepository(database),
       repository,
     ),
   });

@@ -70,6 +70,16 @@ export class GetExercisePersonalRecordsUseCase {
   }
 }
 
+export class ListPerformedExercisesUseCase {
+  constructor(private readonly repository: WorkoutHistoryRepository) {}
+
+  execute(limit = 10) {
+    return this.repository.listPerformedExercises(
+      Math.min(Math.max(Math.trunc(limit), 1), 20),
+    );
+  }
+}
+
 export class ListRecentlyPerformedExerciseIdsUseCase {
   constructor(private readonly repository: WorkoutHistoryRepository) {}
 

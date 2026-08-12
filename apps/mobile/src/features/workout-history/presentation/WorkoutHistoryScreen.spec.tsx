@@ -32,9 +32,7 @@ describe('WorkoutHistoryScreen', () => {
       <WorkoutHistoryScreen
         loadUseCases={() =>
           Promise.resolve({
-            browseRecentExercises: {
-              listRecentlyPerformed: () => Promise.resolve([]),
-            },
+            listPerformedExercises: { execute: () => Promise.resolve([]) },
             getProfile: { execute: () => Promise.resolve(null) },
             getSummary: {
               execute: () =>
@@ -89,14 +87,65 @@ describe('WorkoutHistoryScreen', () => {
     );
   });
 
+  it('lists a performed exercise whose catalog definition no longer exists', async () => {
+    const onOpenExercise = jest.fn();
+    await render(
+      <WorkoutHistoryScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getProfile: { execute: () => Promise.resolve(null) },
+            getSummary: {
+              execute: () =>
+                Promise.resolve({
+                  actualSetCount: 1,
+                  completedWorkoutCount: 1,
+                  distanceMillimeters: null,
+                  durationSeconds: null,
+                  elapsedWorkoutSeconds: 600,
+                  performedExerciseCount: 1,
+                  recordedLoadVolumeGramRepetitions: null,
+                  repetitions: 12,
+                }),
+            },
+            list: {
+              execute: () => Promise.resolve({ items: [], nextCursor: null }),
+            },
+            listPerformedExercises: {
+              execute: () =>
+                Promise.resolve([
+                  {
+                    exerciseNameSnapshot: 'Removed Push-up',
+                    latestStartedLocalCalendarDate: '2026-08-08',
+                    sourceExerciseDefinitionId: id(
+                      '550e8400-e29b-41d4-a716-446655440000',
+                    ),
+                  },
+                ]),
+            },
+          } as never)
+        }
+        onOpenSession={jest.fn()}
+        onOpenExercise={onOpenExercise}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Removed Push-up')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Open performance history for Removed Push-up'),
+    );
+    expect(onOpenExercise).toHaveBeenCalledWith(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
+  });
+
   it('shows an actionable empty state', async () => {
     await render(
       <WorkoutHistoryScreen
         loadUseCases={() =>
           Promise.resolve({
-            browseRecentExercises: {
-              listRecentlyPerformed: () => Promise.resolve([]),
-            },
+            listPerformedExercises: { execute: () => Promise.resolve([]) },
             getProfile: { execute: () => Promise.resolve(null) },
             getSummary: {
               execute: () =>

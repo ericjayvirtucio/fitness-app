@@ -1,6 +1,7 @@
 import type { DomainId, WorkoutSession } from '@fitness/domain';
 import type {
   ExercisePerformancePage,
+  PerformedExerciseSummary,
   WorkoutHistoryPage,
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
@@ -17,6 +18,9 @@ export interface WorkoutHistoryRepository {
     exerciseDefinitionId: DomainId,
     query: WorkoutHistoryPageQuery,
   ): Promise<ExercisePerformancePage>;
+  listPerformedExercises(
+    limit: number,
+  ): Promise<readonly PerformedExerciseSummary[]>;
   listRecentlyPerformedExerciseIds(limit: number): Promise<readonly DomainId[]>;
   summarizeCompletedRange(
     range: WorkoutHistoryRange,

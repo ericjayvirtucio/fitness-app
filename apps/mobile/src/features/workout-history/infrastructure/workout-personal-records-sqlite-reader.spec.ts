@@ -1,68 +1,29 @@
-import {
-  createPlannedPrescription,
-  createWorkoutResult,
-  DomainId,
-  Duration,
-  Length,
-  Mass,
-  WorkoutSession,
-  WorkoutSessionExercise,
-  WorkoutSet,
-  type ExerciseLoggingMode,
-  type PlannedPrescription,
-  type Result,
-  type WorkoutResult,
-  type WorkoutSessionStatus,
-} from '@fitness/domain';
+import { createPlannedPrescription, DomainId } from '@fitness/domain';
 import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
-import { initializeDatabase } from '../../../infrastructure/persistence/database-initializer';
-import { migrations } from '../../../infrastructure/persistence/migrations';
 import { PersistenceError } from '../../../infrastructure/persistence/persistence-error';
-import { NodeSqliteDatabase } from '../../../infrastructure/persistence/testing/node-sqlite-database';
-import { WorkoutSessionSqliteRepository } from '../../workout-session/infrastructure/workout-session-sqlite-repository';
+import type { NodeSqliteDatabase } from '../../../infrastructure/persistence/testing/node-sqlite-database';
+import type { ExercisePersonalRecords } from '../application/exercise-personal-records';
+import {
+  SyntheticWorkoutHistory,
+  syntheticExerciseIds,
+  unwrap,
+} from './synthetic-workout-history.spec-helper';
 import { WorkoutPersonalRecordsSqliteReader } from './workout-personal-records-sqlite-reader';
 
 /**
- * Personal-record ordering is a property of the engine and of the data, not of
- * the orchestration, so these run against a real SQLite database with the
- * repository's own migrations and the repository the application writes
- * sessions through. Nothing here reaches the Exercise Catalog, because history
- * is the only authority a record may use.
+ * Record ordering is a property of the engine and of the data, not of the
+ * orchestration, so these run against a real SQLite database with the
+ * repository's own migrations.
  */
-
-const pushUpId = '11111111-1111-4111-8111-111111111111';
-const runId = '22222222-2222-4222-8222-222222222222';
-
-type SetInput = Readonly<{
-  distanceMillimeters?: number;
-  durationSeconds?: number;
-  repetitions?: number;
-  resistanceGrams?: number;
-}>;
-
-type ExerciseInput = Readonly<{
-  definitionId?: string;
-  loggingMode: ExerciseLoggingMode;
-  name?: string;
-  planned?: PlannedPrescription;
-  sets: readonly SetInput[];
-}>;
-
-type SessionInput = Readonly<{
-  dayIndex: number;
-  exercises: readonly ExerciseInput[];
-  name?: string;
-  status?: WorkoutSessionStatus;
-}>;
 
 class RecordingDatabase implements DatabaseConnection {
   readonly statements: string[] = [];
   readonly parameters: DatabaseParameters[] = [];
 
-  constructor(private readonly inner: NodeSqliteDatabase) {}
+  constructor(private readonly inner: DatabaseConnection) {}
 
   exec(statement: string) {
     return this.inner.exec(statement);
@@ -89,121 +50,34 @@ class RecordingDatabase implements DatabaseConnection {
 }
 
 describe('WorkoutPersonalRecordsSqliteReader', () => {
+  let history: SyntheticWorkoutHistory;
   let database: NodeSqliteDatabase;
-  let identifierCount = 0;
 
   beforeEach(async () => {
-    identifierCount = 0;
-    database = new NodeSqliteDatabase();
-    await initializeDatabase(database, migrations);
+    history = await SyntheticWorkoutHistory.create();
+    database = history.database;
   });
 
   afterEach(() => {
-    database.close();
+    history.close();
   });
 
-  function nextIdentifier(): string {
-    identifierCount += 1;
-    return `00000000-0000-4000-8000-${String(identifierCount).padStart(12, '0')}`;
-  }
-
-  async function store(...sessions: readonly SessionInput[]): Promise<void> {
-    const repository = new WorkoutSessionSqliteRepository(database);
-    for (const session of sessions) {
-      await repository.insert(buildSession(session));
-    }
-  }
-
-  function buildSession(input: SessionInput): WorkoutSession {
-    const startedAt = Date.UTC(2026, 0, 1 + input.dayIndex, 9);
-    const status = input.status ?? 'completed';
-    return unwrap(
-      WorkoutSession.create({
-        completedAtEpochMilliseconds:
-          status === 'completed' ? startedAt + 3_600_000 : null,
-        exercises: input.exercises.map((exercise, position) =>
-          buildExercise(exercise, position),
-        ),
-        id: unwrap(DomainId.create(nextIdentifier())),
-        name: input.name ?? `Workout ${input.dayIndex}`,
-        sourcePlannedWorkoutId: null,
-        sourceWeekday: null,
-        startedAtEpochMilliseconds: startedAt,
-        startedLocalCalendarDate: localDate(startedAt),
-        startedUtcOffsetMinutes: 0,
-        status,
-      }),
-    );
-  }
-
-  function buildExercise(
-    input: ExerciseInput,
-    position: number,
-  ): WorkoutSessionExercise {
-    return unwrap(
-      WorkoutSessionExercise.create({
-        exerciseNameSnapshot: input.name ?? 'Push-up',
-        id: unwrap(DomainId.create(nextIdentifier())),
-        loggingModeSnapshot: input.loggingMode,
-        plannedPrescriptionSnapshot: input.planned ?? null,
-        position,
-        sets: input.sets.map((set, setPosition) =>
-          unwrap(
-            WorkoutSet.create({
-              id: unwrap(DomainId.create(nextIdentifier())),
-              position: setPosition,
-              result: buildResult(input.loggingMode, set),
-            }),
-          ),
-        ),
-        sourceExerciseDefinitionId: unwrap(
-          DomainId.create(input.definitionId ?? pushUpId),
-        ),
-        sourcePlannedExerciseId: null,
-      }),
-    );
-  }
-
-  function buildResult(
-    loggingMode: ExerciseLoggingMode,
-    set: SetInput,
-  ): WorkoutResult {
-    return unwrap(
-      createWorkoutResult({
-        distance:
-          set.distanceMillimeters === undefined
-            ? undefined
-            : unwrap(Length.create(set.distanceMillimeters, 'millimeter')),
-        duration:
-          set.durationSeconds === undefined
-            ? undefined
-            : unwrap(Duration.create(set.durationSeconds, 'second')),
-        loggingMode,
-        repetitions: set.repetitions,
-        resistance:
-          set.resistanceGrams === undefined
-            ? undefined
-            : unwrap(Mass.create(set.resistanceGrams, 'gram')),
-      }),
-    );
-  }
-
-  function read(definitionId = pushUpId) {
+  function read(definitionId: string = syntheticExerciseIds.pushUp) {
     return new WorkoutPersonalRecordsSqliteReader(
       database,
     ).readExercisePersonalRecords(unwrap(DomainId.create(definitionId)));
   }
 
   it('reports nothing when no workout was ever completed', async () => {
-    const records = await read();
+    const found = await read();
 
-    expect(records.latestExerciseNameSnapshot).toBeNull();
-    expect(records.records).toEqual([]);
-    expect(records.unsupportedLoggingModes).toEqual([]);
+    expect(found.latestExerciseNameSnapshot).toBeNull();
+    expect(found.records).toEqual([]);
+    expect(found.unsupportedLoggingModes).toEqual([]);
   });
 
   it('records the most repetitions in one set with its evidence', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [
         {
@@ -218,24 +92,21 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
     const stored = await database.getAll<{ id: string }>(
       'SELECT id FROM workout_session',
     );
+    const record = found.records[0];
 
     expect(found.records).toHaveLength(1);
-    expect(found.records[0]?.category).toBe('most-repetitions');
-    expect(found.records[0]?.canonicalValue).toBe(12);
-    expect(found.records[0]?.loggingMode).toBe('bodyweight-and-repetitions');
-    expect(found.records[0]?.occurrence.exerciseNameSnapshot).toBe('Push-up');
-    expect(found.records[0]?.occurrence.sessionNameSnapshot).toBe(
-      'Monday Push',
-    );
-    expect(found.records[0]?.occurrence.setPosition).toBe(0);
-    expect(found.records[0]?.occurrence.startedLocalCalendarDate).toBe(
-      '2026-01-01',
-    );
-    expect(found.records[0]?.occurrence.sessionId.value).toBe(stored[0]?.id);
+    expect(record?.category).toBe('most-repetitions');
+    expect(record?.canonicalValue).toBe(12);
+    expect(record?.loggingMode).toBe('bodyweight-and-repetitions');
+    expect(record?.occurrence.exerciseNameSnapshot).toBe('Push-up');
+    expect(record?.occurrence.sessionNameSnapshot).toBe('Monday Push');
+    expect(record?.occurrence.setPosition).toBe(0);
+    expect(record?.occurrence.startedLocalCalendarDate).toBe('2026-01-01');
+    expect(record?.occurrence.sessionId.value).toBe(stored[0]?.id);
   });
 
   it('compares single sets rather than session totals', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [
         {
@@ -245,11 +116,13 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       ],
     });
 
-    expect(records(await read(), 'most-repetitions')?.canonicalValue).toBe(12);
+    expect(recordFor(await read(), 'most-repetitions')?.canonicalValue).toBe(
+      12,
+    );
   });
 
   it('ignores sets recorded in a workout that is still active', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [{ loggingMode: 'repetitions', sets: [{ repetitions: 9 }] }],
@@ -263,11 +136,11 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       },
     );
 
-    expect(records(await read(), 'most-repetitions')?.canonicalValue).toBe(9);
+    expect(recordFor(await read(), 'most-repetitions')?.canonicalValue).toBe(9);
   });
 
   it('ignores the planned target and records only what was performed', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [
         {
@@ -284,16 +157,16 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       ],
     });
 
-    expect(records(await read(), 'most-repetitions')?.canonicalValue).toBe(7);
+    expect(recordFor(await read(), 'most-repetitions')?.canonicalValue).toBe(7);
   });
 
   it('keeps records of one exercise out of another', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [
         { loggingMode: 'repetitions', sets: [{ repetitions: 9 }] },
         {
-          definitionId: runId,
+          definitionId: syntheticExerciseIds.run,
           loggingMode: 'repetitions',
           name: 'Burpee',
           sets: [{ repetitions: 30 }],
@@ -301,14 +174,15 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       ],
     });
 
-    expect(records(await read(), 'most-repetitions')?.canonicalValue).toBe(9);
-    expect(records(await read(runId), 'most-repetitions')?.canonicalValue).toBe(
-      30,
-    );
+    expect(recordFor(await read(), 'most-repetitions')?.canonicalValue).toBe(9);
+    expect(
+      recordFor(await read(syntheticExerciseIds.run), 'most-repetitions')
+        ?.canonicalValue,
+    ).toBe(30);
   });
 
   it('awards an equalled record to the earliest completed occurrence', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
@@ -325,7 +199,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       },
     );
 
-    const record = records(await read(), 'most-repetitions');
+    const record = recordFor(await read(), 'most-repetitions');
 
     expect(record?.canonicalValue).toBe(15);
     expect(record?.occurrence.sessionNameSnapshot).toBe('First');
@@ -333,7 +207,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
   });
 
   it('keeps an earlier better result when a later workout is weaker', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
@@ -348,14 +222,14 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       },
     );
 
-    const record = records(await read(), 'most-repetitions');
+    const record = recordFor(await read(), 'most-repetitions');
 
     expect(record?.canonicalValue).toBe(20);
     expect(record?.occurrence.sessionNameSnapshot).toBe('Best');
   });
 
   it('merges the two repetition modes that record no load', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
@@ -381,7 +255,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
   });
 
   it('separates load from added load after a logging mode change', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
@@ -413,7 +287,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
   });
 
   it('claims no record for assisted work and says which mode it was', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [
         {
@@ -434,12 +308,12 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
   });
 
   it('records both stored dimensions of a distance and duration set', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
           {
-            definitionId: runId,
+            definitionId: syntheticExerciseIds.run,
             loggingMode: 'distance-and-duration',
             name: 'Easy Run',
             sets: [{ distanceMillimeters: 5_000_000, durationSeconds: 1_800 }],
@@ -450,7 +324,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
         dayIndex: 1,
         exercises: [
           {
-            definitionId: runId,
+            definitionId: syntheticExerciseIds.run,
             loggingMode: 'distance-and-duration',
             name: 'Long Run',
             sets: [{ distanceMillimeters: 12_000_000, durationSeconds: 1_500 }],
@@ -459,7 +333,7 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       },
     );
 
-    const found = await read(runId);
+    const found = await read(syntheticExerciseIds.run);
 
     expect(
       found.records.map((record) => [record.category, record.canonicalValue]),
@@ -468,13 +342,13 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
       ['longest-duration-with-distance', 1_800],
     ]);
     expect(
-      records(found, 'longest-duration-with-distance')?.occurrence
+      recordFor(found, 'longest-duration-with-distance')?.occurrence
         .sessionNameSnapshot,
     ).toBe('Workout 0');
   });
 
   it('keeps the captured name of the record occurrence after a rename', async () => {
-    await store(
+    await history.store(
       {
         dayIndex: 0,
         exercises: [
@@ -501,50 +375,57 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
 
     expect(found.latestExerciseNameSnapshot).toBe('Wide Push-up');
     expect(
-      records(found, 'most-repetitions')?.occurrence.exerciseNameSnapshot,
+      recordFor(found, 'most-repetitions')?.occurrence.exerciseNameSnapshot,
     ).toBe('Push-up');
   });
 
   it('still reports records when no catalog definition exists', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [{ loggingMode: 'repetitions', sets: [{ repetitions: 11 }] }],
     });
-    const remaining = await database.getAll<{ total: number }>(
+    const catalog = await database.getAll<{ total: number }>(
       'SELECT COUNT(*) AS total FROM exercise_catalog_item',
     );
 
-    expect(remaining[0]?.total).toBe(0);
-    expect(records(await read(), 'most-repetitions')?.canonicalValue).toBe(11);
+    expect(catalog[0]?.total).toBe(0);
+    expect(recordFor(await read(), 'most-repetitions')?.canonicalValue).toBe(
+      11,
+    );
   });
 
   it('selects the maximum across a long history', async () => {
-    const sessions = Array.from({ length: 60 }, (_, index) => ({
-      dayIndex: index,
-      exercises: [
-        {
-          loggingMode: 'external-load-and-repetitions' as const,
-          sets: Array.from({ length: 5 }, (_unused, setIndex) => ({
-            repetitions: 5,
-            resistanceGrams: 40_000 + index * 100 + setIndex * 10,
-          })),
-        },
-      ],
-    }));
-    await store(...sessions);
+    await history.store(
+      ...Array.from({ length: 60 }, (_unused, index) => ({
+        dayIndex: index,
+        exercises: [
+          {
+            loggingMode: 'external-load-and-repetitions' as const,
+            sets: Array.from({ length: 5 }, (_ignored, setIndex) => ({
+              repetitions: 5,
+              resistanceGrams: 40_000 + index * 100 + setIndex * 10,
+            })),
+          },
+        ],
+      })),
+    );
 
-    expect(records(await read(), 'heaviest-load')?.canonicalValue).toBe(45_940);
+    expect(recordFor(await read(), 'heaviest-load')?.canonicalValue).toBe(
+      45_940,
+    );
   });
 
   it('finds candidate sets through the source exercise history index', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [{ loggingMode: 'repetitions', sets: [{ repetitions: 11 }] }],
     });
     const recording = new RecordingDatabase(database);
     await new WorkoutPersonalRecordsSqliteReader(
       recording,
-    ).readExercisePersonalRecords(unwrap(DomainId.create(pushUpId)));
+    ).readExercisePersonalRecords(
+      unwrap(DomainId.create(syntheticExerciseIds.pushUp)),
+    );
     const plan = await database.getAll<{ detail: string }>(
       `EXPLAIN QUERY PLAN ${recording.statements[0] ?? ''}`,
       recording.parameters[0] ?? [],
@@ -560,16 +441,18 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
 
     await new WorkoutPersonalRecordsSqliteReader(
       recording,
-    ).readExercisePersonalRecords(unwrap(DomainId.create(pushUpId)));
+    ).readExercisePersonalRecords(
+      unwrap(DomainId.create(syntheticExerciseIds.pushUp)),
+    );
 
     recording.statements.forEach((statement) => {
-      expect(statement).not.toContain(pushUpId);
+      expect(statement).not.toContain(syntheticExerciseIds.pushUp);
     });
-    expect(recording.parameters.flat()).toContain(pushUpId);
+    expect(recording.parameters.flat()).toContain(syntheticExerciseIds.pushUp);
   });
 
   it('fails safely when a stored row cannot be trusted', async () => {
-    await store({
+    await history.store({
       dayIndex: 0,
       exercises: [{ loggingMode: 'repetitions', sets: [{ repetitions: 11 }] }],
     });
@@ -581,27 +464,6 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
   });
 });
 
-function records(
-  found: Awaited<
-    ReturnType<
-      WorkoutPersonalRecordsSqliteReader['readExercisePersonalRecords']
-    >
-  >,
-  category: string,
-) {
+function recordFor(found: ExercisePersonalRecords, category: string) {
   return found.records.find((record) => record.category === category);
-}
-
-function localDate(epochMilliseconds: number): string {
-  const value = new Date(epochMilliseconds);
-  const year = String(value.getUTCFullYear()).padStart(4, '0');
-  const month = String(value.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(value.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function unwrap<TValue>(result: Result<TValue, unknown>): TValue {
-  if (!result.isSuccess)
-    throw new Error('Synthetic workout history is invalid.');
-  return result.value;
 }
