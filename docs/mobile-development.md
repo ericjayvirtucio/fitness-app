@@ -174,10 +174,11 @@ the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.
 
 ## Offline data export
 
-Export, restore, and deletion share one entry point: Profile → Data controls
-(`/data-controls`). The Profile tab shows that single action in both its
-populated and its empty state, so a returning user and a long-time user reach
-every lifecycle operation the same way.
+Export, restore, replacement, and deletion share one entry point:
+Profile → Data controls (`/data-controls`). The Profile tab shows that single
+action in both its populated and its empty state, so a returning user and a
+long-time user reach every lifecycle operation the same way. Each operation
+keeps its own named control there; nothing infers which one was meant.
 
 The Data controls screen can create one versioned JSON file describing everything the
 app stores on the device. Generation runs entirely offline inside a single
@@ -238,6 +239,35 @@ unrecoverable. No dependency and no migration was added. See
 [offline local data erasure architecture](architecture/offline-local-data-erasure.md),
 the [Sprint 20 manual checklist](manual-testing/sprint-20-offline-local-data-erasure.md),
 and [troubleshooting guidance](troubleshooting/offline-local-data-erasure.md).
+
+## Safe replacement restore
+
+Data controls can also replace everything on the device with a validated export
+(`/replace-local-data`). The incoming file goes through the same version 1
+parser restoring uses, and no acknowledgement, destructive control, or platform
+alert exists until it has passed. Nothing is erased to find out whether a file
+is usable.
+
+A copy of the current information is prominently offered and can be declined
+through its own separate acknowledgement. It is the existing exporter's output,
+created before the replacement begins so it can contain nothing incoming, and it
+deliberately survives the commit — the app cannot see whether a share sheet
+saved it, so deleting it would remove the only way back.
+
+The database change is one exclusive transaction: every capability eraser runs
+children-first, every probe must report empty, the validated dataset is written
+through the same repositories and the same shared `writeRestoreData` that empty
+restore uses, and capability presence is verified before the commit. Any failure
+before that rolls back to the previous dataset. That guarantee is asserted
+against a real SQLite engine through a test-owned adapter over Node's built-in
+SQLite, not against a fake runner.
+
+The picker and the share sheet are platform-owned, so Maestro proves the gate
+and the untouched records but cannot drive a replacement to completion; that is
+covered by hand. No dependency and no migration was added. See
+[safe replacement restore architecture](architecture/safe-replacement-restore.md),
+the [Sprint 21 manual checklist](manual-testing/sprint-21-safe-replacement-restore.md),
+and [troubleshooting guidance](troubleshooting/safe-replacement-restore.md).
 
 ## Troubleshooting
 

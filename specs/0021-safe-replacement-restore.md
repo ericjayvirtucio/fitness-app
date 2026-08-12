@@ -361,8 +361,15 @@ kept, and the incoming file was never the application's to remove.
 
 User-facing language distinguishes two outcomes and never blurs them:
 replacement failed and current information was preserved, or replacement
-succeeded, possibly with a warning about housekeeping that changed nothing about
-the records.
+succeeded.
+
+There is deliberately no post-commit warning. Erasure has one because it removes
+a file it owns and has to say when that failed; replacement removes no file, and
+a failed checkpoint or `VACUUM` leaves no record wrong and nothing the user could
+act on, exactly as specification 0020 concluded. What the completion panel does
+carry, when a recovery export was created, is a statement that the copy is still
+on the device until the export screen is opened again — information, not a
+warning about the replacement.
 
 ## Failure, cancellation, and interruption
 
@@ -426,8 +433,8 @@ claims account, cloud, or forensic behavior it does not have.
 
 The workflow uses existing design-system components across its explaining,
 selecting, reading, validating, failed, preview, recovery-decision,
-recovery-generating, recovery-ready, acknowledging, replacing, verifying,
-complete, and warning states.
+recovery-generating, recovery-ready, recovery-failed, acknowledging, replacing,
+and complete states.
 
 The destructive control is explicitly named, is never an icon alone, keeps its
 label when disabled, and states why it is disabled. Both acknowledgements expose
@@ -499,8 +506,8 @@ upgraded.
 - Presentation tests cover the explanation, preview, recovery decision, both
   acknowledgements and their gating, the destructive confirmation, cancellation,
   busy phases, disabled-state explanations, the original-data-preserved failure
-  message, persistent completion, the post-commit warning, live-region behavior,
-  and accessibility labels.
+  message, persistent completion, the recovery-copy notice, live-region
+  behavior, and accessibility labels.
 - Sprint 21 Maestro scenarios cover opening replacement from Data controls,
   reviewing the destructive and recovery explanations, opening and cancelling the
   platform picker, current records surviving that cancellation, replacement
