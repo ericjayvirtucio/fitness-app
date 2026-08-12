@@ -12,6 +12,16 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: exercise-name-input
 - inputText: E2E Push-up
+# A short drag dismisses the keyboard, because the screen uses
+# keyboardDismissMode="on-drag". Without it the keyboard covers the equipment
+# options on a shorter device, the tap meant for Bodyweight lands on a keyboard
+# key instead, and that character is appended to the name field that still has
+# focus — which is how this flow once came to expect a trailing "a" in the
+# saved name. That misspelling passed on one simulator and failed on a taller
+# one; the drag removes the difference instead of encoding it.
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
 - tapOn: Bodyweight
 - tapOn: Chest
 - scrollUntilVisible:
@@ -24,8 +34,8 @@ appId: com.fitnessapp.dev
       text: Save exercise
     direction: DOWN
 - tapOn: Save exercise
-- assertVisible: Edit E2E Push-upa
-- tapOn: Add E2E Push-upa to favorites
+- assertVisible: Edit E2E Push-up
+- tapOn: Add E2E Push-up to favorites
 - stopApp
 - launchApp
 - runFlow:
@@ -40,7 +50,7 @@ appId: com.fitnessapp.dev
             text: Open Exercise Library
           direction: DOWN
       - tapOn: Open Exercise Library
-- assertVisible: Edit E2E Push-upa
+- assertVisible: Edit E2E Push-up
 - swipe:
     start: 1%, 50%
     end: 90%, 50%

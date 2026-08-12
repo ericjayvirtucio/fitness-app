@@ -93,6 +93,15 @@ short swipe or a scroll dismisses the keyboard between text fields; without
 one, the keyboard covers the next field and text lands in the previous one.
 Filling a form bottom-up avoids the problem entirely.
 
+The keyboard also covers controls that are not text fields, and a tap meant for
+one of them lands on a key instead — appending a character to the field that
+still has focus. How far down that reaches depends on the device, so the same
+flow can pass on one simulator and fail on a taller one. Never record the
+resulting value in an assertion: a flow that expects a mistyped name has
+encoded a defect as the expected result and will break the moment the device
+changes. Dismiss the keyboard before tapping the next control instead, and
+prefer running a suite on more than one screen size before trusting it.
+
 The export screen is longer than one viewport: the privacy notice runs past the
 fold, and the ready panel is inserted above the post-export actions, so
 "Open share options" moves further down as soon as the export succeeds. Assert
