@@ -21,6 +21,7 @@ export default function RootLayout() {
           <Stack.Screen name="data-controls" />
           <Stack.Screen name="data-export" />
           <Stack.Screen name="data-restore" />
+          <Stack.Screen name="replace-local-data" />
           <Stack.Screen name="delete-local-data" />
           <Stack.Screen name="body-measurements/new" />
           <Stack.Screen name="body-measurements/[id]" />

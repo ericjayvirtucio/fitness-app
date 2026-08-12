@@ -62,6 +62,16 @@ async function chooseFile(): Promise<void> {
 }
 
 describe('DataRestoreScreen', () => {
+  it('points at replacement instead of implying it is impossible', async () => {
+    await renderScreen();
+
+    expect(
+      await screen.findByText(
+        '• To swap what is already here for a file, use Replace local data instead.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('explains the limits before anything is selected', async () => {
     await renderScreen();
 

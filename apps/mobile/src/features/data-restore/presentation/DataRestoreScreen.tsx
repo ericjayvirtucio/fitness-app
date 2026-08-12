@@ -51,7 +51,8 @@ const howItWorks = [
   'The file is read on this device. This app does not upload it.',
   'Everything is checked before anything is saved.',
   'Restoring is all or nothing. If it fails, nothing is saved.',
-  'Combining an export with existing information, or replacing existing information, is not supported.',
+  'Combining an export with information already here is not supported.',
+  'To swap what is already here for a file, use Replace local data instead.',
 ];
 
 export function DataRestoreScreen({
@@ -198,7 +199,8 @@ export function DataRestoreScreen({
               installation that contains no information yet.
             </AppText>
             <AppText color="secondary" style={styles.item}>
-              To keep what is here, export it first from the Profile tab.
+              To swap what is here for this file instead, go back to Data
+              controls and choose Replace local data from an export.
             </AppText>
           </Card>
         ) : null}

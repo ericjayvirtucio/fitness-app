@@ -66,6 +66,16 @@ export async function readCapabilityPresence(
   });
 }
 
+/**
+ * True when no capability holds anything. A valid export can legitimately be
+ * empty, and replacing populated information with one is the same outcome as
+ * deleting it, so the workflow has to be able to say that out loud rather than
+ * showing a preview of nothing.
+ */
+export function holdsNoRecords(presence: CapabilityPresence): boolean {
+  return capabilityNames.every((name) => !presence[name]);
+}
+
 export function isSameCapabilityPresence(
   expected: CapabilityPresence,
   actual: CapabilityPresence,
