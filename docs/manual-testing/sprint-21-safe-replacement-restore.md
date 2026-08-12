@@ -89,19 +89,19 @@ available in Files.
 
 ## Accessibility and visual review
 
-| Check              | Expected result                                                                                                                                    |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VoiceOver/TalkBack | The explanation, preview, recovery panel, both acknowledgements, the destructive control, and the completion panel read in a sensible order.       |
-| Acknowledgements   | Both are announced as checkboxes with their checked state, and neither carries its state by colour alone.                                          |
-| Disabled control   | While disabled, the destructive control keeps the name "Replace all local data" and its label explains which decision is still missing.            |
-| Alert              | The alert reads its title, message, and both options, and "Replace everything" is distinguishable from the screen's own control.                   |
-| Focus              | Focus moves to the preview after validation and to the completion panel after replacing.                                                           |
-| Live region        | Reading, checking, preparing the copy, and replacing are each announced politely.                                                                  |
-| Dynamic Type       | At the largest practical sizes the explanation, preview counts, and both acknowledgements wrap without clipping, overlap, or horizontal scrolling. |
-| Busy state         | Each phase shows a labelled busy indicator and the destructive control is visibly disabled.                                                        |
-| No false cancel    | While replacing, no cancel control is offered, because the transaction cannot be half-cancelled.                                                   |
-| Completion         | Completion is a persistent panel, not a transient toast, and stays readable after focus moves away.                                                |
-| Keyboard           | With a hardware keyboard, both acknowledgements and every control are reachable and show a visible focus state.                                    |
+| Check              | Expected result                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VoiceOver/TalkBack | The explanation, preview, recovery panel, both acknowledgements, the destructive control, and the completion panel read in a sensible order.                        |
+| Acknowledgements   | Both are announced as checkboxes with their checked state, and neither carries its state by colour alone.                                                           |
+| Disabled control   | While disabled, the destructive control keeps the name "Replace all local data" and its label explains which decision is still missing.                             |
+| Alert              | The alert reads its title, message, and both options, and "Replace everything" is distinguishable from the screen's own control.                                    |
+| Focus              | Focus is not moved programmatically. Confirm the live region announces each change, and report if reaching the preview and completion panels by swipe is laborious. |
+| Live region        | Reading, checking, preparing the copy, and replacing are each announced politely.                                                                                   |
+| Dynamic Type       | At the largest practical sizes the explanation, preview counts, and both acknowledgements wrap without clipping, overlap, or horizontal scrolling.                  |
+| Busy state         | Each phase shows a labelled busy indicator and the destructive control is visibly disabled.                                                                         |
+| No false cancel    | While replacing, no cancel control is offered, because the transaction cannot be half-cancelled.                                                                    |
+| Completion         | Completion is a persistent panel, not a transient toast, and stays readable after focus moves away.                                                                 |
+| Keyboard           | With a hardware keyboard, both acknowledgements and every control are reachable and show a visible focus state.                                                     |
 
 ## Performance and privacy
 

@@ -439,11 +439,19 @@ and complete states.
 The destructive control is explicitly named, is never an icon alone, keeps its
 label when disabled, and states why it is disabled. Both acknowledgements expose
 a checkbox role and their checked state at the minimum touch target. Phase
-changes are announced through a polite live region, the preview, recovery-ready,
-and completion panels are persistent rather than transient, focus moves to the
-preview after validation and to the completion panel afterwards, content wraps
-under large Dynamic Type without horizontal scrolling, counts are readable text,
-and no state is communicated by colour alone. Picker and share cancellation read
+changes are announced through a polite live region, and the preview,
+recovery-ready, and completion panels are persistent rather than transient, so a
+screen reader announces each change and the result stays readable afterwards.
+Content wraps under large Dynamic Type without horizontal scrolling, counts are
+readable text, and no state is communicated by colour alone.
+
+Accessibility focus is deliberately not moved programmatically. No screen in
+this application does that today, the panels are announced through the live
+region already, and the reliable ways to force focus on iOS collapse a panel
+into a single accessibility node — which would make the preview's per-capability
+counts unreadable individually, losing more than the focus jump gains. Whether
+that trade is right is a question for device QA, and it is recorded as a known
+limitation rather than claimed as implemented. Picker and share cancellation read
 as neutral. Failure states say plainly that current information was preserved.
 The platform picker, share sheet, and alert remain platform-owned.
 

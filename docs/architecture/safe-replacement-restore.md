@@ -300,8 +300,25 @@ That adapter is for tests only. Expo owns production persistence, and
 `composition/persistence.ts` remains the only place a production database is
 opened.
 
+## Accessibility
+
+The destructive control is explicitly named, is never an icon alone, keeps its
+label when disabled, and its label states which decision is still missing. Both
+acknowledgements expose a checkbox role and their checked state at the minimum
+touch target, and neither carries its state by colour alone. Each phase is
+announced through a polite live region, and the preview, recovery-ready, and
+completion panels are persistent rather than transient.
+
+Accessibility focus is not moved programmatically, here or anywhere else in the
+application. The live region announces each change, and the reliable ways to
+force focus on iOS collapse a panel into one accessibility node, which would
+make the preview's per-capability counts unreadable individually. That trade is
+recorded here and checked by hand rather than claimed as implemented.
+
 ## Known limitations
 
+- Accessibility focus is not moved to the preview or the completion panel; the
+  polite live region carries the announcement instead.
 - Presence verification is coarser than per-table for Nutrition and Hydration.
 - A complete successful replacement cannot be automated end to end, because the
   picker and the share sheet are platform-owned. It is covered by the
