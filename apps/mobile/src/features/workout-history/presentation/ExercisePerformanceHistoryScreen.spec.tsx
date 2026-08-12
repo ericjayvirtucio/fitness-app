@@ -116,6 +116,26 @@ describe('ExercisePerformanceHistoryScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('says so plainly when history has established no record', async () => {
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor()}
+        onClose={jest.fn()}
+        onOpenSession={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          'No completed set has established a record for this exercise yet.',
+        ),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.queryByTestId('personal-record-card')).not.toBeOnTheScreen();
+  });
+
   it('states a record with its units, date, workout, and set', async () => {
     await render(
       <ExercisePerformanceHistoryScreen

@@ -223,6 +223,11 @@ function PersonalRecords({
       {!records && !error ? (
         <LoadingIndicator label="Loading personal records" />
       ) : null}
+      {records && modes.length === 0 ? (
+        <AppText color="secondary">
+          No completed set has established a record for this exercise yet.
+        </AppText>
+      ) : null}
       {records
         ? modes.map((mode) => (
             <View key={mode} style={{ gap: spacing.md }}>
