@@ -12,4 +12,4 @@ name: A record opens the completed workout that proves it
 - tapOn:
     id: personal-record-card
 - assertVisible: 'Performed set 1: 12 reps'
-- assertNotVisible: Edit set
+- assertNotVisible: Finish Workout

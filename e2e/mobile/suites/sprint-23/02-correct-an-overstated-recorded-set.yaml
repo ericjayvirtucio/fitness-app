@@ -1,0 +1,21 @@
+appId: com.fitnessapp.dev
+name: An overstated recorded set is corrected in place
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '100'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 100 reps'
+- runFlow:
+    file: ../../flows/workout/correct-completed-set.yaml
+    env:
+      CORRECTED_REPETITIONS: '10'
+      SET_NUMBER: '1'
+- assertVisible: 'Performed set 1: 10 reps'
+- assertNotVisible: 'Performed set 1: 100 reps'
+# The workout itself is untouched: it stays completed and keeps its one set.
+- assertVisible: 1 actual sets

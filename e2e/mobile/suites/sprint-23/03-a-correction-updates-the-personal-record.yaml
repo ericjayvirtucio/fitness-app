@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+name: A corrected set replaces the record it wrongly established
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '100'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 100 repetitions, first recorded on .*, in Workout, set 1'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- runFlow:
+    file: ../../flows/workout/correct-completed-set.yaml
+    env:
+      CORRECTED_REPETITIONS: '10'
+      SET_NUMBER: '1'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 10 repetitions, first recorded on .*, in Workout, set 1'
+- assertNotVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'
+# The evidence link still opens the workout that proves the corrected claim.
+- tapOn:
+    id: personal-record-card
+- assertVisible: 'Performed set 1: 10 reps'

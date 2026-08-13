@@ -45,6 +45,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 20 --platform ios
 ./scripts/qa.sh sprint 21 --platform ios
 ./scripts/qa.sh sprint 22 --platform ios
+./scripts/qa.sh sprint 23 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 

@@ -1,0 +1,16 @@
+appId: com.fitnessapp.dev
+name: The only recorded set in a workout cannot be deleted
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+# The refusal is stated in words rather than hidden behind a control that would
+# quietly do nothing.
+- assertVisible: 'This is the only recorded set in this workout.*'
+- assertNotVisible: Delete recorded set 1 for E2E Push-up
+- assertVisible: Correct recorded set 1 for E2E Push-up
