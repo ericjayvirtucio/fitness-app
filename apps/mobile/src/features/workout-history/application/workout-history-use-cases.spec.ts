@@ -1,15 +1,33 @@
 import { DomainId, type WorkoutSession } from '@fitness/domain';
+import {
+  emptyExercisePersonalRecords,
+  type ExercisePersonalRecords,
+} from './exercise-personal-records';
 import type {
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
 } from './workout-history-models';
 import type { WorkoutHistoryRepository } from './workout-history-repository';
+import type { WorkoutPersonalRecordsReader } from './workout-personal-records-reader';
 import {
   GetCompletedWorkoutSessionUseCase,
+  GetExercisePersonalRecordsUseCase,
   GetWorkoutProgressSummaryUseCase,
+  ListPerformedExercisesUseCase,
   ListRecentlyPerformedExerciseIdsUseCase,
   ListWorkoutHistoryUseCase,
 } from './workout-history-use-cases';
+
+class PersonalRecordsReader implements WorkoutPersonalRecordsReader {
+  requestedIds: string[] = [];
+
+  readExercisePersonalRecords(
+    exerciseDefinitionId: DomainId,
+  ): Promise<ExercisePersonalRecords> {
+    this.requestedIds.push(exerciseDefinitionId.value);
+    return Promise.resolve(emptyExercisePersonalRecords);
+  }
+}
 
 class Repository implements WorkoutHistoryRepository {
   lastLimit = 0;
@@ -24,6 +42,10 @@ class Repository implements WorkoutHistoryRepository {
   }
   listExercisePerformancePage() {
     return Promise.resolve({ items: [], nextCursor: null });
+  }
+  listPerformedExercises(limit: number) {
+    this.lastLimit = limit;
+    return Promise.resolve([]);
   }
   listRecentlyPerformedExerciseIds(limit: number) {
     this.lastLimit = limit;
@@ -53,6 +75,8 @@ describe('workout history use cases', () => {
     await new ListWorkoutHistoryUseCase(repository).execute({ limit: 500 });
     expect(repository.lastLimit).toBe(50);
     await new ListRecentlyPerformedExerciseIdsUseCase(repository).execute(500);
+    expect(repository.lastLimit).toBe(20);
+    await new ListPerformedExercisesUseCase(repository).execute(500);
     expect(repository.lastLimit).toBe(20);
   });
 
@@ -87,6 +111,28 @@ describe('workout history use cases', () => {
     await expect(
       new GetCompletedWorkoutSessionUseCase(repository).execute('invalid'),
     ).resolves.toBeNull();
+  });
+
+  it('does not read records for an invalid exercise identifier', async () => {
+    const reader = new PersonalRecordsReader();
+
+    await expect(
+      new GetExercisePersonalRecordsUseCase(reader).execute('invalid'),
+    ).resolves.toBeNull();
+    expect(reader.requestedIds).toEqual([]);
+  });
+
+  it('reads records for a valid exercise identifier', async () => {
+    const reader = new PersonalRecordsReader();
+
+    await expect(
+      new GetExercisePersonalRecordsUseCase(reader).execute(
+        '550e8400-e29b-41d4-a716-446655440000',
+      ),
+    ).resolves.toEqual(emptyExercisePersonalRecords);
+    expect(reader.requestedIds).toEqual([
+      '550e8400-e29b-41d4-a716-446655440000',
+    ]);
   });
 
   it('accepts the established UUID format', () => {

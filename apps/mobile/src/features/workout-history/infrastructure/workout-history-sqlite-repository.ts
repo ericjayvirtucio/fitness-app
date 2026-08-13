@@ -7,6 +7,7 @@ import {
 import { WorkoutSessionSqliteRepository } from '../../workout-session/infrastructure/workout-session-sqlite-repository';
 import type {
   ExercisePerformanceItem,
+  PerformedExerciseSummary,
   WorkoutHistoryCursor,
   WorkoutHistoryListItem,
   WorkoutHistoryPageQuery,
@@ -52,6 +53,12 @@ type ExercisePerformanceRow = Readonly<{
   session_id: string;
   session_name_snapshot: string;
   started_at_epoch_ms: number;
+  started_local_calendar_date: string;
+}>;
+
+type PerformedExerciseRow = Readonly<{
+  exercise_name_snapshot: string;
+  id: string;
   started_local_calendar_date: string;
 }>;
 
@@ -300,6 +307,46 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
     }
   }
 
+  /**
+   * Performed exercises as history knows them, newest occurrence first. The
+   * label comes from the latest completed snapshot rather than the Exercise
+   * Catalog, so a deleted definition stays listed under the name it was
+   * recorded with.
+   */
+  async listPerformedExercises(limit: number) {
+    try {
+      const rows = await this.database.getAll<PerformedExerciseRow>(
+        `SELECT id, exercise_name_snapshot, started_local_calendar_date FROM (
+          SELECT exercise.source_exercise_definition_id AS id,
+            exercise.exercise_name_snapshot,
+            session.started_local_calendar_date,
+            ROW_NUMBER() OVER (
+              PARTITION BY exercise.source_exercise_definition_id
+              ORDER BY session.started_at_epoch_ms DESC, exercise.id DESC
+            ) AS occurrence_rank,
+            MAX(session.started_at_epoch_ms) OVER (
+              PARTITION BY exercise.source_exercise_definition_id
+            ) AS latest_started_at_epoch_ms
+          FROM workout_session_exercise exercise
+          JOIN workout_session session
+            ON session.id = exercise.workout_session_id
+          WHERE session.status = 'completed'
+            AND EXISTS (
+              SELECT 1 FROM workout_set actual
+              WHERE actual.workout_session_exercise_id = exercise.id
+            )
+        )
+        WHERE occurrence_rank = 1
+        ORDER BY latest_started_at_epoch_ms DESC, id ASC
+        LIMIT ?`,
+        [limit],
+      );
+      return Object.freeze(rows.map(mapPerformedExerciseRow));
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
   async listRecentlyPerformedExerciseIds(limit: number) {
     try {
       const rows = await this.database.getAll<{ id: string }>(
@@ -364,6 +411,19 @@ function mapExercisePerformanceRow(
     sessionNameSnapshot: row.session_name_snapshot,
     startedAtEpochMilliseconds: nonnegativeInteger(row.started_at_epoch_ms),
     startedLocalCalendarDate: requiredDate(row.started_local_calendar_date),
+  });
+}
+
+function mapPerformedExerciseRow(
+  row: PerformedExerciseRow,
+): PerformedExerciseSummary {
+  if (row.exercise_name_snapshot.trim() === '') return corrupt();
+  return Object.freeze({
+    exerciseNameSnapshot: row.exercise_name_snapshot,
+    latestStartedLocalCalendarDate: requiredDate(
+      row.started_local_calendar_date,
+    ),
+    sourceExerciseDefinitionId: requiredId(row.id),
   });
 }
 

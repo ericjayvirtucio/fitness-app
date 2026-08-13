@@ -1,10 +1,12 @@
 import { DomainId, type WorkoutSession } from '@fitness/domain';
+import type { ExercisePersonalRecords } from './exercise-personal-records';
 import type {
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
 } from './workout-history-models';
 import { workoutHistoryPagePolicy } from './workout-history-models';
 import type { WorkoutHistoryRepository } from './workout-history-repository';
+import type { WorkoutPersonalRecordsReader } from './workout-personal-records-reader';
 
 export class ListWorkoutHistoryUseCase {
   constructor(private readonly repository: WorkoutHistoryRepository) {}
@@ -52,6 +54,29 @@ export class ListExercisePerformanceHistoryUseCase {
       ...query,
       limit: normalizeLimit(query.limit),
     });
+  }
+}
+
+export class GetExercisePersonalRecordsUseCase {
+  constructor(private readonly reader: WorkoutPersonalRecordsReader) {}
+
+  execute(
+    exerciseDefinitionId: unknown,
+  ): Promise<ExercisePersonalRecords | null> {
+    const id = DomainId.create(exerciseDefinitionId);
+    return id.isSuccess
+      ? this.reader.readExercisePersonalRecords(id.value)
+      : Promise.resolve(null);
+  }
+}
+
+export class ListPerformedExercisesUseCase {
+  constructor(private readonly repository: WorkoutHistoryRepository) {}
+
+  execute(limit = 10) {
+    return this.repository.listPerformedExercises(
+      Math.min(Math.max(Math.trunc(limit), 1), 20),
+    );
   }
 }
 

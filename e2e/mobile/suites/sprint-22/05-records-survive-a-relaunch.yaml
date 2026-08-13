@@ -1,0 +1,14 @@
+appId: com.fitnessapp.dev
+name: Personal records survive a relaunch
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 12 repetitions, .*'

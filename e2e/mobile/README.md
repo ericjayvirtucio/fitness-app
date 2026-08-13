@@ -44,6 +44,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 19 --platform ios
 ./scripts/qa.sh sprint 20 --platform ios
 ./scripts/qa.sh sprint 21 --platform ios
+./scripts/qa.sh sprint 22 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -140,6 +141,15 @@ together with the parser, orchestration, and real-SQLite tests in
 `apps/mobile`. The same rule applies: no hidden replacement route, no database
 fixture, no production seeder, and no test-only bypass is added to close that
 gap.
+
+Personal-record flows are fully automatable, because a record is derived from
+history the suite creates itself through public screens. One parameterized flow,
+`flows/workout/complete-repetition-workout.yaml`, records a single repetition
+set, so a suite can record a first result, beat it, and then fail to beat it
+without a second flow or a database fixture. Records are reached the way the
+product reaches them, through Workout, History, and the exercise as completed
+history names it, and a suite asserts the record's own wording rather than a
+badge or a color.
 
 Export, restore, replacement, and deletion are all reached through
 Profile → Data controls, so `flows/data-lifecycle/open-data-controls.yaml` is

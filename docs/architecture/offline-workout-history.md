@@ -48,8 +48,11 @@ greater assistance does not represent greater performed load. Distance-duration
 results may derive pace from actual distance and duration; unlike dimensions are
 never combined into one score.
 
-Personal-record claims, strength estimates, charts, adherence, streaks, calories,
-coaching, and recommendations remain deferred.
+Deterministic personal records now derive from the same completed history, in a
+separate reader documented in
+[Workout personal records architecture](workout-personal-records.md). Strength
+estimates, charts, adherence, streaks, calories, coaching, and recommendations
+remain deferred.
 
 The same repository also groups completed workout, performed exercise, and
 actual-set counts by captured local date for the cross-capability Progress daily
@@ -58,10 +61,15 @@ breakdown. Planner intent and active sessions remain excluded.
 ## Performed exercise recents
 
 Recent exercises derive the latest completed performed occurrence per source Exercise
-Definition UUID. Active sessions and Planner selection do not count. Current Catalog
-and picker UI resolve only still-existing definitions and preserve recency order.
-Deleted Catalog definitions disappear from current selection while their historical
-snapshots remain intact. No Catalog timestamp, counter, or usage table is persisted.
+Definition UUID. Active sessions and Planner selection do not count. No Catalog
+timestamp, counter, or usage table is persisted.
+
+History's own exercise list labels each performed exercise with the name captured
+at its latest completed occurrence rather than resolving the Catalog, so a
+deleted definition stays listed and reachable under the name history recorded.
+The Workout Session exercise picker still resolves only still-existing
+definitions and preserves recency order, because choosing an exercise to perform
+needs a definition that exists.
 
 ## Experience, accessibility, privacy, and failures
 

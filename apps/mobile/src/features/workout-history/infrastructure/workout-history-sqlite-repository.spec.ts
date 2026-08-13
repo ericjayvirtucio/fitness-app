@@ -3,6 +3,10 @@ import type {
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
 import { DomainId } from '@fitness/domain';
+import {
+  SyntheticWorkoutHistory,
+  syntheticExerciseIds,
+} from './synthetic-workout-history.spec-helper';
 import { WorkoutHistorySqliteRepository } from './workout-history-sqlite-repository';
 
 class FakeDatabase implements DatabaseConnection {
@@ -127,6 +131,34 @@ describe('WorkoutHistorySqliteRepository', () => {
     expect(database.lastParameters).toEqual([10]);
   });
 
+  it('labels performed exercises from completed snapshots, not the catalog', async () => {
+    const database = new FakeDatabase();
+    database.allRows = [
+      {
+        exercise_name_snapshot: 'Push-up',
+        id: historyRow.id,
+        started_local_calendar_date: '2026-08-08',
+      },
+    ];
+
+    const performed = await new WorkoutHistorySqliteRepository(
+      database,
+    ).listPerformedExercises(10);
+
+    expect(performed).toEqual([
+      {
+        exerciseNameSnapshot: 'Push-up',
+        latestStartedLocalCalendarDate: '2026-08-08',
+        sourceExerciseDefinitionId: expect.objectContaining({
+          value: historyRow.id,
+        }) as unknown,
+      },
+    ]);
+    expect(database.lastStatement).toContain("session.status = 'completed'");
+    expect(database.lastStatement).not.toContain('exercise_catalog_item');
+    expect(database.lastParameters).toEqual([10]);
+  });
+
   it('groups completed actual performance by captured local date', async () => {
     const database = new FakeDatabase();
     database.allRows = [
@@ -196,5 +228,102 @@ describe('WorkoutHistorySqliteRepository', () => {
     await expect(
       new WorkoutHistorySqliteRepository(database).listCompletedPage({}),
     ).rejects.toMatchObject({ code: 'operation-failed' });
+  });
+});
+
+/**
+ * The performed-exercise list picks one snapshot per exercise with a window
+ * function, so it is verified on a real engine rather than against a recorded
+ * statement.
+ */
+describe('WorkoutHistorySqliteRepository performed exercises', () => {
+  let history: SyntheticWorkoutHistory;
+
+  beforeEach(async () => {
+    history = await SyntheticWorkoutHistory.create();
+  });
+
+  afterEach(() => {
+    history.close();
+  });
+
+  it('lists each performed exercise once under its latest captured name', async () => {
+    await history.store(
+      {
+        dayIndex: 0,
+        exercises: [
+          {
+            loggingMode: 'repetitions',
+            name: 'Push-up',
+            sets: [{ repetitions: 10 }],
+          },
+          {
+            definitionId: syntheticExerciseIds.run,
+            loggingMode: 'distance',
+            name: 'Run',
+            sets: [{ distanceMillimeters: 3_000_000 }],
+          },
+        ],
+      },
+      {
+        dayIndex: 2,
+        exercises: [
+          {
+            loggingMode: 'repetitions',
+            name: 'Wide Push-up',
+            sets: [{ repetitions: 11 }],
+          },
+        ],
+      },
+    );
+
+    const performed = await new WorkoutHistorySqliteRepository(
+      history.database,
+    ).listPerformedExercises(10);
+
+    expect(
+      performed.map((item) => [
+        item.sourceExerciseDefinitionId.value,
+        item.exerciseNameSnapshot,
+        item.latestStartedLocalCalendarDate,
+      ]),
+    ).toEqual([
+      [syntheticExerciseIds.pushUp, 'Wide Push-up', '2026-01-03'],
+      [syntheticExerciseIds.run, 'Run', '2026-01-01'],
+    ]);
+  });
+
+  it('omits exercises that were only planned or only started', async () => {
+    await history.store(
+      {
+        dayIndex: 0,
+        exercises: [
+          { loggingMode: 'repetitions', name: 'Push-up', sets: [] },
+          {
+            definitionId: syntheticExerciseIds.run,
+            loggingMode: 'distance',
+            name: 'Run',
+            sets: [{ distanceMillimeters: 3_000_000 }],
+          },
+        ],
+      },
+      {
+        dayIndex: 1,
+        exercises: [
+          {
+            loggingMode: 'repetitions',
+            name: 'Push-up',
+            sets: [{ repetitions: 10 }],
+          },
+        ],
+        status: 'active',
+      },
+    );
+
+    const performed = await new WorkoutHistorySqliteRepository(
+      history.database,
+    ).listPerformedExercises(10);
+
+    expect(performed.map((item) => item.exerciseNameSnapshot)).toEqual(['Run']);
   });
 });

@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: A weaker completed set preserves the record
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '15'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '5'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 15 repetitions, .*'
+- assertNotVisible: 'Most recorded repetitions in a set, 5 repetitions, .*'
