@@ -11,17 +11,30 @@ import {
 } from '@fitness/domain';
 import { AppButton, AppText, TextField, spacing } from '../../../design-system';
 
+/**
+ * The one place a recorded result is entered and validated.
+ *
+ * Labels are overridable because correcting completed history is a different
+ * act from logging an active workout, while the values, units, and domain
+ * validation must stay identical between them.
+ */
 export function WorkoutSetForm({
+  cancelLabel = 'Cancel Set',
+  heading,
   initial,
   loggingMode,
   onCancel,
   onSave,
+  saveLabel = 'Save Set',
   unitSystem,
 }: Readonly<{
+  cancelLabel?: string;
+  heading?: string;
   initial?: WorkoutResult;
   loggingMode: ExerciseLoggingMode;
   onCancel: () => void;
   onSave: (result: WorkoutResult) => Promise<void>;
+  saveLabel?: string;
   unitSystem: UnitSystem;
 }>) {
   const [repetitions, setRepetitions] = useState(
@@ -61,7 +74,7 @@ export function WorkoutSetForm({
   return (
     <View style={{ gap: spacing.md }}>
       <AppText accessibilityRole="header" variant="heading">
-        {initial ? 'Edit set' : 'Add set'}
+        {heading ?? (initial ? 'Edit set' : 'Add set')}
       </AppText>
       {hasResistance ? (
         <TextField
@@ -109,7 +122,7 @@ export function WorkoutSetForm({
       ) : null}
       <AppButton
         isLoading={isSaving}
-        label="Save Set"
+        label={saveLabel}
         onPress={() => {
           const mass = hasResistance
             ? Mass.create(
@@ -144,7 +157,7 @@ export function WorkoutSetForm({
           });
         }}
       />
-      <AppButton label="Cancel Set" onPress={onCancel} variant="ghost" />
+      <AppButton label={cancelLabel} onPress={onCancel} variant="ghost" />
     </View>
   );
 }

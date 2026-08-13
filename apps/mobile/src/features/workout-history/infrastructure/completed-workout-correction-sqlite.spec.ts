@@ -81,8 +81,8 @@ class FailingDatabase implements DatabaseConnection {
   }
   runExclusive<TResult>(
     operation: (transaction: DatabaseConnection) => Promise<TResult>,
-  ) {
-    return this.inner.runExclusive(() => operation(this));
+  ): Promise<TResult> {
+    return this.inner.runExclusive<TResult>(() => operation(this));
   }
 }
 
