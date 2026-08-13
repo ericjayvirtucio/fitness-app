@@ -2,6 +2,11 @@ appId: com.fitnessapp.dev
 ---
 # Reaches the personal records of a performed exercise the way the product does:
 # Workout, History, then the exercise as completed history names it.
+#
+# Scroll to the exercise card itself rather than to the "Exercise progress"
+# heading above it. Each completed workout adds a history card, so stopping at
+# the heading leaves the card below the fold as soon as a suite records more
+# than one workout.
 - tapOn:
     id: tab-workout
 - scrollUntilVisible:
@@ -12,7 +17,7 @@ appId: com.fitnessapp.dev
 - assertVisible: Workout History
 - scrollUntilVisible:
     element:
-      text: Exercise progress
+      text: Open performance history for E2E Push-up
     direction: DOWN
 - tapOn: Open performance history for E2E Push-up
 - assertVisible: Personal records

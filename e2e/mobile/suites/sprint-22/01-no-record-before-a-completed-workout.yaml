@@ -11,6 +11,11 @@ name: No personal record before a completed workout
       text: Open Workout History
     direction: DOWN
 - tapOn: Open Workout History
-- assertVisible: No completed workouts yet
+- assertVisible: Workout History
+# The empty state sits below the period controls and the summary card.
+- scrollUntilVisible:
+    element:
+      text: No completed workouts yet
+    direction: DOWN
 - assertNotVisible: Exercise progress
 - assertNotVisible: Personal records
