@@ -104,11 +104,13 @@ export function CompletedWorkoutScreen({
         setId: set.id.value,
       })
       .then(async (outcome) => {
-        if (outcome.status === 'refused') {
-          setError(correctionRefusalMessage(outcome.reason));
-          return;
-        }
-        setError(undefined);
+        // A refusal is reloaded too, because the usual reason one arrives is
+        // that this screen is showing something history no longer holds.
+        setError(
+          outcome.status === 'refused'
+            ? correctionRefusalMessage(outcome.reason)
+            : undefined,
+        );
         await refresh();
       })
       .catch(() => setError(correctionDeleteFailureMessage));
