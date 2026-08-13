@@ -24,6 +24,10 @@ class Sessions implements WorkoutSessionRepository {
     this.current = session;
     return Promise.resolve(session);
   }
+  correctCompleted(session: WorkoutSession) {
+    this.current = session;
+    return Promise.resolve();
+  }
   discard() {
     this.current = null;
     return Promise.resolve(true);

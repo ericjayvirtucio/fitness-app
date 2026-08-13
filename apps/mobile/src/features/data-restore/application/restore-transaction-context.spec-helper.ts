@@ -110,6 +110,7 @@ export function buildRestoreTransactionContext(
     profile: { get: unsupported, save: write('profile') },
     sessions: {
       complete: unsupported,
+      correctCompleted: unsupported,
       discard: unsupported,
       getActive: unsupported,
       getById: unsupported,
