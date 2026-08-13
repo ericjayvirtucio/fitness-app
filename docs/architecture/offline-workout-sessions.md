@@ -16,8 +16,11 @@ a discriminated actual-result union. Mobile application use cases orchestrate
 clocks, UUIDs, repositories, and transactions. Presentation never accesses SQL.
 
 Only active and completed states persist. Completion requires at least one set
-and an end timestamp at or after start. Completed sessions are read-only and feed
-the independent Workout History read capability. A partial unique SQLite index
+and an end timestamp at or after start. A completed session feeds the independent
+Workout History capability and changes only through an explicit user correction of
+a recorded set, described in
+[completed workout correction](completed-workout-correction.md); nothing else may
+rewrite it, and the completion invariant keeps it from being emptied. A partial unique SQLite index
 and application outcome enforce at most one active session.
 
 ## Snapshots and planned versus actual
@@ -59,8 +62,10 @@ explicit order makes both correct without depending on which connection is in
 use. Strict checks encode
 planned and actual unions. A fixed three-query read reconstructs and validates an
 active aggregate. Exercise and set changes replace the small active aggregate;
-completion updates only the parent status and completion timestamp so immutable
-historical children are never deleted or reinserted. Every confirmed mutation is
+completion updates only the parent status and completion timestamp so historical
+children are never deleted or reinserted by finishing a workout. The separate
+`correctCompleted` contract rewrites those children, and only those children, when
+someone corrects a recorded result. Every confirmed mutation is
 a short transaction, so the active workout restores after termination, crash,
 restart, or cold offline launch.
 
@@ -77,7 +82,6 @@ distinctions support gym use and accessibility.
 
 Data remains in the application sandbox. SQL is bound, rows are validated, and
 errors/logs exclude workout details. There is no network, telemetry, AI, or new
-permission. Read-only history and deterministic progress are described in
-[Offline Workout History](offline-workout-history.md). Encryption, completed
-correction, charts, advanced analytics, advanced sets, timers, export, backup,
-and synchronization remain deferred.
+permission. History and deterministic progress are described in
+[Offline Workout History](offline-workout-history.md). Encryption, charts,
+advanced analytics, advanced sets, timers, and synchronization remain deferred.

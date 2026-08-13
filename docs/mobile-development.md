@@ -155,13 +155,26 @@ changes are blocked while referenced. See
 
 ## Offline workout history
 
-Workout History reads completed session snapshots and provides read-only detail,
+Workout History reads completed session snapshots and provides detail,
 captured-local-date Day/Week/Month summaries, bounded pagination, and genuinely
 performed exercise recents. It never derives performance from Planner targets or
 current Catalog definitions. See
 [Workout History architecture](architecture/offline-workout-history.md), the
 [Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md), and
 [troubleshooting guidance](troubleshooting/offline-workout-history.md).
+
+## Completed workout correction
+
+A recorded set inside a completed workout can be deliberately edited, added, or
+deleted from Workout History. The workout keeps its identity, its lifecycle
+instants, and every captured snapshot, and derived records, progress, and export
+recompute from the corrected facts. There is no audit trail: the previous value
+is not retained and nothing claims otherwise. See
+[completed workout correction architecture](architecture/completed-workout-correction.md),
+[ADR 0018](decisions/0018-explicit-completed-workout-correction.md), the
+[Sprint 23 manual checklist](manual-testing/sprint-23-completed-workout-correction.md),
+and
+[troubleshooting guidance](troubleshooting/completed-workout-correction.md).
 
 ## Workout personal records
 
