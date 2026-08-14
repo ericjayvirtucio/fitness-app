@@ -12,6 +12,15 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Exercise Library
 - assertVisible: Exercise Library
+# "Create exercise" is the last control on the screen. It sits near the top only
+# while the library is empty, so this flow — which always runs after a first
+# definition exists — must scroll to it. `create-exercise.yaml` does not, because
+# it runs against the empty state.
+- scrollUntilVisible:
+    element:
+      text: Create exercise
+    direction: DOWN
+    centerElement: true
 - tapOn: Create exercise
 - tapOn:
     id: exercise-name-input
@@ -35,7 +44,13 @@ appId: com.fitnessapp.dev
       text: Save exercise
     direction: DOWN
 - tapOn: Save exercise
-- assertVisible: Edit E2E Squat
+# Saving returns to the library, where the new definition's own edit control can
+# already be below the fold beside the first one.
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Squat
+    direction: DOWN
+    centerElement: true
 - swipe:
     start: 1%, 50%
     end: 90%, 50%

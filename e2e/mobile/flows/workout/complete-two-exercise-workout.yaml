@@ -24,18 +24,40 @@ appId: com.fitnessapp.dev
 - inputText: ${PUSH_UP_REPETITIONS}
 - tapOn: Save Set
 - assertVisible: 'Set 1: ${PUSH_UP_REPETITIONS} reps'
+- scrollUntilVisible:
+    element:
+      text: Add Exercise
+    direction: DOWN
+    centerElement: true
 - tapOn: Add Exercise
+# The picker lists every catalog definition, and the first exercise's card is
+# still above it, so the second definition can sit below the fold.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Squat
+    direction: DOWN
+    centerElement: true
 - tapOn: Add E2E Squat
+- scrollUntilVisible:
+    element:
+      text: Add Set for E2E Squat
+    direction: DOWN
+    centerElement: true
 - tapOn: Add Set for E2E Squat
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: ${SQUAT_REPETITIONS}
 - tapOn: Save Set
-- assertVisible: 'Set 1: ${SQUAT_REPETITIONS} reps'
+- scrollUntilVisible:
+    element:
+      text: 'Set 1: ${SQUAT_REPETITIONS} reps'
+    direction: DOWN
+    centerElement: true
 - scrollUntilVisible:
     element:
       text: Finish Workout
     direction: DOWN
+    centerElement: true
 - tapOn: Finish Workout
 - tapOn:
     text: Finish Workout
