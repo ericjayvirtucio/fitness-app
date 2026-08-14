@@ -25,10 +25,11 @@ export interface WorkoutSessionRepository {
    * so no caller can reach a parent lifecycle column and no renumbering can
    * transiently violate a position constraint.
    *
-   * Two workflows depend on it, both owned by `workout-history`: correcting a
-   * recorded set, and removing one completed session exercise. Which children
-   * the rebuilt aggregate holds is application policy that belongs to those use
-   * cases; this contract validates lifecycle, not intent.
+   * Three workflows depend on it, all owned by `workout-history`: correcting a
+   * recorded set, removing one completed session exercise, and adding one
+   * completed session exercise. Which children the rebuilt aggregate holds is
+   * application policy that belongs to those use cases; this contract validates
+   * lifecycle, not intent.
    */
   correctCompleted(session: WorkoutSession): Promise<void>;
   /**
