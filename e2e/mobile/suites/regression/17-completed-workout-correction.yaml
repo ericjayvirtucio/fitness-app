@@ -15,6 +15,11 @@ name: Completed workout correction
       CORRECTED_REPETITIONS: '10'
       SET_NUMBER: '1'
 - assertVisible: 'Performed set 1: 10 reps'
+# The correction ends on the completed detail, a pushed screen with no tab bar,
+# and the records flow starts from the Workout tab. Relaunch to a known root
+# rather than guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
 - assertVisible: 'Most recorded repetitions in a set, 10 repetitions, .*'
 - assertNotVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'
