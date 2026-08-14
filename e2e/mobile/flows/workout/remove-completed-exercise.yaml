@@ -1,0 +1,22 @@
+appId: com.fitnessapp.dev
+---
+# Removes one exercise from the completed workout that is already open, through
+# the destructive confirmation the product shows. Removal always starts from
+# completed history, never from the active workout screen.
+#
+# EXERCISE_POSITION and EXERCISE_NAME are deliberately required rather than
+# defaulted, because a flow's own `env` block is applied after the caller's
+# `runFlow` env and overrides it.
+- scrollUntilVisible:
+    element:
+      text: 'Remove exercise ${EXERCISE_POSITION}, ${EXERCISE_NAME}, from this workout'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Remove exercise ${EXERCISE_POSITION}, ${EXERCISE_NAME}, from this workout'
+- assertVisible: 'Remove ${EXERCISE_NAME}.*'
+# The alert title ends in a question mark, so this full match reaches the
+# destructive action rather than the title above it.
+- tapOn: Remove Exercise
+- assertVisible:
+    id: completed-workout-screen
+- assertVisible: Exercise removed from this completed workout.

@@ -1,0 +1,38 @@
+appId: com.fitnessapp.dev
+name: Completed session exercise removal
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-two-exercise-workout.yaml
+    env:
+      PUSH_UP_REPETITIONS: '12'
+      SQUAT_REPETITIONS: '100'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 100 reps'
+- runFlow:
+    file: ../../flows/workout/remove-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      EXERCISE_POSITION: '2'
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: E2E Squat
+# The removal ends on the completed detail, a pushed screen with no tab bar, and
+# the reusable flows start from the Workout tab. Relaunch to a known root rather
+# than guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
+# The counts are asserted on Progress, not on the history summary: that summary
+# is a card carrying its own accessibilityLabel, so its numbers never reach the
+# accessibility tree Maestro reads. The workout itself survives, because only
+# its children changed.
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Performed exercises, 1
+    direction: DOWN
+- assertVisible: Completed workouts, 1
+- assertVisible: Repetitions, 12

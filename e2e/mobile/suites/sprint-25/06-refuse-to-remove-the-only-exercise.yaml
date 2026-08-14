@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: Removing the only performing exercise is refused in words
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- scrollUntilVisible:
+    element:
+      text: .*only recorded sets in this workout.*
+    direction: DOWN
+    centerElement: true
+- assertNotVisible: Remove exercise 1, E2E Push-up, from this workout

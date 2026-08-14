@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+name: Cancelling a removal keeps every exercise
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-two-exercise-workout.yaml
+    env:
+      PUSH_UP_REPETITIONS: '12'
+      SQUAT_REPETITIONS: '20'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- scrollUntilVisible:
+    element:
+      text: Remove exercise 2, E2E Squat, from this workout
+    direction: DOWN
+    centerElement: true
+- tapOn: Remove exercise 2, E2E Squat, from this workout
+- assertVisible: Remove E2E Squat.*
+- tapOn: Cancel
+- assertVisible:
+    id: completed-workout-screen
+- assertVisible: 'Performed set 1: 20 reps'
+- assertVisible: 'Performed set 1: 12 reps'

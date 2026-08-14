@@ -1,0 +1,42 @@
+appId: com.fitnessapp.dev
+---
+# Completes one workout holding two exercises with one recorded set each,
+# through the same public screens a person uses. Both repetition counts are
+# parameters so a suite can tell the two exercises apart by their results.
+#
+# PUSH_UP_REPETITIONS and SQUAT_REPETITIONS are deliberately required rather
+# than defaulted, because a flow's own `env` block is applied after the caller's
+# `runFlow` env and overrides it. An unset variable fails loudly instead.
+#
+# The picker lists recently performed exercises first and falls back to the
+# whole catalog only when no completed workout exists yet, so this flow must run
+# as the first completed workout of a scenario for "Add E2E Squat" to be on
+# screen without searching.
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+- tapOn: Add E2E Push-up
+- tapOn: Add Set for E2E Push-up
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: ${PUSH_UP_REPETITIONS}
+- tapOn: Save Set
+- assertVisible: 'Set 1: ${PUSH_UP_REPETITIONS} reps'
+- tapOn: Add Exercise
+- tapOn: Add E2E Squat
+- tapOn: Add Set for E2E Squat
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: ${SQUAT_REPETITIONS}
+- tapOn: Save Set
+- assertVisible: 'Set 1: ${SQUAT_REPETITIONS} reps'
+- scrollUntilVisible:
+    element:
+      text: Finish Workout
+    direction: DOWN
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0
