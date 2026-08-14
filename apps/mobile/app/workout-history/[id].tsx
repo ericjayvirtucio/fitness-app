@@ -16,6 +16,15 @@ export default function CompletedWorkoutRoute() {
           `/workout-history/${sessionId}/correct-set/${exerciseId}/${setId}`,
         )
       }
+      // Replaced rather than pushed, so Back cannot reopen a workout that no
+      // longer exists. The flag carries no identifier and only asks history to
+      // announce what happened.
+      onDeleted={() =>
+        router.replace({
+          params: { deleted: '1' },
+          pathname: '/workout-history',
+        })
+      }
     />
   );
 }

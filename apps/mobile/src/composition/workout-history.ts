@@ -1,5 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { CorrectCompletedWorkoutSetUseCase } from '../features/workout-history/application/correct-completed-workout-set-use-case';
+import { DeleteCompletedWorkoutUseCase } from '../features/workout-history/application/delete-completed-workout-use-case';
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import {
@@ -21,13 +22,16 @@ export async function createWorkoutHistoryUseCases() {
   await initializePersistence();
   const database = await getDatabase();
   const repository = new WorkoutHistorySqliteRepository(database);
+  const sessionWrites = () =>
+    new SqliteTransactionRunner(database, (transaction) => ({
+      sessions: new WorkoutSessionSqliteRepository(transaction),
+    }));
   return Object.freeze({
     correctSet: new CorrectCompletedWorkoutSetUseCase(
-      new SqliteTransactionRunner(database, (transaction) => ({
-        sessions: new WorkoutSessionSqliteRepository(transaction),
-      })),
+      sessionWrites(),
       randomUUID,
     ),
+    deleteCompleted: new DeleteCompletedWorkoutUseCase(sessionWrites()),
     getCompleted: new GetCompletedWorkoutSessionUseCase(repository),
     getPersonalRecords: new GetExercisePersonalRecordsUseCase(
       new WorkoutPersonalRecordsSqliteReader(database),

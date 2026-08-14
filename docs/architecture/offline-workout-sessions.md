@@ -65,7 +65,12 @@ active aggregate. Exercise and set changes replace the small active aggregate;
 completion updates only the parent status and completion timestamp so historical
 children are never deleted or reinserted by finishing a workout. The separate
 `correctCompleted` contract rewrites those children, and only those children, when
-someone corrects a recorded result. Every confirmed mutation is
+someone corrects a recorded result. The separate `deleteCompleted` contract removes
+one completed aggregate outright — sets, then session exercises, then the session —
+and verifies that no owned row survives before it returns; it refuses anything that is
+not completed, so widening `discard` is never needed and completed history stays
+unreachable from active workout screens (see
+[completed workout deletion](completed-workout-deletion.md)). Every confirmed mutation is
 a short transaction, so the active workout restores after termination, crash,
 restart, or cold offline launch.
 

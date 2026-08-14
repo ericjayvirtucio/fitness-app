@@ -46,6 +46,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 21 --platform ios
 ./scripts/qa.sh sprint 22 --platform ios
 ./scripts/qa.sh sprint 23 --platform ios
+./scripts/qa.sh sprint 24 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -81,7 +82,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–21. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–24. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -212,6 +213,19 @@ accessibility tree Maestro reads. The text is on screen and the assertion is
 still false. Assert the card's own label, or assert content that lives outside
 it.
 
+The Workout History summary is the trap's sharpest edge: every derived number it
+shows — completed workouts, actual sets, performed exercises, workout time,
+repetitions, volume — is inside `Workout progress summary` and is therefore
+unassertable. Assert workout counts on the Progress tab, whose values are plain
+text, and prove a specific workout through its own history card label or through
+its completed detail.
+
+**Workout History is taller than one viewport.** The summary card and the period
+controls push "Recent workouts", the completed cards, and the empty state below
+the fold, and off-screen content in a scroll view is absent from the hierarchy
+rather than merely invisible. Scroll to anything below the summary before
+asserting it.
+
 **Dismiss the keyboard before scrolling to a control below a text field.** The
 number pad covers the save action, and a scroll gesture with it open drags
 across the keys and appends digits to the field being edited. `hideKeyboard`
@@ -220,9 +234,15 @@ short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
 
 **Reusable flows that start from a tab cannot follow a pushed screen.** Personal
-records, completed detail, and the correction screens have no tab bar, so a flow
-beginning with `tapOn: id: tab-workout` fails there. Relaunch the app between
-phases to return to a known root rather than guessing at back gestures.
+records, completed detail, the correction screens, and the Workout History a
+deletion returns to have no tab bar, so a flow beginning with
+`tapOn: id: tab-workout` fails there. Relaunch the app between phases to return
+to a known root rather than guessing at back gestures.
+
+**A destructive alert's title contains its action's own words.** "Delete
+Workout?" and the "Delete Workout" button differ by one character, so tap the
+button by its exact text and let Maestro's full-match semantics separate them,
+or assert the title with an explicit `.*` suffix.
 
 ## Results and troubleshooting
 

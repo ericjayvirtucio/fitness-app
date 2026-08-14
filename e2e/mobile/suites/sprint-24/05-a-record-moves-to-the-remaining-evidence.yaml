@@ -1,0 +1,35 @@
+appId: com.fitnessapp.dev
+name: Deleting a record-setting workout moves the record to the next result
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '100'
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'
+# Both reusable flows start from the Workout tab, and personal records sit on a
+# pushed screen that has no tab bar.
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 100 reps'
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 12 repetitions, .*'
+- assertNotVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'
+# The evidence link opens the workout that still proves the claim.
+- tapOn:
+    id: personal-record-card
+- assertVisible: 'Performed set 1: 12 reps'

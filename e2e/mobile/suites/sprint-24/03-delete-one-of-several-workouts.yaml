@@ -1,0 +1,39 @@
+appId: com.fitnessapp.dev
+name: One completed workout is deleted and every other one survives
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '34'
+# The history list orders the most recent workout first, so the card the flow
+# opens is the one recorded last.
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 34 reps'
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+# The deletion ends on Workout History, a pushed screen with no tab bar, and the
+# reusable flow starts from the Workout tab. Relaunch to a known root rather
+# than guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
+# The count is asserted on Progress, not on the history summary: that summary is
+# a card carrying its own accessibilityLabel, so its numbers never reach the
+# accessibility tree Maestro reads.
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Completed workouts, 1
+    direction: DOWN
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: 'Performed set 1: 34 reps'

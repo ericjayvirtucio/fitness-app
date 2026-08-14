@@ -176,6 +176,21 @@ is not retained and nothing claims otherwise. See
 and
 [troubleshooting guidance](troubleshooting/completed-workout-correction.md).
 
+## Completed workout deletion
+
+One completed workout can be deleted from its own detail screen after a
+destructive confirmation. The deletion removes that workout with every session
+exercise and actual set it owns, child-first, inside one exclusive transaction
+that verifies no owned row survives before it commits, and it touches nothing
+else. History, progress, personal records, per-exercise history, and export
+recompute from the workouts that remain. There is no undo, trash, audit trail,
+or tombstone: the workout is gone and nothing claims otherwise. See
+[completed workout deletion architecture](architecture/completed-workout-deletion.md),
+[ADR 0019](decisions/0019-deliberate-completed-workout-deletion.md), the
+[Sprint 24 manual checklist](manual-testing/sprint-24-completed-workout-deletion.md),
+and
+[troubleshooting guidance](troubleshooting/completed-workout-deletion.md).
+
 ## Workout personal records
 
 Opening a performed exercise from Workout History shows its best recorded

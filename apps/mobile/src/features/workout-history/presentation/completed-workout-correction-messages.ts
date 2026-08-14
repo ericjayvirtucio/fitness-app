@@ -29,7 +29,7 @@ export const correctionDeleteFailureMessage =
   'The recorded set could not be deleted. Nothing was changed.';
 
 export const blockedDeletionExplanation =
-  'This is the only recorded set in this workout. A completed workout keeps at least one recorded set, so it cannot be deleted.';
+  'This is the only recorded set in this workout. A completed workout keeps at least one recorded set, so delete the whole workout instead.';
 
 export function correctionRefusalMessage(
   reason: CompletedSetCorrectionRefusal,

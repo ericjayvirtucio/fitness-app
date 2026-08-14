@@ -1,0 +1,48 @@
+appId: com.fitnessapp.dev
+name: Progress recomputes from the workouts that remain
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '34'
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Completed workouts, 2
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: Repetitions, 46
+    direction: DOWN
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 34 reps'
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+# Nothing derived is stored, so the next read of Progress is the new truth.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Completed workouts, 1
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: Actual sets, 1
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: Repetitions, 12
+    direction: DOWN
+- assertNotVisible: Completed workouts, 2

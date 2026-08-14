@@ -12,7 +12,10 @@ import {
   PersistenceError,
   toPersistenceError,
 } from '../../../infrastructure/persistence/persistence-error';
-import type { WorkoutSessionRepository } from '../application/workout-session-repository';
+import type {
+  CompletedWorkoutLifecycle,
+  WorkoutSessionRepository,
+} from '../application/workout-session-repository';
 import {
   mapSession,
   type ExerciseRow,
@@ -131,6 +134,42 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
     }
   }
 
+  async deleteCompleted(
+    id: DomainId,
+    expected: CompletedWorkoutLifecycle,
+  ): Promise<void> {
+    try {
+      const stored = await this.database.getFirst<LifecycleRow>(
+        `SELECT started_at_epoch_ms, completed_at_epoch_ms
+         FROM workout_session WHERE id = ? AND status = ?`,
+        [id.value, 'completed'],
+      );
+      if (
+        stored === null ||
+        stored.started_at_epoch_ms !== expected.startedAtEpochMilliseconds ||
+        stored.completed_at_epoch_ms !== expected.completedAtEpochMilliseconds
+      )
+        throw new PersistenceError('operation-failed');
+      // Held before the children go, because once the parent is deleted an
+      // orphaned set can no longer be found by joining back to the session.
+      const owned = await this.database.getAll<{ id: string }>(
+        'SELECT id FROM workout_session_exercise WHERE workout_session_id = ?',
+        [id.value],
+      );
+      await this.deleteChildren(id.value);
+      await this.database.run(
+        'DELETE FROM workout_session WHERE id = ? AND status = ?',
+        [id.value, 'completed'],
+      );
+      await this.assertDeleted(
+        id.value,
+        owned.map((row) => row.id),
+      );
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
   async discard(id: DomainId): Promise<boolean> {
     try {
       const existing = await this.database.getFirst<{ id: string }>(
@@ -192,6 +231,37 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
       'DELETE FROM workout_session_exercise WHERE workout_session_id = ?',
       [sessionId],
     );
+  }
+
+  /**
+   * Refuses to report a deletion the database did not actually perform, so a
+   * surviving parent or an orphaned child aborts the caller's transaction
+   * instead of leaving rows no read path can see.
+   */
+  private async assertDeleted(
+    sessionId: string,
+    exerciseIds: readonly string[],
+  ): Promise<void> {
+    const parent = await this.database.getFirst<{ id: string }>(
+      'SELECT id FROM workout_session WHERE id = ?',
+      [sessionId],
+    );
+    if (parent !== null) throw new PersistenceError('operation-failed');
+    const remainingExercises = await this.database.getFirst<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM workout_session_exercise
+       WHERE workout_session_id = ?`,
+      [sessionId],
+    );
+    if (remainingExercises === null || remainingExercises.count !== 0)
+      throw new PersistenceError('operation-failed');
+    if (exerciseIds.length === 0) return;
+    const remainingSets = await this.database.getFirst<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM workout_set
+       WHERE workout_session_exercise_id IN (${exerciseIds.map(() => '?').join(', ')})`,
+      exerciseIds,
+    );
+    if (remainingSets === null || remainingSets.count !== 0)
+      throw new PersistenceError('operation-failed');
   }
 
   private async insertChildren(session: WorkoutSession): Promise<void> {

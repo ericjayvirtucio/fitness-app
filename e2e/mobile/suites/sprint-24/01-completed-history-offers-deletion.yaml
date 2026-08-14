@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: Completed history offers deletion in words and stays historical
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- scrollUntilVisible:
+    element:
+      text: Delete this workout
+    direction: DOWN
+- assertVisible: Delete this workout
+- assertVisible: '.*Progress and personal records may change.*cannot be undone.*'
+# Deletion is named, never hidden behind a cleanup, archive, or reset word.
+- assertNotVisible: Clean Up
+- assertNotVisible: Archive Workout
+- assertNotVisible: Hide Workout
+# History stays visibly historical: none of the controls that drive an active
+# workout may appear on a completed one.
+- assertNotVisible: Finish Workout
+- assertNotVisible: Discard Workout
+- assertNotVisible: Add Exercise
+# The last recorded set now points at whole-workout deletion instead of ending
+# the conversation.
+- assertVisible: '.*delete the whole workout instead.*'

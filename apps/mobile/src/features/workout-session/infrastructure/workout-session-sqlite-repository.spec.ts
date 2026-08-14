@@ -16,23 +16,28 @@ class FakeDatabase implements DatabaseConnection {
   allResults: (readonly unknown[])[] = [];
   firstResults: unknown[] = [];
   runs: { parameters: DatabaseParameters; statement: string }[] = [];
+  /** Reads and writes in the order they were issued. */
+  log: string[] = [];
   exec() {
     return Promise.resolve();
   }
   getVersion() {
     return Promise.resolve(9);
   }
-  getFirst<TResult>() {
+  getFirst<TResult>(statement: string) {
+    this.log.push(statement);
     return Promise.resolve(
       (this.firstResults.shift() ?? null) as TResult | null,
     );
   }
-  getAll<TResult>() {
+  getAll<TResult>(statement: string) {
+    this.log.push(statement);
     return Promise.resolve(
       (this.allResults.shift() ?? []) as readonly TResult[],
     );
   }
   run(statement: string, parameters: DatabaseParameters = []) {
+    this.log.push(statement);
     this.runs.push({ parameters, statement });
     return Promise.resolve();
   }
@@ -97,6 +102,30 @@ function completedSession() {
   });
   if (!result.isSuccess) throw new Error('Invalid fixture');
   return result.value;
+}
+
+const storedLifecycle = {
+  completedAtEpochMilliseconds: completedAt,
+  startedAtEpochMilliseconds: 1_700_000_000_000,
+};
+
+/**
+ * A database that answers the deletion's four reads in order: the stored
+ * lifecycle, then the absent parent, then the two zero survivor counts.
+ */
+function deletableDatabase() {
+  const database = new FakeDatabase();
+  database.firstResults = [
+    {
+      completed_at_epoch_ms: completedAt,
+      started_at_epoch_ms: 1_700_000_000_000,
+    },
+    null,
+    { count: 0 },
+    { count: 0 },
+  ];
+  database.allResults = [[{ id: exerciseId }]];
+  return database;
 }
 
 describe('WorkoutSessionSqliteRepository', () => {
@@ -281,5 +310,101 @@ describe('WorkoutSessionSqliteRepository', () => {
       new WorkoutSessionSqliteRepository(database).correctCompleted(session()),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
+  });
+
+  it('deletes a completed workout child-first and binds every identifier', async () => {
+    const database = deletableDatabase();
+
+    await new WorkoutSessionSqliteRepository(database).deleteCompleted(
+      id(sessionId),
+      storedLifecycle,
+    );
+
+    expect(database.runs).toHaveLength(3);
+    expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
+    expect(database.runs[1]?.statement).toContain(
+      'DELETE FROM workout_session_exercise',
+    );
+    expect(database.runs[2]?.statement).toContain(
+      'DELETE FROM workout_session WHERE id = ? AND status = ?',
+    );
+    expect(database.runs.map((entry) => entry.parameters)).toEqual([
+      [sessionId],
+      [sessionId],
+      [sessionId, 'completed'],
+    ]);
+  });
+
+  it('refuses to delete a session that is not completed', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [null];
+
+    await expect(
+      new WorkoutSessionSqliteRepository(database).deleteCompleted(
+        id(sessionId),
+        storedLifecycle,
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+    expect(database.runs).toHaveLength(0);
+  });
+
+  it('refuses to delete a session whose lifecycle instants moved', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [
+      {
+        completed_at_epoch_ms: completedAt + 1,
+        started_at_epoch_ms: 1_700_000_000_000,
+      },
+    ];
+
+    await expect(
+      new WorkoutSessionSqliteRepository(database).deleteCompleted(
+        id(sessionId),
+        storedLifecycle,
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+    expect(database.runs).toHaveLength(0);
+  });
+
+  it('refuses to report a deletion that left the session row behind', async () => {
+    const database = deletableDatabase();
+    database.firstResults[1] = { id: sessionId };
+
+    await expect(
+      new WorkoutSessionSqliteRepository(database).deleteCompleted(
+        id(sessionId),
+        storedLifecycle,
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+  });
+
+  it('refuses to report a deletion that left an orphaned set behind', async () => {
+    const database = deletableDatabase();
+    database.firstResults[3] = { count: 1 };
+
+    await expect(
+      new WorkoutSessionSqliteRepository(database).deleteCompleted(
+        id(sessionId),
+        storedLifecycle,
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+  });
+
+  it('reads the owned exercises before deleting them so orphans stay findable', async () => {
+    const database = deletableDatabase();
+
+    await new WorkoutSessionSqliteRepository(database).deleteCompleted(
+      id(sessionId),
+      storedLifecycle,
+    );
+
+    const selected = database.log.findIndex((statement) =>
+      statement.includes('SELECT id FROM workout_session_exercise'),
+    );
+    const deleted = database.log.findIndex((statement) =>
+      statement.includes('DELETE FROM workout_session_exercise'),
+    );
+    expect(selected).toBeGreaterThanOrEqual(0);
+    expect(selected).toBeLessThan(deleted);
   });
 });

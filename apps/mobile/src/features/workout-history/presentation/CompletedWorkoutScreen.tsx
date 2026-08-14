@@ -14,6 +14,7 @@ import {
   Card,
   LoadingIndicator,
   Screen,
+  SectionHeader,
   spacing,
 } from '../../../design-system';
 import {
@@ -22,11 +23,19 @@ import {
   formatWorkoutResult,
 } from '../../workout-session/presentation/workout-result-formatting';
 import { fingerprintRecordedSet } from '../application/correct-completed-workout-set-use-case';
+import { completedWorkoutLifecycle } from '../application/delete-completed-workout-use-case';
 import {
   blockedDeletionExplanation,
   correctionDeleteFailureMessage,
   correctionRefusalMessage,
 } from './completed-workout-correction-messages';
+import {
+  completedWorkoutDeletionRefusalMessage,
+  deletionConfirmationBody,
+  deletionExplanation,
+  deletionFailureMessage,
+} from './completed-workout-deletion-messages';
+import { formatCapturedDate } from './workout-history-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
 
@@ -36,17 +45,20 @@ export function CompletedWorkoutScreen({
   onAddSet,
   onClose,
   onCorrectSet,
+  onDeleted,
 }: Readonly<{
   id: string;
   loadUseCases?: () => Promise<UseCases>;
   onAddSet?: (exerciseId: string) => void;
   onClose: () => void;
   onCorrectSet?: (exerciseId: string, setId: string) => void;
+  onDeleted?: () => void;
 }>) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [session, setSession] = useState<WorkoutSession | null>();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [error, setError] = useState<string>();
+  const [isDeleting, setIsDeleting] = useState(false);
   const load = useCallback(() => {
     void loadUseCases()
       .then(async (loaded) => {
@@ -114,6 +126,29 @@ export function CompletedWorkoutScreen({
         await refresh();
       })
       .catch(() => setError(correctionDeleteFailureMessage));
+  };
+
+  const deleteWorkout = () => {
+    const lifecycle = completedWorkoutLifecycle(session);
+    if (!useCases || lifecycle === null || isDeleting) return;
+    setIsDeleting(true);
+    void useCases.deleteCompleted
+      .execute({ expected: lifecycle, sessionId: session.id.value })
+      .then(async (outcome) => {
+        if (outcome.status === 'deleted') {
+          onDeleted?.();
+          return;
+        }
+        // A refusal usually means this screen is showing something history no
+        // longer holds, so the detail is reloaded rather than left stale.
+        setIsDeleting(false);
+        setError(completedWorkoutDeletionRefusalMessage(outcome.reason));
+        await refresh();
+      })
+      .catch(() => {
+        setIsDeleting(false);
+        setError(deletionFailureMessage);
+      });
   };
 
   return (
@@ -207,6 +242,29 @@ export function CompletedWorkoutScreen({
           ) : null}
         </Card>
       ))}
+      {onDeleted ? (
+        <View style={styles.deletion}>
+          <SectionHeader title="Delete this workout" />
+          <AppText color="secondary">{deletionExplanation}</AppText>
+          <AppButton
+            accessibilityLabel={`Delete this workout, ${session.name}, ${formatCapturedDate(session.startedLocalCalendarDate)}`}
+            disabled={isDeleting}
+            label="Delete This Workout"
+            onPress={() =>
+              Alert.alert(`Delete ${session.name}?`, deletionConfirmationBody, [
+                { style: 'cancel', text: 'Cancel' },
+                {
+                  onPress: deleteWorkout,
+                  style: 'destructive',
+                  text: 'Delete Workout',
+                },
+              ])
+            }
+            testID="delete-completed-workout"
+            variant="danger"
+          />
+        </View>
+      ) : null}
       {error ? (
         <AppText accessibilityLiveRegion="polite" color="danger">
           {error}
@@ -218,6 +276,9 @@ export function CompletedWorkoutScreen({
 }
 
 const styles = StyleSheet.create({
+  deletion: {
+    gap: spacing.sm,
+  },
   setRow: {
     alignItems: 'center',
     flexDirection: 'row',

@@ -74,6 +74,7 @@ function createContext(
     workoutSessions: {
       complete: () => Promise.reject(new Error('unused')),
       correctCompleted: () => Promise.resolve(),
+      deleteCompleted: () => Promise.resolve(),
       discard: () => Promise.resolve(false),
       getActive: () => Promise.resolve(null),
       getById: () => Promise.resolve(null),

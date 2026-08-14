@@ -25,6 +25,7 @@ import {
   moveWorkoutHistoryPeriod,
   type WorkoutHistoryPeriod,
 } from './workout-history-period';
+import { deletionConfirmedMessage } from './completed-workout-deletion-messages';
 import {
   formatCapturedDate,
   formatRecordedDistance,
@@ -42,10 +43,12 @@ type ReadyState = Readonly<{
 }>;
 
 export function WorkoutHistoryScreen({
+  hasDeletedWorkout = false,
   loadUseCases = createWorkoutHistoryUseCases,
   onOpenSession,
   onOpenExercise,
 }: Readonly<{
+  hasDeletedWorkout?: boolean;
   loadUseCases?: () => Promise<UseCases>;
   onOpenSession: (id: string) => void;
   onOpenExercise: (id: string) => void;
@@ -135,6 +138,11 @@ export function WorkoutHistoryScreen({
         <AppText color="secondary">
           Completed workouts and performed results saved on this device.
         </AppText>
+        {hasDeletedWorkout ? (
+          <AppText accessibilityLiveRegion="polite">
+            {deletionConfirmedMessage}
+          </AppText>
+        ) : null}
       </View>
       <SelectionField
         label="Summary period"

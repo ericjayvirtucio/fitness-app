@@ -111,6 +111,7 @@ export function buildRestoreTransactionContext(
     sessions: {
       complete: unsupported,
       correctCompleted: unsupported,
+      deleteCompleted: unsupported,
       discard: unsupported,
       getActive: unsupported,
       getById: unsupported,

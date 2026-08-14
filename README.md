@@ -16,7 +16,9 @@ also provides bounded completed Workout History, snapshot detail, deterministic
 Day/Week/Month progress summaries, per-exercise history, and deterministic
 personal records for a performed exercise, each linked to the completed workout
 that proves it. A recorded set inside a completed workout can be deliberately
-corrected, added, or deleted, so one mistyped entry is no longer permanent. The Profile area records historical body
+corrected, added, or deleted, so one mistyped entry is no longer permanent, and one
+completed workout recorded entirely by mistake can be deleted on its own instead of
+erasing everything. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and

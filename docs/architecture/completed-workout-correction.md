@@ -157,7 +157,8 @@ currently recorded, and the editable fields, and states plainly that correction
 changes what was recorded, that records and progress may change, that the workout
 stays completed, and that captured exercise and plan context are unchanged.
 Saving is explicit; deleting is confirmed; deletion that would empty the workout
-is refused in words.
+is refused in words that point at
+[deleting the whole workout](completed-workout-deletion.md) instead.
 
 Controls carry full accessible labels naming the set and the captured exercise.
 Units are spoken as words, validation errors are associated with their field and
