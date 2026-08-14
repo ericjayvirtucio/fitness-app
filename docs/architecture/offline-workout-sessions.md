@@ -19,8 +19,11 @@ Only active and completed states persist. Completion requires at least one set
 and an end timestamp at or after start. A completed session feeds the independent
 Workout History capability and changes only through an explicit user correction of
 a recorded set, described in
-[completed workout correction](completed-workout-correction.md); nothing else may
-rewrite it, and the completion invariant keeps it from being emptied. A partial unique SQLite index
+[completed workout correction](completed-workout-correction.md), or an explicit
+removal of one session exercise, described in
+[completed session exercise removal](completed-session-exercise-removal.md);
+nothing else may rewrite it, and the completion invariant keeps it from being
+emptied by either. A partial unique SQLite index
 and application outcome enforce at most one active session.
 
 ## Snapshots and planned versus actual
@@ -64,8 +67,10 @@ planned and actual unions. A fixed three-query read reconstructs and validates a
 active aggregate. Exercise and set changes replace the small active aggregate;
 completion updates only the parent status and completion timestamp so historical
 children are never deleted or reinserted by finishing a workout. The separate
-`correctCompleted` contract rewrites those children, and only those children, when
-someone corrects a recorded result. The separate `deleteCompleted` contract removes
+`correctCompleted` contract rewrites the complete child set of a completed workout,
+and only those children, under a verified unchanged parent lifecycle. Two
+`workout-history` workflows depend on that guarantee: correcting a recorded set,
+and removing one session exercise with the sets it owns. The separate `deleteCompleted` contract removes
 one completed aggregate outright — sets, then session exercises, then the session —
 and verifies that no owned row survives before it returns; it refuses anything that is
 not completed, so widening `discard` is never needed and completed history stays

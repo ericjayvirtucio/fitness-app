@@ -25,6 +25,14 @@ import {
 import { fingerprintRecordedSet } from '../application/correct-completed-workout-set-use-case';
 import { completedWorkoutLifecycle } from '../application/delete-completed-workout-use-case';
 import {
+  blockedRemovalExplanation,
+  completedExerciseRemovalRefusalMessage,
+  emptyExerciseExplanation,
+  removalConfirmationBody,
+  removalConfirmedMessage,
+  removalFailureMessage,
+} from './completed-exercise-removal-messages';
+import {
   blockedDeletionExplanation,
   correctionDeleteFailureMessage,
   correctionRefusalMessage,
@@ -58,7 +66,9 @@ export function CompletedWorkoutScreen({
   const [session, setSession] = useState<WorkoutSession | null>();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [error, setError] = useState<string>();
+  const [notice, setNotice] = useState<string>();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const load = useCallback(() => {
     void loadUseCases()
       .then(async (loaded) => {
@@ -108,6 +118,9 @@ export function CompletedWorkoutScreen({
 
   const deleteSet = (exercise: WorkoutSessionExercise, set: WorkoutSet) => {
     if (!useCases) return;
+    // A later action clears an earlier confirmation, so no announcement can
+    // describe something the person did before this one.
+    setNotice(undefined);
     void useCases.correctSet
       .deleteSet({
         exerciseId: exercise.id.value,
@@ -128,10 +141,42 @@ export function CompletedWorkoutScreen({
       .catch(() => setError(correctionDeleteFailureMessage));
   };
 
+  const removeExercise = (exercise: WorkoutSessionExercise) => {
+    const lifecycle = completedWorkoutLifecycle(session);
+    if (!useCases || lifecycle === null || isRemoving) return;
+    setIsRemoving(true);
+    void useCases.removeCompletedExercise
+      .execute({
+        exerciseId: exercise.id.value,
+        expected: lifecycle,
+        sessionId: session.id.value,
+      })
+      .then(async (outcome) => {
+        setIsRemoving(false);
+        // A refusal is reloaded too, because the usual reason one arrives is
+        // that this screen is showing something history no longer holds.
+        setNotice(
+          outcome.status === 'removed' ? removalConfirmedMessage : undefined,
+        );
+        setError(
+          outcome.status === 'refused'
+            ? completedExerciseRemovalRefusalMessage(outcome.reason)
+            : undefined,
+        );
+        await refresh();
+      })
+      .catch(() => {
+        setIsRemoving(false);
+        setNotice(undefined);
+        setError(removalFailureMessage);
+      });
+  };
+
   const deleteWorkout = () => {
     const lifecycle = completedWorkoutLifecycle(session);
     if (!useCases || lifecycle === null || isDeleting) return;
     setIsDeleting(true);
+    setNotice(undefined);
     void useCases.deleteCompleted
       .execute({ expected: lifecycle, sessionId: session.id.value })
       .then(async (outcome) => {
@@ -186,7 +231,10 @@ export function CompletedWorkoutScreen({
             </AppText>
           ) : null}
           {exercise.sets.length === 0 ? (
-            <AppText color="secondary">No actual sets recorded</AppText>
+            <>
+              <AppText color="secondary">No actual sets recorded</AppText>
+              <AppText color="secondary">{emptyExerciseExplanation}</AppText>
+            </>
           ) : (
             exercise.sets.map((set) => (
               <View key={set.id.value} style={styles.setRow}>
@@ -240,6 +288,30 @@ export function CompletedWorkoutScreen({
               variant="outline"
             />
           ) : null}
+          {actualSetCount - exercise.sets.length === 0 ? (
+            <AppText color="secondary">{blockedRemovalExplanation}</AppText>
+          ) : (
+            <AppButton
+              accessibilityLabel={`Remove exercise ${exercise.position + 1}, ${exercise.exerciseNameSnapshot}, from this workout`}
+              disabled={isRemoving}
+              label="Remove This Exercise"
+              onPress={() =>
+                Alert.alert(
+                  `Remove ${exercise.exerciseNameSnapshot}?`,
+                  removalConfirmationBody(exercise.sets.length),
+                  [
+                    { style: 'cancel', text: 'Cancel' },
+                    {
+                      onPress: () => removeExercise(exercise),
+                      style: 'destructive',
+                      text: 'Remove Exercise',
+                    },
+                  ],
+                )
+              }
+              variant="danger"
+            />
+          )}
         </Card>
       ))}
       {onDeleted ? (
@@ -268,6 +340,11 @@ export function CompletedWorkoutScreen({
       {error ? (
         <AppText accessibilityLiveRegion="polite" color="danger">
           {error}
+        </AppText>
+      ) : null}
+      {notice ? (
+        <AppText accessibilityLiveRegion="polite" color="secondary">
+          {notice}
         </AppText>
       ) : null}
       <AppButton label="Back to History" onPress={onClose} variant="outline" />

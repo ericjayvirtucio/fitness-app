@@ -16,13 +16,19 @@ export type CompletedWorkoutLifecycle = Readonly<{
 export interface WorkoutSessionRepository {
   complete(session: WorkoutSession): Promise<WorkoutSession>;
   /**
-   * Writes an explicitly corrected completed aggregate.
+   * Rewrites the complete child set of a completed aggregate.
    *
    * Deliberately separate from `replace`, which rewrites the parent name,
-   * status, and completion timestamp. A correction changes recorded results
-   * only, so this contract confirms the stored workout is still completed with
-   * the same start and completion instants and then rewrites child rows alone.
-   * No correction path can reach a parent lifecycle column.
+   * status, and completion timestamp. This contract confirms the stored workout
+   * is still completed with the same start and completion instants and then
+   * rewrites child rows alone, deleting every one of them before inserting any,
+   * so no caller can reach a parent lifecycle column and no renumbering can
+   * transiently violate a position constraint.
+   *
+   * Two workflows depend on it, both owned by `workout-history`: correcting a
+   * recorded set, and removing one completed session exercise. Which children
+   * the rebuilt aggregate holds is application policy that belongs to those use
+   * cases; this contract validates lifecycle, not intent.
    */
   correctCompleted(session: WorkoutSession): Promise<void>;
   /**

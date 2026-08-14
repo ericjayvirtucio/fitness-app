@@ -1,6 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { CorrectCompletedWorkoutSetUseCase } from '../features/workout-history/application/correct-completed-workout-set-use-case';
 import { DeleteCompletedWorkoutUseCase } from '../features/workout-history/application/delete-completed-workout-use-case';
+import { RemoveCompletedWorkoutExerciseUseCase } from '../features/workout-history/application/remove-completed-workout-exercise-use-case';
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import {
@@ -47,6 +48,9 @@ export async function createWorkoutHistoryUseCases() {
     listPerformedExercises: new ListPerformedExercisesUseCase(repository),
     listRecentExerciseIds: new ListRecentlyPerformedExerciseIdsUseCase(
       repository,
+    ),
+    removeCompletedExercise: new RemoveCompletedWorkoutExerciseUseCase(
+      sessionWrites(),
     ),
   });
 }

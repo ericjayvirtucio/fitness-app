@@ -27,7 +27,10 @@ presentation issues no SQL.
 
 ## What a correction may change
 
-Only the actual set results of an existing completed session exercise.
+Only the actual set results of an existing completed session exercise. Removing
+a whole session exercise is a separate workflow with its own use case and its own
+confirmation; see
+[completed session exercise removal](completed-session-exercise-removal.md).
 
 Unchanged by construction: the session identifier, name, status, start instant,
 completion instant, captured local calendar date, captured UTC offset, source
@@ -74,6 +77,13 @@ the same start and completion instants, and then rewrites only child rows. The
 active-only lifecycle guard on ordinary session mutation is untouched, `replace`
 keeps its single active-session caller, and active-workout screens cannot reach
 completed records.
+
+The contract's guarantee is mechanical rather than product-shaped: it rewrites
+the complete child set of a completed workout under a verified unchanged parent
+lifecycle. Completed session exercise removal depends on the same guarantee, so
+the method has two callers whose product intents differ while their write is
+identical. Which children the rebuilt aggregate holds stays application policy
+inside each `workout-history` use case.
 
 ## Transaction shape
 
@@ -139,7 +149,9 @@ Progress recomputes actual set counts, repetitions, duration, distance, eligible
 recorded load volume, performed exercise counts, and the per-day breakdown. The
 completed workout count and elapsed workout time do not change, because only
 children were corrected. Deleting every set of one exercise truthfully removes
-that exercise from performed counts while its planned context stays visible.
+that exercise from performed counts while its planned context stays visible, and
+that exercise can then be
+[removed from the workout](completed-session-exercise-removal.md).
 
 Export carries corrected values in format version 1 with no contract change,
 restore parses a corrected export unchanged, replacement restores it atomically,
@@ -150,7 +162,9 @@ and erasure removes corrected history like any other.
 Each recorded set on the completed workout screen offers "Correct recorded set"
 and "Delete recorded set"; each exercise offers "Add missing set". Editing and
 adding open a dedicated screen so the completed detail stays visibly historical,
-without a finish, discard, add-exercise, or remove-exercise control.
+without a finish, discard, add-exercise, or reorder control. The one removal
+control it does carry acts on a completed session exercise, never on an active
+workout.
 
 The correction screen separates the planned target as captured, the result as
 currently recorded, and the editable fields, and states plainly that correction

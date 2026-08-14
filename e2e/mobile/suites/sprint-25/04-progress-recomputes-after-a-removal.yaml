@@ -1,0 +1,35 @@
+appId: com.fitnessapp.dev
+name: Progress recomputes from the remaining exercises
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-two-exercise-workout.yaml
+    env:
+      PUSH_UP_REPETITIONS: '12'
+      SQUAT_REPETITIONS: '20'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- runFlow:
+    file: ../../flows/workout/remove-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      EXERCISE_POSITION: '2'
+# The completed detail is a pushed screen with no tab bar. Relaunch to a known
+# root rather than guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
+# The counts are asserted on Progress, not on the history summary: that summary
+# is a card carrying its own accessibilityLabel, so its numbers never reach the
+# accessibility tree Maestro reads.
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Performed exercises, 1
+    direction: DOWN
+- assertVisible: Actual sets, 1
+- assertVisible: Repetitions, 12
+# Only children changed, so the workout itself still counts.
+- assertVisible: Completed workouts, 1

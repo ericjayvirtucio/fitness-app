@@ -47,6 +47,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 22 --platform ios
 ./scripts/qa.sh sprint 23 --platform ios
 ./scripts/qa.sh sprint 24 --platform ios
+./scripts/qa.sh sprint 25 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -82,7 +83,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–24. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–25. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -143,6 +144,25 @@ together with the parser, orchestration, and real-SQLite tests in
 `apps/mobile`. The same rule applies: no hidden replacement route, no database
 fixture, no production seeder, and no test-only bypass is added to close that
 gap.
+
+Completed exercise removal needs a workout holding two distinguishable
+exercises, so `flows/exercise/create-alternate-exercise.yaml` adds a second
+definition beside "E2E Push-up" and
+`flows/workout/complete-two-exercise-workout.yaml` records one set in each.
+`create-exercise.yaml` hard-codes its name and is composed by most suites, so a
+second definition costs less than parameterising a flow every other suite calls.
+
+A completed workout holding two exercises is taller than one viewport, so its
+recorded sets, its removal controls, and its whole-workout deletion section move
+below the fold as soon as a second exercise exists. Scroll — `UP` as well as
+`DOWN` — before asserting anything on that screen, and remember that a cancelled
+confirmation leaves the detail wherever the previous scroll left it.
+
+The exercise picker inside an active workout lists recently performed exercises
+first and falls back to the whole catalog only while no completed workout
+exists. A two-exercise workout must therefore be the first completed workout of
+a scenario, or the second exercise is absent from the list and only reachable by
+searching. Every Sprint 25 scenario records it first for that reason.
 
 Personal-record flows are fully automatable, because a record is derived from
 history the suite creates itself through public screens. One parameterized flow,
@@ -238,6 +258,11 @@ records, completed detail, the correction screens, and the Workout History a
 deletion returns to have no tab bar, so a flow beginning with
 `tapOn: id: tab-workout` fails there. Relaunch the app between phases to return
 to a known root rather than guessing at back gestures.
+
+**Workout History cards are indistinguishable by label.** Every synthetic
+workout is named "Workout", so a scenario that must open an older one selects
+`completed-workout-card` by index after scrolling the list into view. Index 0 is
+the most recent workout.
 
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the

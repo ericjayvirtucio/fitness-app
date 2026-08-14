@@ -1,0 +1,59 @@
+appId: com.fitnessapp.dev
+---
+# Creates a second catalog definition, so a workout can hold two distinguishable
+# exercises and a removal can name the one it removes. `create-exercise.yaml`
+# hard-codes "E2E Push-up" and is composed by most suites, so this flow adds a
+# definition beside it rather than parameterising a flow every other suite calls.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+# "Create exercise" is the last control on the screen. It sits near the top only
+# while the library is empty, so this flow — which always runs after a first
+# definition exists — must scroll to it. `create-exercise.yaml` does not, because
+# it runs against the empty state.
+- scrollUntilVisible:
+    element:
+      text: Create exercise
+    direction: DOWN
+    centerElement: true
+- tapOn: Create exercise
+- tapOn:
+    id: exercise-name-input
+- inputText: E2E Squat
+# A short drag dismisses the keyboard, because the screen uses
+# keyboardDismissMode="on-drag". Without it the keyboard covers the equipment
+# options on a shorter device and the tap lands on a keyboard key, which is then
+# appended to the name field that still has focus.
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- tapOn: Bodyweight
+- tapOn: Quadriceps
+- scrollUntilVisible:
+    element:
+      text: Bodyweight + reps
+    direction: DOWN
+- tapOn: Bodyweight + reps
+- scrollUntilVisible:
+    element:
+      text: Save exercise
+    direction: DOWN
+- tapOn: Save exercise
+# Saving returns to the library, where the new definition's own edit control can
+# already be below the fold beside the first one.
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Squat
+    direction: DOWN
+    centerElement: true
+- swipe:
+    start: 1%, 50%
+    end: 90%, 50%
+    duration: 500
+- assertVisible:
+    id: tab-workout

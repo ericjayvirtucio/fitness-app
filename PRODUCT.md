@@ -68,6 +68,15 @@ that workout and the sets it recorded, leaves everything else exactly as it was,
 and cannot be undone. Erasing everything stopped being the only way to remove one
 false workout.
 
+Correction could empty an exercise but never remove it, so an exercise added by
+mistake, logged twice, or belonging to somebody else on a shared device left only
+bad choices: an empty exercise that still showed its planned target, or deleting a
+whole workout containing correct work. One completed exercise can now be removed
+on its own, after a confirmation that names it and says how much recorded work
+goes with it. The rest of the workout is kept, the surviving exercises keep their
+identity and order, and a removal that would leave a workout with nothing recorded
+is refused in words that point at deleting the workout instead.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy
@@ -87,6 +96,7 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Maintainability:** feature-first modules, strict types, pure domain rules, tests, and durable decisions reduce change risk.
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
 - **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action, and
-  correct a recorded set inside a completed workout, or delete one completed
-  workout, instead of losing everything to fix one mistake.
+  correct a recorded set inside a completed workout, remove one exercise from it,
+  or delete one completed workout, instead of losing everything to fix one
+  mistake.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.

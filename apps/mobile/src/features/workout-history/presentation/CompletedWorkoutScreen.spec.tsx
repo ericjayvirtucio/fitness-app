@@ -33,6 +33,9 @@ const uuids = [
   '550e8400-e29b-41d4-a716-446655440002',
   '550e8400-e29b-41d4-a716-446655440003',
   '550e8400-e29b-41d4-a716-446655440004',
+  '550e8400-e29b-41d4-a716-446655440005',
+  '550e8400-e29b-41d4-a716-446655440006',
+  '550e8400-e29b-41d4-a716-446655440007',
 ];
 
 function requiredId(index: number) {
@@ -47,22 +50,36 @@ function recordedSet(index: number, position: number, result: WorkoutResult) {
   return set.value;
 }
 
-function completedSession(sets: readonly WorkoutSet[]) {
+function performedExercise(
+  index: number,
+  position: number,
+  name: string,
+  sets: readonly WorkoutSet[],
+  definitionIndex: number,
+) {
   const exercise = WorkoutSessionExercise.create({
-    exerciseNameSnapshot: 'Push-up',
-    id: requiredId(1),
+    exerciseNameSnapshot: name,
+    id: requiredId(index),
     loggingModeSnapshot: 'repetitions',
     plannedPrescriptionSnapshot: null,
-    position: 0,
+    position,
     sets,
-    sourceExerciseDefinitionId: requiredId(3),
+    sourceExerciseDefinitionId: requiredId(definitionIndex),
     sourcePlannedExerciseId: null,
   });
   if (!exercise.isSuccess) throw new Error('Invalid fixture');
+  return exercise.value;
+}
+
+function completedSession(sets: readonly WorkoutSet[]) {
+  return sessionOf([performedExercise(1, 0, 'Push-up', sets, 3)]);
+}
+
+function sessionOf(exercises: readonly WorkoutSessionExercise[]) {
   const started = Date.UTC(2026, 7, 8, 4);
   const session = WorkoutSession.create({
     completedAtEpochMilliseconds: started + 600_000,
-    exercises: [exercise.value],
+    exercises,
     id: requiredId(0),
     name: 'Workout',
     sourcePlannedWorkoutId: null,
@@ -82,6 +99,20 @@ const twoSets = () => [
   recordedSet(4, 1, RepetitionResult.valid(10)),
 ];
 
+const squat = (sets: readonly WorkoutSet[]) =>
+  performedExercise(5, 1, 'Squat', sets, 7);
+
+/** Two performed exercises, so either one can be removed. */
+const twoExerciseSession = () =>
+  sessionOf([
+    performedExercise(1, 0, 'Push-up', oneSet(), 3),
+    squat([recordedSet(6, 0, RepetitionResult.valid(20))]),
+  ]);
+
+/** A performed exercise beside one whose sets were all corrected away. */
+const sessionWithEmptyExercise = () =>
+  sessionOf([performedExercise(1, 0, 'Push-up', oneSet(), 3), squat([])]);
+
 /**
  * The screen reloads whenever its loader identity changes, so each test holds
  * one stable loader instead of building a new one on every render.
@@ -91,6 +122,7 @@ function loader(
   correctSet: Record<string, unknown> = {},
   refreshedWith: readonly (WorkoutSession | null)[] = [],
   deleteCompleted: jest.Mock = jest.fn(),
+  removeCompletedExercise: jest.Mock = jest.fn(),
 ) {
   const reloads = [...refreshedWith];
   const useCases = {
@@ -106,6 +138,7 @@ function loader(
         Promise.resolve(reloads.length > 0 ? reloads.shift() : session),
     },
     getProfile: { execute: () => Promise.resolve(null) },
+    removeCompletedExercise: { execute: removeCompletedExercise },
   } as never;
   return () => Promise.resolve(useCases);
 }
@@ -475,6 +508,270 @@ describe('CompletedWorkoutScreen', () => {
     await fireEvent.press(screen.getByTestId('delete-completed-workout'));
 
     expect(deleteCompleted).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
+  });
+
+  it('offers removal on each exercise while another one holds recorded work', async () => {
+    const loadUseCases = loader(twoExerciseSession());
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 1, Push-up, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains in words why the only performing exercise cannot be removed', async () => {
+    const loadUseCases = loader(completedSession(twoSets()));
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/only recorded sets in this workout/),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByLabelText('Remove exercise 1, Push-up, from this workout'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('says an exercise recorded nothing and still offers to remove it', async () => {
+    const loadUseCases = loader(sessionWithEmptyExercise());
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/This exercise recorded nothing/),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    ).toBeOnTheScreen();
+  });
+
+  it('names the exercise and its recorded sets in the confirmation and keeps it when cancelled', async () => {
+    const removeCompletedExercise = jest.fn();
+    const alert = jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[0]?.onPress?.();
+      });
+    const loadUseCases = loader(
+      twoExerciseSession(),
+      {},
+      [],
+      jest.fn(),
+      removeCompletedExercise,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+
+    expect(alert).toHaveBeenCalledWith(
+      'Remove Squat?',
+      expect.stringContaining('Its 1 recorded set is removed'),
+      expect.arrayContaining([
+        expect.objectContaining({ style: 'cancel', text: 'Cancel' }),
+        expect.objectContaining({
+          style: 'destructive',
+          text: 'Remove Exercise',
+        }),
+      ]),
+    );
+    expect(removeCompletedExercise).not.toHaveBeenCalled();
+    expect(screen.getByText('Squat')).toBeOnTheScreen();
+    alert.mockRestore();
+  });
+
+  it('removes one exercise and refreshes the detail in place', async () => {
+    const alert = confirmDestructiveAlert();
+    const removeCompletedExercise = jest.fn().mockResolvedValue({
+      session: completedSession(oneSet()),
+      status: 'removed',
+    });
+    const loadUseCases = loader(
+      twoExerciseSession(),
+      {},
+      [twoExerciseSession(), completedSession(oneSet())],
+      jest.fn(),
+      removeCompletedExercise,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Exercise removed/)).toBeOnTheScreen(),
+    );
+    expect(removeCompletedExercise).toHaveBeenCalledWith({
+      exerciseId: uuids[5],
+      expected: {
+        completedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4) + 600_000,
+        startedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4),
+      },
+      sessionId: uuids[0],
+    });
+    expect(screen.queryByText('Squat')).not.toBeOnTheScreen();
+    expect(screen.getByText('Push-up')).toBeOnTheScreen();
+    alert.mockRestore();
+  });
+
+  it('states a refused removal without exposing anything recorded', async () => {
+    const alert = confirmDestructiveAlert();
+    const removeCompletedExercise = jest
+      .fn()
+      .mockResolvedValue({ reason: 'changed', status: 'refused' });
+    const loadUseCases = loader(
+      twoExerciseSession(),
+      {},
+      [],
+      jest.fn(),
+      removeCompletedExercise,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/changed since this screen opened/),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('Squat')).toBeOnTheScreen();
+    alert.mockRestore();
+  });
+
+  it('keeps the detail visible when a removal fails', async () => {
+    const alert = confirmDestructiveAlert();
+    const removeCompletedExercise = jest
+      .fn()
+      .mockRejectedValue(new Error('storage unavailable'));
+    const loadUseCases = loader(
+      twoExerciseSession(),
+      {},
+      [],
+      jest.fn(),
+      removeCompletedExercise,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/could not be removed/)).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('Squat')).toBeOnTheScreen();
+    expect(removeCompletedExercise).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
+  });
+
+  it('ignores a repeated request while the first removal is in flight', async () => {
+    const alert = confirmDestructiveAlert();
+    const removeCompletedExercise = jest
+      .fn()
+      .mockReturnValue(new Promise(() => {}));
+    const loadUseCases = loader(
+      twoExerciseSession(),
+      {},
+      [],
+      jest.fn(),
+      removeCompletedExercise,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+    await fireEvent.press(
+      screen.getByLabelText('Remove exercise 2, Squat, from this workout'),
+    );
+
+    expect(removeCompletedExercise).toHaveBeenCalledTimes(1);
     alert.mockRestore();
   });
 });
