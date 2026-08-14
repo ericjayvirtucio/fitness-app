@@ -1,0 +1,41 @@
+appId: com.fitnessapp.dev
+name: A set the workout never recorded is added to completed history
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: 'Performed set 2: .*'
+- scrollUntilVisible:
+    element:
+      text: Add missing set for E2E Push-up
+    direction: DOWN
+- tapOn: Add missing set for E2E Push-up
+- assertVisible: Add missing set
+- assertVisible: Record the missing set
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: '8'
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content
+# area does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save Missing Set
+    direction: DOWN
+- tapOn: Save Missing Set
+- assertVisible:
+    id: completed-workout-screen
+- assertVisible: 'Performed set 1: 12 reps'
+- assertVisible: 'Performed set 2: 8 reps'
+# Two recorded sets mean deletion is now offered rather than refused.
+- assertVisible: Delete recorded set 2 for E2E Push-up

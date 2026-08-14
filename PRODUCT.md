@@ -50,6 +50,15 @@ made truthfully are declined rather than approximated, so unlike ways of
 recording an exercise are never combined and assisted work is explained instead
 of ranked.
 
+Deriving records from history raised the cost of a mistyped entry, so completed
+workout history became correctable. A person can open a completed workout, fix a
+recorded set, add one the workout never recorded, or delete one that never
+happened. Correction is always deliberate and always their own: no catalog edit,
+plan change, preference, or background task may rewrite what a workout recorded.
+The workout keeps its identity, its times, and everything it captured, and every
+derived view follows the corrected facts. The previous value is not kept, and the
+application never pretends to show what changed.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy
@@ -68,5 +77,7 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Accessibility:** supported flows target WCAG-aligned mobile accessibility practices.
 - **Maintainability:** feature-first modules, strict types, pure domain rules, tests, and durable decisions reduce change risk.
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
-- **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action.
+- **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action, and
+  correct a recorded set inside a completed workout instead of losing everything to
+  fix one mistake.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.

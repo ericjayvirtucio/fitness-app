@@ -6,7 +6,7 @@ Workout History is a device-local read capability over completed Workout Session
 
 ```text
 completed session snapshots → workout-history use cases
-  → WorkoutHistoryRepository → SQLite projections → read-only history UI
+  → WorkoutHistoryRepository → SQLite projections → history UI
 ```
 
 Completed session, exercise, planned-target, logging-mode, and actual-set snapshots
@@ -16,8 +16,12 @@ Planned prescriptions are labeled context; only actual sets contribute to perfor
 summaries.
 
 Session execution and mutation remain in `workout-session`. Completion still updates
-only the parent status and completion timestamp. The history capability cannot edit
-or delete completed sessions.
+only the parent status and completion timestamp, and nothing but a deliberate user
+correction may change a completed session. History owns that correction workflow and
+writes through the Workout Session repository contract; it can change recorded set
+results and cannot delete a completed session, change a captured snapshot, or move a
+lifecycle instant. See
+[completed workout correction](completed-workout-correction.md).
 
 ## Captured dates and bounded history
 
@@ -75,8 +79,9 @@ needs a definition that exists.
 
 Workout links to History without adding another primary tab. History provides Day,
 Week, and Month range controls, previous/next period actions, a textual summary,
-bounded recent cards, and read-only detail. Snapshot names, planned context, and
-performed sets remain visibly distinct. Profile units affect formatting only.
+bounded recent cards, and completed detail. Snapshot names, planned context, and
+performed sets remain visibly distinct. Completed detail also carries the correction
+controls for its recorded sets and never carries an active-workout control. Profile units affect formatting only.
 
 Screens support Dynamic Type, native headings and controls, descriptive history-card
 labels, explicit units, textual empty/error states, and privacy-safe stable test IDs.

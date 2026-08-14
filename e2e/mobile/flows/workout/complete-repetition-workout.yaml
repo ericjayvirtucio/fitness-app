@@ -1,10 +1,13 @@
 appId: com.fitnessapp.dev
-env:
-  REPETITIONS: '12'
 ---
 # Completes one workout with a single recorded repetition set, through the same
 # public screens a person uses. The repetition count is a parameter so a suite
 # can record a better result, then a weaker one, without a second flow.
+#
+# REPETITIONS is deliberately required rather than defaulted here. A flow's own
+# `env` block is applied after the caller's `runFlow` env and overrides it, so a
+# default silently replaced every value a suite passed in. An unset variable now
+# fails loudly instead.
 - tapOn:
     id: tab-workout
 - tapOn: Start Empty Workout

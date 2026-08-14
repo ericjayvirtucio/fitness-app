@@ -20,6 +20,11 @@ import {
   type SetRow,
 } from './workout-session-row-mapping';
 
+type LifecycleRow = Readonly<{
+  completed_at_epoch_ms: number | null;
+  started_at_epoch_ms: number;
+}>;
+
 export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository {
   constructor(private readonly database: DatabaseConnection) {}
 
@@ -77,6 +82,31 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
       )
         throw new PersistenceError('operation-failed');
       return persisted;
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
+  async correctCompleted(session: WorkoutSession): Promise<void> {
+    try {
+      if (
+        session.status !== 'completed' ||
+        session.completedAtEpochMilliseconds === null
+      )
+        throw new PersistenceError('operation-failed');
+      const stored = await this.database.getFirst<LifecycleRow>(
+        `SELECT started_at_epoch_ms, completed_at_epoch_ms
+         FROM workout_session WHERE id = ? AND status = ?`,
+        [session.id.value, 'completed'],
+      );
+      if (
+        stored === null ||
+        stored.started_at_epoch_ms !== session.startedAtEpochMilliseconds ||
+        stored.completed_at_epoch_ms !== session.completedAtEpochMilliseconds
+      )
+        throw new PersistenceError('operation-failed');
+      await this.deleteChildren(session.id.value);
+      await this.insertChildren(session);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }

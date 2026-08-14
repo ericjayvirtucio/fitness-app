@@ -1,0 +1,43 @@
+appId: com.fitnessapp.dev
+name: An erroneous recorded set is deleted after an explicit confirmation
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- scrollUntilVisible:
+    element:
+      text: Add missing set for E2E Push-up
+    direction: DOWN
+- tapOn: Add missing set for E2E Push-up
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: '99'
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content
+# area does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save Missing Set
+    direction: DOWN
+- tapOn: Save Missing Set
+- assertVisible: 'Performed set 2: 99 reps'
+- scrollUntilVisible:
+    element:
+      text: Delete recorded set 2 for E2E Push-up
+    direction: DOWN
+- tapOn: Delete recorded set 2 for E2E Push-up
+- assertVisible: Delete this recorded set?
+- tapOn: Delete Recorded Set
+- assertNotVisible: 'Performed set 2: 99 reps'
+- assertVisible: 'Performed set 1: 12 reps'
+# One recorded set is left, so the refusal explains itself again.
+- assertVisible: 'This is the only recorded set in this workout.*'

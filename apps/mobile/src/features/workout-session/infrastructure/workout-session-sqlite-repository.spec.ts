@@ -9,6 +9,7 @@ import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
+import { PersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import { WorkoutSessionSqliteRepository } from './workout-session-sqlite-repository';
 
 class FakeDatabase implements DatabaseConnection {
@@ -81,6 +82,18 @@ function session() {
     startedLocalCalendarDate: '2023-11-15',
     startedUtcOffsetMinutes: 480,
     status: 'active',
+  });
+  if (!result.isSuccess) throw new Error('Invalid fixture');
+  return result.value;
+}
+
+const completedAt = 1_700_000_003_600;
+
+function completedSession() {
+  const result = WorkoutSession.create({
+    ...session(),
+    completedAtEpochMilliseconds: completedAt,
+    status: 'completed',
   });
   if (!result.isSuccess) throw new Error('Invalid fixture');
   return result.value;
@@ -197,5 +210,76 @@ describe('WorkoutSessionSqliteRepository', () => {
       'DELETE FROM workout_session_exercise',
     );
     expect(database.runs[2]?.parameters).toEqual([sessionId]);
+  });
+
+  it('corrects a completed aggregate without writing to its parent row', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [
+      {
+        completed_at_epoch_ms: completedAt,
+        started_at_epoch_ms: 1_700_000_000_000,
+      },
+    ];
+    await new WorkoutSessionSqliteRepository(database).correctCompleted(
+      completedSession(),
+    );
+    expect(
+      database.runs.some((entry) =>
+        entry.statement.includes('UPDATE workout_session'),
+      ),
+    ).toBe(false);
+    expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
+    expect(database.runs[1]?.statement).toContain(
+      'DELETE FROM workout_session_exercise',
+    );
+    expect(database.runs[2]?.statement).toContain(
+      'INSERT INTO workout_session_exercise',
+    );
+    expect(database.runs[3]?.statement).toContain('INSERT INTO workout_set');
+    expect(database.runs[3]?.parameters).toEqual([
+      setId,
+      exerciseId,
+      0,
+      'repetitions',
+      8,
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  it('refuses to correct a session that is no longer completed', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [null];
+    await expect(
+      new WorkoutSessionSqliteRepository(database).correctCompleted(
+        completedSession(),
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+    expect(database.runs).toHaveLength(0);
+  });
+
+  it('refuses to correct a session whose lifecycle instants moved', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [
+      {
+        completed_at_epoch_ms: completedAt + 1,
+        started_at_epoch_ms: 1_700_000_000_000,
+      },
+    ];
+    await expect(
+      new WorkoutSessionSqliteRepository(database).correctCompleted(
+        completedSession(),
+      ),
+    ).rejects.toBeInstanceOf(PersistenceError);
+    expect(database.runs).toHaveLength(0);
+  });
+
+  it('refuses to correct an active aggregate', async () => {
+    const database = new FakeDatabase();
+    await expect(
+      new WorkoutSessionSqliteRepository(database).correctCompleted(session()),
+    ).rejects.toBeInstanceOf(PersistenceError);
+    expect(database.runs).toHaveLength(0);
   });
 });

@@ -45,6 +45,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 20 --platform ios
 ./scripts/qa.sh sprint 21 --platform ios
 ./scripts/qa.sh sprint 22 --platform ios
+./scripts/qa.sh sprint 23 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -196,6 +197,32 @@ system guide.
 
 The default local retry count is zero. A failure is evidence, not a prompt for a
 hidden rerun.
+
+### Three traps this harness has already hit
+
+**Never give a parameterised flow an `env:` default.** A flow's own `env` block
+is applied after the caller's `runFlow` env and overrides it, so the default
+silently replaces every value a suite passes in and the flow's own assertions
+still pass because they interpolate the same default. Require the variable and
+let an unset one fail loudly.
+
+**Do not assert text that sits inside a card carrying an `accessibilityLabel`.**
+Such a card is a single accessible element, so its children never reach the
+accessibility tree Maestro reads. The text is on screen and the assertion is
+still false. Assert the card's own label, or assert content that lives outside
+it.
+
+**Dismiss the keyboard before scrolling to a control below a text field.** The
+number pad covers the save action, and a scroll gesture with it open drags
+across the keys and appends digits to the field being edited. `hideKeyboard`
+does not work here, because the iOS number pad exposes no dismiss action; use a
+short drag in the content area instead, which the screens honour through
+`keyboardDismissMode="on-drag"`.
+
+**Reusable flows that start from a tab cannot follow a pushed screen.** Personal
+records, completed detail, and the correction screens have no tab bar, so a flow
+beginning with `tapOn: id: tab-workout` fails there. Relaunch the app between
+phases to return to a known root rather than guessing at back gestures.
 
 ## Results and troubleshooting
 

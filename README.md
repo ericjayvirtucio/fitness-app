@@ -12,10 +12,11 @@ dedicated offline water and other-fluid logging with a manual daily fluid target
 and stable local-day history. The Workout area includes an offline Exercise
 Library, recurring Sunday-to-Saturday Planner, and durable planned or empty
 Workout Sessions with individual actual-set logging and restart recovery. It
-also provides bounded completed Workout History, read-only snapshot detail,
-deterministic Day/Week/Month progress summaries, per-exercise history, and
-deterministic personal records for a performed exercise, each linked to the
-completed workout that proves it. The Profile area records historical body
+also provides bounded completed Workout History, snapshot detail, deterministic
+Day/Week/Month progress summaries, per-exercise history, and deterministic
+personal records for a performed exercise, each linked to the completed workout
+that proves it. A recorded set inside a completed workout can be deliberately
+corrected, added, or deleted, so one mistyped entry is no longer permanent. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and

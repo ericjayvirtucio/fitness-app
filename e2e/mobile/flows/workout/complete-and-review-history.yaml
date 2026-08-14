@@ -26,7 +26,12 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: completed-workout-card
 - assertVisible: 'Performed set 1: 12 reps'
-- assertNotVisible: Edit set
+# Completed history is correctable but is never an active workout, so its own
+# correction controls appear while the execution controls stay absent.
+- assertVisible: Correct recorded set 1 for E2E Push-up
+- assertNotVisible: Finish Workout
+- assertNotVisible: Discard Workout
+- assertNotVisible: Add Exercise
 - stopApp
 - launchApp
 - tapOn:

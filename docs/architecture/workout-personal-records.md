@@ -81,7 +81,10 @@ a zero record cannot exist. Absence is absence.
 
 Records are stable across relaunch, timezone change, unit-preference change,
 Catalog rename, Catalog deletion, Planner edits, export, restore, and
-replacement restore.
+replacement restore. The one thing that moves a record is a deliberate
+[correction of a recorded set](completed-workout-correction.md): the next read
+derives the new truth, so an overstated record disappears and the next eligible
+result takes its place, with nothing to invalidate.
 
 ## Queries and indexes
 

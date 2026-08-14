@@ -73,6 +73,7 @@ function createContext(
     workoutHistory: { listCompletedSessionsPage: () => emptyPage() },
     workoutSessions: {
       complete: () => Promise.reject(new Error('unused')),
+      correctCompleted: () => Promise.resolve(),
       discard: () => Promise.resolve(false),
       getActive: () => Promise.resolve(null),
       getById: () => Promise.resolve(null),

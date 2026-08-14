@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+---
+# Reaches the most recent completed workout the way the product does: Workout,
+# History, then the completed card. Correction always starts from history, never
+# from the active workout screen.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+- tapOn:
+    id: completed-workout-card
+- assertVisible:
+    id: completed-workout-screen
