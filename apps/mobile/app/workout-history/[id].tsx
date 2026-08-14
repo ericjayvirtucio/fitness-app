@@ -7,6 +7,9 @@ export default function CompletedWorkoutRoute() {
   return (
     <CompletedWorkoutScreen
       id={sessionId}
+      onAddExercise={() =>
+        router.push(`/workout-history/${sessionId}/add-exercise`)
+      }
       onAddSet={(exerciseId) =>
         router.push(`/workout-history/${sessionId}/add-set/${exerciseId}`)
       }

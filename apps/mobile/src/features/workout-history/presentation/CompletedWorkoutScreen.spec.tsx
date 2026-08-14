@@ -44,6 +44,12 @@ function requiredId(index: number) {
   return result.value;
 }
 
+function generatedId(suffix: string) {
+  const result = DomainId.create(`550e8400-e29b-41d4-a716-44665544f${suffix}`);
+  if (!result.isSuccess) throw new Error('Invalid fixture');
+  return result.value;
+}
+
 function recordedSet(index: number, position: number, result: WorkoutResult) {
   const set = WorkoutSet.create({ id: requiredId(index), position, result });
   if (!set.isSuccess) throw new Error('Invalid fixture');
@@ -108,6 +114,24 @@ const twoExerciseSession = () =>
     performedExercise(1, 0, 'Push-up', oneSet(), 3),
     squat([recordedSet(6, 0, RepetitionResult.valid(20))]),
   ]);
+
+/** A workout already holding the most exercises one may hold. */
+function fullWorkoutExercises() {
+  return Array.from({ length: 100 }, (_, position) => {
+    const exercise = WorkoutSessionExercise.create({
+      exerciseNameSnapshot: `Exercise ${position + 1}`,
+      id: generatedId(String(position).padStart(3, '0')),
+      loggingModeSnapshot: 'repetitions',
+      plannedPrescriptionSnapshot: null,
+      position,
+      sets: position === 0 ? oneSet() : [],
+      sourceExerciseDefinitionId: requiredId(3),
+      sourcePlannedExerciseId: null,
+    });
+    if (!exercise.isSuccess) throw new Error('Invalid fixture');
+    return exercise.value;
+  });
+}
 
 /** A performed exercise beside one whose sets were all corrected away. */
 const sessionWithEmptyExercise = () =>
@@ -773,5 +797,67 @@ describe('CompletedWorkoutScreen', () => {
 
     expect(removeCompletedExercise).toHaveBeenCalledTimes(1);
     alert.mockRestore();
+  });
+
+  it('offers exercise addition only when completed history asks for it', async () => {
+    const onAddExercise = jest.fn();
+    const loadUseCases = loader(completedSession(oneSet()));
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onAddExercise={onAddExercise}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('add-completed-workout-exercise'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText(/Add work you performed in this workout/),
+    ).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId('add-completed-workout-exercise'));
+    await waitFor(() => expect(onAddExercise).toHaveBeenCalled());
+  });
+
+  it('hides exercise addition when completed history does not offer it', async () => {
+    const loadUseCases = loader(completedSession(oneSet()));
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('Push-up')).toBeOnTheScreen());
+    expect(
+      screen.queryByTestId('add-completed-workout-exercise'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('explains in words why a full workout cannot take another exercise', async () => {
+    const loadUseCases = loader(sessionOf(fullWorkoutExercises()));
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onAddExercise={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/most exercises a workout can keep/),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByTestId('add-completed-workout-exercise'),
+    ).not.toBeOnTheScreen();
   });
 });

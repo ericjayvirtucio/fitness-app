@@ -11,12 +11,23 @@ import {
 import type { ExerciseCatalogItem } from '../../exercise-catalog/application/exercise-catalog-item';
 import type { BrowseExercisesUseCase } from '../../exercise-catalog/application/exercise-catalog-use-cases';
 
+/**
+ * Wording is overridable because choosing an exercise for a plan, for an active
+ * workout, and for a completed workout are different acts, while the catalog it
+ * browses and the way it is searched must stay identical between them.
+ */
 export function ExercisePicker({
   browse,
+  emptyDescription = 'Create exercises in the Exercise Library before adding them to a plan.',
+  heading = 'Add exercise',
+  itemDescription = 'Configure its planned target after adding it.',
   onCancel,
   onSelect,
 }: Readonly<{
   browse: BrowseExercisesUseCase;
+  emptyDescription?: string;
+  heading?: string;
+  itemDescription?: string;
   onCancel: () => void;
   onSelect: (item: ExerciseCatalogItem) => void;
 }>) {
@@ -48,7 +59,7 @@ export function ExercisePicker({
   return (
     <View style={{ gap: spacing.lg }}>
       <AppText accessibilityRole="header" variant="heading">
-        Add exercise
+        {heading}
       </AppText>
       <TextField
         label="Search exercises"
@@ -61,7 +72,7 @@ export function ExercisePicker({
         </AppText>
       ) : items.length === 0 ? (
         <EmptyState
-          description="Create exercises in the Exercise Library before adding them to a plan."
+          description={emptyDescription}
           icon="barbell-outline"
           title="No exercises found"
         />
@@ -78,9 +89,7 @@ export function ExercisePicker({
               variant="outlined"
             >
               <AppText variant="heading">{item.definition.name}</AppText>
-              <AppText color="secondary">
-                Configure its planned target after adding it.
-              </AppText>
+              <AppText color="secondary">{itemDescription}</AppText>
             </Card>
           ))}
         </>
