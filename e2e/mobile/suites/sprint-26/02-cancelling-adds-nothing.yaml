@@ -17,7 +17,9 @@ name: Cancelling an addition adds nothing
     centerElement: true
 - tapOn:
     id: add-completed-workout-exercise
-- assertVisible: Add exercise to this workout
+# The picker heading, not the screen title: the completed detail carries a
+# section headed "Add exercise to this workout" too.
+- assertVisible: Choose the exercise you performed
 - tapOn: Cancel adding exercise
 - assertVisible:
     id: completed-workout-screen

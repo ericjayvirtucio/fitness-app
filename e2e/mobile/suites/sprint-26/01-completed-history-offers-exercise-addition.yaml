@@ -21,5 +21,8 @@ name: Completed history offers exercise addition and stays historical
       id: add-completed-workout-exercise
     direction: DOWN
     centerElement: true
-- assertVisible: Add Exercise To This Workout
+# The control carries an accessible label naming the workout and its captured
+# date, which is what Maestro reads; its visible "Add Exercise To This Workout"
+# text is inside a subtree the label hides.
+- assertVisible: 'Add an exercise to this workout, .*'
 - assertVisible: Add work you performed in this workout but never recorded.*

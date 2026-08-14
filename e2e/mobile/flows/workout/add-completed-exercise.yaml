@@ -17,7 +17,10 @@ appId: com.fitnessapp.dev
     centerElement: true
 - tapOn:
     id: add-completed-workout-exercise
-- assertVisible: Add exercise to this workout
+# The picker heading, not the screen title: the completed detail carries a
+# section headed "Add exercise to this workout" too, so asserting that would
+# pass even if the tap never navigated.
+- assertVisible: Choose the exercise you performed
 # The picker lists recently performed exercises first as soon as one completed
 # workout exists, and every addition scenario runs after one, so an exercise
 # that has never been performed is absent until it is searched for.
