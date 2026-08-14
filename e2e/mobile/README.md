@@ -152,6 +152,12 @@ definition beside "E2E Push-up" and
 `create-exercise.yaml` hard-codes its name and is composed by most suites, so a
 second definition costs less than parameterising a flow every other suite calls.
 
+A completed workout holding two exercises is taller than one viewport, so its
+recorded sets, its removal controls, and its whole-workout deletion section move
+below the fold as soon as a second exercise exists. Scroll — `UP` as well as
+`DOWN` — before asserting anything on that screen, and remember that a cancelled
+confirmation leaves the detail wherever the previous scroll left it.
+
 The exercise picker inside an active workout lists recently performed exercises
 first and falls back to the whole catalog only while no completed workout
 exists. A two-exercise workout must therefore be the first completed workout of

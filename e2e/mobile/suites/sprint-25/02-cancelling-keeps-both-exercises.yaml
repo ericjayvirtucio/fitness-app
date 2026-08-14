@@ -21,5 +21,16 @@ name: Cancelling a removal keeps every exercise
 - tapOn: Cancel
 - assertVisible:
     id: completed-workout-screen
-- assertVisible: 'Performed set 1: 20 reps'
-- assertVisible: 'Performed set 1: 12 reps'
+# Cancelling leaves the detail scrolled to the second exercise, and a two-exercise
+# workout is taller than one viewport, so the first exercise's recorded set is
+# above the fold and absent from the hierarchy until the flow scrolls back up.
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 20 reps'
+    direction: UP
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 12 reps'
+    direction: UP
+    centerElement: true
