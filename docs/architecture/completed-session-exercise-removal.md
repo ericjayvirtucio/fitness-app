@@ -179,8 +179,10 @@ instead of a control, pointing at
 After a successful removal the detail refreshes in place with the survivors
 renumbered, a polite announcement confirms what happened, and focus stays in the
 detail. Removal is unreachable from every active workout screen, and the
-completed detail still carries no finish, discard, add-exercise, or reorder
-control.
+completed detail still carries no finish, discard, resume, or reorder control.
+The one addition it offers is
+[completed workout exercise addition](completed-workout-exercise-addition.md),
+which is completed history's own act and never an active-workout control.
 
 ## Privacy, security, and performance
 
