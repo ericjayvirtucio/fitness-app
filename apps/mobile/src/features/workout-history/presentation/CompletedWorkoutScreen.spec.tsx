@@ -620,12 +620,10 @@ describe('CompletedWorkoutScreen', () => {
 
   it('removes one exercise and refreshes the detail in place', async () => {
     const alert = confirmDestructiveAlert();
-    const removeCompletedExercise = jest
-      .fn()
-      .mockResolvedValue({
-        session: completedSession(oneSet()),
-        status: 'removed',
-      });
+    const removeCompletedExercise = jest.fn().mockResolvedValue({
+      session: completedSession(oneSet()),
+      status: 'removed',
+    });
     const loadUseCases = loader(
       twoExerciseSession(),
       {},
