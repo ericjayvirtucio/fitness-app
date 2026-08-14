@@ -59,6 +59,15 @@ The workout keeps its identity, its times, and everything it captured, and every
 derived view follows the corrected facts. The previous value is not kept, and the
 application never pretends to show what changed.
 
+Correction kept at least one recorded set in every completed workout, so a
+workout recorded entirely by mistake — started by accident, recorded twice, or
+performed by somebody else on a shared device — could not be corrected away. One
+completed workout can now be deleted on its own, after a confirmation that says
+what disappears. Deletion is never silent and never a side effect: it removes
+that workout and the sets it recorded, leaves everything else exactly as it was,
+and cannot be undone. Erasing everything stopped being the only way to remove one
+false workout.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy
@@ -78,6 +87,6 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Maintainability:** feature-first modules, strict types, pure domain rules, tests, and durable decisions reduce change risk.
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
 - **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action, and
-  correct a recorded set inside a completed workout instead of losing everything to
-  fix one mistake.
+  correct a recorded set inside a completed workout, or delete one completed
+  workout, instead of losing everything to fix one mistake.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.

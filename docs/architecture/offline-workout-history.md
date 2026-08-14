@@ -17,11 +17,13 @@ summaries.
 
 Session execution and mutation remain in `workout-session`. Completion still updates
 only the parent status and completion timestamp, and nothing but a deliberate user
-correction may change a completed session. History owns that correction workflow and
-writes through the Workout Session repository contract; it can change recorded set
-results and cannot delete a completed session, change a captured snapshot, or move a
-lifecycle instant. See
-[completed workout correction](completed-workout-correction.md).
+correction or a deliberate user deletion may change a completed session. History owns
+both workflows and writes through the Workout Session repository contract. A
+correction changes recorded set results and cannot change a captured snapshot or move
+a lifecycle instant; a deletion removes one whole completed workout with everything it
+owns and changes nothing else. See
+[completed workout correction](completed-workout-correction.md) and
+[completed workout deletion](completed-workout-deletion.md).
 
 ## Captured dates and bounded history
 
