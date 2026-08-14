@@ -31,6 +31,10 @@ presentation issues no SQL.
 Exactly one completed `workout_session` row, the `workout_session_exercise` rows
 that reference it, and the `workout_set` rows those exercises own.
 
+Removing one session exercise from a workout that should otherwise be kept is a
+separate workflow; see
+[completed session exercise removal](completed-session-exercise-removal.md).
+
 Untouched: every other completed workout, the active workout, Exercise Catalog
 definitions, Workout Planner records, the Profile, Goals, Nutrition, Hydration,
 body-weight history, externally saved export files, and the schema and migration

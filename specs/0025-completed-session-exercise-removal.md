@@ -350,11 +350,13 @@ parameters, rollback after a forced child failure, rollback after a forced inser
 failure, a refusal that writes nothing, recomputed progress and personal records,
 and an unchanged schema version.
 
-Presentation tests cover the control appearing only on completed detail, the
+Presentation tests cover the control appearing on each removable exercise, the
 confirmation naming the exercise and its recorded set count, cancellation
 preserving everything, success refreshing the detail in place, the emptying
-refusal stated in words rather than by a dead control, a disabled repeated
-request, accessible labels, and Dynamic Type.
+refusal stated in words rather than by a dead control, the empty-exercise
+explanation, a disabled repeated request, a safe failure message, and accessible
+labels. Dynamic Type is served by the design system and verified in manual QA, as
+it is for correction and deletion.
 
 Sprint 25 adds a Maestro suite that completes a workout with two exercises,
 verifies the completed detail offers removal and stays historical, cancels a

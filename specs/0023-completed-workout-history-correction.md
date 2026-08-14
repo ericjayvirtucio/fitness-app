@@ -151,7 +151,10 @@ already holds.
 `correctCompleted` is a separate contract from the active-session `replace`. It
 verifies that the stored row is still completed with the same start and
 completion instants and then rewrites only the child rows, so no correction path
-can touch a parent lifecycle column. The active-only lifecycle guard on ordinary
+can touch a parent lifecycle column. Specification 0025 reuses that same
+guarantee for completed session exercise removal, so the contract now has two
+callers; which children the rebuilt aggregate holds stays application policy in
+each use case. The active-only lifecycle guard on ordinary
 session mutation is untouched, and ordinary active-workout screens cannot reach
 completed records.
 

@@ -176,6 +176,20 @@ is not retained and nothing claims otherwise. See
 and
 [troubleshooting guidance](troubleshooting/completed-workout-correction.md).
 
+## Completed session exercise removal
+
+One exercise can be removed from a completed workout, with every recorded set it
+owns, after a destructive confirmation that names it. The surviving exercises keep
+their identifiers and captured snapshots and take contiguous positions, the parent
+workout and its lifecycle instants are untouched, and a removal that would leave
+the workout with no recorded set is refused in words. The write reuses the
+`correctCompleted` contract inside one exclusive transaction, child-first. See
+[completed session exercise removal architecture](architecture/completed-session-exercise-removal.md),
+[ADR 0020](decisions/0020-completed-session-exercise-removal.md), the
+[Sprint 25 manual checklist](manual-testing/sprint-25-completed-session-exercise-removal.md),
+and
+[troubleshooting guidance](troubleshooting/completed-session-exercise-removal.md).
+
 ## Completed workout deletion
 
 One completed workout can be deleted from its own detail screen after a
