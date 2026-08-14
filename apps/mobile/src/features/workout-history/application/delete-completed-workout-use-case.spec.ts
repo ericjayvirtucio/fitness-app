@@ -212,12 +212,16 @@ describe('DeleteCompletedWorkoutUseCase', () => {
 
   it('passes the stored lifecycle to the repository rather than the submitted one', async () => {
     const { sessions, useCase } = fixture();
+    const stored = completedWorkoutLifecycle(session());
+    if (stored === null) throw new Error('Invalid fixture');
 
     await useCase.execute({ expected, sessionId });
 
-    expect(sessions.deletions).toEqual([
-      completedWorkoutLifecycle(session()) as CompletedWorkoutLifecycle,
-    ]);
+    expect(sessions.deletions).toEqual([stored]);
+  });
+
+  it('reads no lifecycle from a session that was never completed', () => {
+    expect(completedWorkoutLifecycle(session('active', null))).toBeNull();
   });
 
   it('preserves the workout when the write fails', async () => {
