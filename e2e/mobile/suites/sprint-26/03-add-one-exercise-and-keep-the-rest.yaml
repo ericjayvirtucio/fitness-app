@@ -1,0 +1,33 @@
+appId: com.fitnessapp.dev
+name: One exercise is added last and the rest of the workout survives
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- runFlow:
+    file: ../../flows/workout/add-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      REPETITIONS: '20'
+# The exercise that was already recorded is untouched and still first.
+- assertVisible: E2E Push-up
+- assertVisible: 'Performed set 1: 12 reps'
+# The added exercise and its first set are below it.
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 20 reps'
+    direction: DOWN
+    centerElement: true
+- assertVisible: E2E Squat
+# The polite confirmation is the last thing on the refreshed detail.
+- scrollUntilVisible:
+    element:
+      text: Exercise added to this completed workout.
+    direction: DOWN
+    centerElement: true

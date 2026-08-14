@@ -1,0 +1,58 @@
+appId: com.fitnessapp.dev
+name: An added exercise can be corrected and removed like any other
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- runFlow:
+    file: ../../flows/workout/add-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      REPETITIONS: '20'
+# The added exercise carries the same per-set correction controls as the work
+# recorded during the workout itself.
+- scrollUntilVisible:
+    element:
+      text: Correct recorded set 1 for E2E Squat
+    direction: DOWN
+    centerElement: true
+- tapOn: Correct recorded set 1 for E2E Squat
+- assertVisible: Correct recorded set
+- tapOn:
+    id: workout-set-repetitions-input
+- eraseText
+- inputText: '25'
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save Correction
+    direction: DOWN
+    centerElement: true
+- tapOn: Save Correction
+- assertVisible:
+    id: completed-workout-screen
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 25 reps'
+    direction: DOWN
+    centerElement: true
+# And it can then be removed, leaving the work recorded during the workout.
+- runFlow:
+    file: ../../flows/workout/remove-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      EXERCISE_POSITION: '2'
+- assertNotVisible: E2E Squat
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 12 reps'
+    direction: UP
+    centerElement: true

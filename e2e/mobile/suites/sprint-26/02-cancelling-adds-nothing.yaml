@@ -1,0 +1,27 @@
+appId: com.fitnessapp.dev
+name: Cancelling an addition adds nothing
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- scrollUntilVisible:
+    element:
+      id: add-completed-workout-exercise
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: add-completed-workout-exercise
+- assertVisible: Add exercise to this workout
+- tapOn: Cancel adding exercise
+- assertVisible:
+    id: completed-workout-screen
+# Cancelling returns to the top of the detail, so the recorded set is on screen
+# without scrolling, and no second exercise exists to find.
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: E2E Squat

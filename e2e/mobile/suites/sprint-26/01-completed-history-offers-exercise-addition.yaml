@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+name: Completed history offers exercise addition and stays historical
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 12 reps'
+# The completed detail stays historical: it corrects, removes, and extends
+# recorded work, and offers no active-workout control.
+- assertNotVisible: Finish Workout
+- assertNotVisible: Discard Workout
+- assertNotVisible: Add Exercise
+- scrollUntilVisible:
+    element:
+      id: add-completed-workout-exercise
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add Exercise To This Workout
+- assertVisible: Add work you performed in this workout but never recorded.*

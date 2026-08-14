@@ -48,6 +48,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 23 --platform ios
 ./scripts/qa.sh sprint 24 --platform ios
 ./scripts/qa.sh sprint 25 --platform ios
+./scripts/qa.sh sprint 26 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -164,6 +165,20 @@ exists. A two-exercise workout must therefore be the first completed workout of
 a scenario, or the second exercise is absent from the list and only reachable by
 searching. Every Sprint 25 scenario records it first for that reason.
 
+The same picker inside completed history never gets that fallback: an addition
+always happens after a workout has been completed, so recents are never empty
+there and an exercise that has never been performed is simply not listed.
+`flows/workout/add-completed-exercise.yaml` therefore types the name into
+`exercise-picker-search` rather than expecting the whole catalog, and that is
+the reliable way to reach any definition from that screen.
+
+The completed detail's addition entry point sits below the exercise list, which
+grows with every exercise the workout holds, and the polite confirmation after
+an addition sits below the deletion section at the very bottom. Both are scrolled
+to with `centerElement: true`; the reusable flow deliberately does not scroll to
+the confirmation, so it does not leave every caller parked at the end of the
+screen.
+
 Personal-record flows are fully automatable, because a record is derived from
 history the suite creates itself through public screens. One parameterized flow,
 `flows/workout/complete-repetition-workout.yaml`, records a single repetition
@@ -219,7 +234,7 @@ system guide.
 The default local retry count is zero. A failure is evidence, not a prompt for a
 hidden rerun.
 
-### Three traps this harness has already hit
+### Traps this harness has already hit
 
 **Never give a parameterised flow an `env:` default.** A flow's own `env` block
 is applied after the caller's `runFlow` env and overrides it, so the default
@@ -252,6 +267,14 @@ across the keys and appends digits to the field being edited. `hideKeyboard`
 does not work here, because the iOS number pad exposes no dismiss action; use a
 short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
+
+**A control that sits last on a screen moves below the fold as the list above it
+grows.** "Create exercise" in the Exercise Library, "Add Exercise To This
+Workout" on the completed detail, and the deletion section beneath it are all on
+screen while their lists are short and below it as soon as a scenario records
+more. A flow that worked against an empty state is not evidence that it works
+against a populated one; scroll to the control every time rather than only when a
+run has already failed.
 
 **Reusable flows that start from a tab cannot follow a pushed screen.** Personal
 records, completed detail, the correction screens, and the Workout History a
