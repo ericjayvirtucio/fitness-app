@@ -47,6 +47,19 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: ${SQUAT_REPETITIONS}
+# The second exercise's set form sits far enough down the workout that the
+# number pad covers its Save Set control, so tapping it blind lands on a key and
+# appends that digit to the field. `hideKeyboard` cannot help: the iOS number pad
+# exposes no dismiss action. A short drag does, because the screen sets
+# keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save Set
+    direction: DOWN
+    centerElement: true
 - tapOn: Save Set
 - scrollUntilVisible:
     element:
