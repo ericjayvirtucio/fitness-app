@@ -9,7 +9,8 @@ name: A set the workout never recorded is added to completed history
     env:
       REPETITIONS: '12'
 - runFlow: ../../flows/workout/open-completed-workout.yaml
-- assertVisible: 1 actual sets
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: 'Performed set 2: .*'
 - scrollUntilVisible:
     element:
       text: Add missing set for E2E Push-up
@@ -20,6 +21,9 @@ name: A set the workout never recorded is added to completed history
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: '8'
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field.
+- hideKeyboard
 - scrollUntilVisible:
     element:
       text: Save Missing Set
@@ -29,4 +33,5 @@ name: A set the workout never recorded is added to completed history
     id: completed-workout-screen
 - assertVisible: 'Performed set 1: 12 reps'
 - assertVisible: 'Performed set 2: 8 reps'
-- assertVisible: 2 actual sets
+# Two recorded sets mean deletion is now offered rather than refused.
+- assertVisible: Delete recorded set 2 for E2E Push-up

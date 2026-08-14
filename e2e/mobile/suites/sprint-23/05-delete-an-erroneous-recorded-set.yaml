@@ -17,6 +17,9 @@ name: An erroneous recorded set is deleted after an explicit confirmation
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: '99'
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field.
+- hideKeyboard
 - scrollUntilVisible:
     element:
       text: Save Missing Set
@@ -32,4 +35,5 @@ name: An erroneous recorded set is deleted after an explicit confirmation
 - tapOn: Delete Recorded Set
 - assertNotVisible: 'Performed set 2: 99 reps'
 - assertVisible: 'Performed set 1: 12 reps'
-- assertVisible: 1 actual sets
+# One recorded set is left, so the refusal explains itself again.
+- assertVisible: 'This is the only recorded set in this workout.*'
