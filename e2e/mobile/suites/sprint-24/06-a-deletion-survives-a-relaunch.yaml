@@ -20,6 +20,15 @@ name: A deleted workout is still gone after a relaunch
       WORKOUT_NAME: Workout
 - stopApp
 - launchApp
+# The count is asserted on Progress, not on the history summary: that summary is
+# a card carrying its own accessibilityLabel, so its numbers never reach the
+# accessibility tree Maestro reads.
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    element:
+      text: Completed workouts, 1
+    direction: DOWN
 - tapOn:
     id: tab-workout
 - scrollUntilVisible:
@@ -27,9 +36,13 @@ name: A deleted workout is still gone after a relaunch
       text: Open Workout History
     direction: DOWN
 - tapOn: Open Workout History
-- assertVisible: 1 completed workouts
+- assertVisible: Workout History
 # The confirmation belonged to the deletion, not to history itself.
 - assertNotVisible: Completed workout deleted.
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
 - tapOn:
     id: completed-workout-card
 - assertVisible: 'Performed set 1: 12 reps'

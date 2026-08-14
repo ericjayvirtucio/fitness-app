@@ -13,8 +13,17 @@ name: Deleting the last completed workout leaves an empty history
     file: ../../flows/workout/delete-completed-workout.yaml
     env:
       WORKOUT_NAME: Workout
+# The empty state sits below the summary and the period controls, so it is off
+# screen until history is scrolled. The summary's own "0 completed workouts" is
+# not assertable: that card carries an accessibilityLabel, so its numbers never
+# reach the accessibility tree Maestro reads. Progress states the count instead.
+- scrollUntilVisible:
+    element:
+      text: No completed workouts yet
+    direction: DOWN
 - assertVisible: No completed workouts yet
-- assertVisible: 0 completed workouts
+- assertNotVisible:
+    id: completed-workout-card
 - stopApp
 - launchApp
 - tapOn:

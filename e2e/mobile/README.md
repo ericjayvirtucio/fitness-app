@@ -213,6 +213,19 @@ accessibility tree Maestro reads. The text is on screen and the assertion is
 still false. Assert the card's own label, or assert content that lives outside
 it.
 
+The Workout History summary is the trap's sharpest edge: every derived number it
+shows — completed workouts, actual sets, performed exercises, workout time,
+repetitions, volume — is inside `Workout progress summary` and is therefore
+unassertable. Assert workout counts on the Progress tab, whose values are plain
+text, and prove a specific workout through its own history card label or through
+its completed detail.
+
+**Workout History is taller than one viewport.** The summary card and the period
+controls push "Recent workouts", the completed cards, and the empty state below
+the fold, and off-screen content in a scroll view is absent from the hierarchy
+rather than merely invisible. Scroll to anything below the summary before
+asserting it.
+
 **Dismiss the keyboard before scrolling to a control below a text field.** The
 number pad covers the save action, and a scroll gesture with it open drags
 across the keys and appends digits to the field being edited. `hideKeyboard`
