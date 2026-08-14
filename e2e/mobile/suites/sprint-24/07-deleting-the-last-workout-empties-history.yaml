@@ -1,0 +1,31 @@
+appId: com.fitnessapp.dev
+name: Deleting the last completed workout leaves an empty history
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+- assertVisible: No completed workouts yet
+- assertVisible: 0 completed workouts
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-progress
+- assertVisible: No completed workouts in this period.
+# The exercise itself is untouched; only the workout that performed it is gone.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Edit E2E Push-up

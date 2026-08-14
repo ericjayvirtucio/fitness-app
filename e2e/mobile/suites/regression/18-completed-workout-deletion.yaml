@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: Completed workout deletion
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '100'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 100 reps'
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+- assertVisible: 1 completed workouts
+# The deletion ends on Workout History, a pushed screen with no tab bar, and the
+# records flow starts from the Workout tab. Relaunch to a known root rather than
+# guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-exercise-personal-records.yaml
+- assertVisible: 'Most recorded repetitions in a set, 12 repetitions, .*'
+- assertNotVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'

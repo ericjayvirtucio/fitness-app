@@ -46,6 +46,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 21 --platform ios
 ./scripts/qa.sh sprint 22 --platform ios
 ./scripts/qa.sh sprint 23 --platform ios
+./scripts/qa.sh sprint 24 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -81,7 +82,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–21. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–24. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -220,9 +221,15 @@ short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
 
 **Reusable flows that start from a tab cannot follow a pushed screen.** Personal
-records, completed detail, and the correction screens have no tab bar, so a flow
-beginning with `tapOn: id: tab-workout` fails there. Relaunch the app between
-phases to return to a known root rather than guessing at back gestures.
+records, completed detail, the correction screens, and the Workout History a
+deletion returns to have no tab bar, so a flow beginning with
+`tapOn: id: tab-workout` fails there. Relaunch the app between phases to return
+to a known root rather than guessing at back gestures.
+
+**A destructive alert's title contains its action's own words.** "Delete
+Workout?" and the "Delete Workout" button differ by one character, so tap the
+button by its exact text and let Maestro's full-match semantics separate them,
+or assert the title with an explicit `.*` suffix.
 
 ## Results and troubleshooting
 

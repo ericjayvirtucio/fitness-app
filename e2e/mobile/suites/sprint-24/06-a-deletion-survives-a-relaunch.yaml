@@ -1,0 +1,36 @@
+appId: com.fitnessapp.dev
+name: A deleted workout is still gone after a relaunch
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '34'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 34 reps'
+- runFlow:
+    file: ../../flows/workout/delete-completed-workout.yaml
+    env:
+      WORKOUT_NAME: Workout
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: 1 completed workouts
+# The confirmation belonged to the deletion, not to history itself.
+- assertNotVisible: Completed workout deleted.
+- tapOn:
+    id: completed-workout-card
+- assertVisible: 'Performed set 1: 12 reps'
+- assertNotVisible: 'Performed set 1: 34 reps'
