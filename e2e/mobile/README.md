@@ -214,8 +214,15 @@ it.
 
 **Dismiss the keyboard before scrolling to a control below a text field.** The
 number pad covers the save action, and a scroll gesture with it open drags
-across the keys and appends digits to the field being edited. Use `hideKeyboard`
-after `inputText` and before `scrollUntilVisible`.
+across the keys and appends digits to the field being edited. `hideKeyboard`
+does not work here, because the iOS number pad exposes no dismiss action; use a
+short drag in the content area instead, which the screens honour through
+`keyboardDismissMode="on-drag"`.
+
+**Reusable flows that start from a tab cannot follow a pushed screen.** Personal
+records, completed detail, and the correction screens have no tab bar, so a flow
+beginning with `tapOn: id: tab-workout` fails there. Relaunch the app between
+phases to return to a known root rather than guessing at back gestures.
 
 ## Results and troubleshooting
 

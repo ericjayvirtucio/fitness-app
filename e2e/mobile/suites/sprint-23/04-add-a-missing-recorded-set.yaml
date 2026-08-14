@@ -22,8 +22,12 @@ name: A set the workout never recorded is added to completed history
     id: workout-set-repetitions-input
 - inputText: '8'
 # The number pad covers the save control, and scrolling with it open drags
-# across the keys and appends digits to the field.
-- hideKeyboard
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content
+# area does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Save Missing Set

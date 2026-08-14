@@ -10,12 +10,20 @@ name: A corrected set replaces the record it wrongly established
       REPETITIONS: '100'
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
 - assertVisible: 'Most recorded repetitions in a set, 100 repetitions, first recorded on .*, in Workout, set 1'
+# Both reusable flows start from the Workout tab, and personal records sit on a
+# pushed screen that has no tab bar. Relaunching returns to a known root instead
+# of guessing how many back gestures the stack needs.
+- stopApp
+- launchApp
 - runFlow: ../../flows/workout/open-completed-workout.yaml
 - runFlow:
     file: ../../flows/workout/correct-completed-set.yaml
     env:
       CORRECTED_REPETITIONS: '10'
       SET_NUMBER: '1'
+- assertVisible: 'Performed set 1: 10 reps'
+- stopApp
+- launchApp
 - runFlow: ../../flows/workout/open-exercise-personal-records.yaml
 - assertVisible: 'Most recorded repetitions in a set, 10 repetitions, first recorded on .*, in Workout, set 1'
 - assertNotVisible: 'Most recorded repetitions in a set, 100 repetitions, .*'
