@@ -221,6 +221,28 @@ describe('CompletedWorkoutExerciseAdditionScreen', () => {
     });
   });
 
+  it('hands a successful addition to the detail so it can announce it', async () => {
+    const addCompletedExercise = jest
+      .fn()
+      .mockResolvedValue({ session: completedSession(), status: 'added' });
+    const onAdded = jest.fn();
+    const onDone = jest.fn();
+    await render(
+      <CompletedWorkoutExerciseAdditionScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loader(addCompletedExercise)}
+        onAdded={onAdded}
+        onDone={onDone}
+      />,
+    );
+
+    await selectSquat();
+    await recordTwelveRepetitions();
+
+    await waitFor(() => expect(onAdded).toHaveBeenCalled());
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
   it('keeps the entered values and stays put when the addition is refused', async () => {
     const addCompletedExercise = jest
       .fn()

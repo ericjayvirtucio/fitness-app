@@ -840,6 +840,25 @@ describe('CompletedWorkoutScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('announces an addition once the detail is showing it', async () => {
+    const loadUseCases = loader(completedSession(oneSet()));
+    await render(
+      <CompletedWorkoutScreen
+        hasAddedExercise
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onAddExercise={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Exercise added to this completed workout.'),
+      ).toBeOnTheScreen(),
+    );
+  });
+
   it('explains in words why a full workout cannot take another exercise', async () => {
     const loadUseCases = loader(sessionOf(fullWorkoutExercises()));
     await render(

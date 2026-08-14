@@ -26,6 +26,7 @@ import {
 import { fingerprintRecordedSet } from '../application/correct-completed-workout-set-use-case';
 import { completedWorkoutLifecycle } from '../application/delete-completed-workout-use-case';
 import {
+  additionConfirmedMessage,
   additionExplanation,
   workoutFullExplanation,
 } from './completed-exercise-addition-messages';
@@ -53,6 +54,7 @@ import { formatCapturedDate } from './workout-history-formatting';
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
 
 export function CompletedWorkoutScreen({
+  hasAddedExercise = false,
   id,
   loadUseCases = createWorkoutHistoryUseCases,
   onAddExercise,
@@ -61,6 +63,7 @@ export function CompletedWorkoutScreen({
   onCorrectSet,
   onDeleted,
 }: Readonly<{
+  hasAddedExercise?: boolean;
   id: string;
   loadUseCases?: () => Promise<UseCases>;
   onAddExercise?: () => void;
@@ -369,6 +372,13 @@ export function CompletedWorkoutScreen({
       {notice ? (
         <AppText accessibilityLiveRegion="polite" color="secondary">
           {notice}
+        </AppText>
+      ) : null}
+      {/* Announced by the detail rather than by the addition screen, because the
+          addition screen is gone by the time the new exercise is on screen. */}
+      {hasAddedExercise ? (
+        <AppText accessibilityLiveRegion="polite" color="secondary">
+          {additionConfirmedMessage}
         </AppText>
       ) : null}
       <AppButton label="Back to History" onPress={onClose} variant="outline" />

@@ -64,6 +64,7 @@ export function ExercisePicker({
       <TextField
         label="Search exercises"
         onChangeText={setQuery}
+        testID="exercise-picker-search"
         value={query}
       />
       {error ? (

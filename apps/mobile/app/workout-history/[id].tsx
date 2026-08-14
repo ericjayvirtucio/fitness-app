@@ -2,10 +2,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { CompletedWorkoutScreen } from '../../src/features/workout-history/presentation/CompletedWorkoutScreen';
 
 export default function CompletedWorkoutRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { added, id } = useLocalSearchParams<{ added?: string; id: string }>();
   const sessionId = id ?? '';
   return (
     <CompletedWorkoutScreen
+      hasAddedExercise={added === '1'}
       id={sessionId}
       onAddExercise={() =>
         router.push(`/workout-history/${sessionId}/add-exercise`)

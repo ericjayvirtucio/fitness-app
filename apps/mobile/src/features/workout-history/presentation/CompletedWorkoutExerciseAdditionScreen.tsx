@@ -47,10 +47,12 @@ type Loaded = Readonly<{
 export function CompletedWorkoutExerciseAdditionScreen({
   id,
   loadUseCases = createWorkoutHistoryUseCases,
+  onAdded,
   onDone,
 }: Readonly<{
   id: string;
   loadUseCases?: () => Promise<UseCases>;
+  onAdded?: () => void;
   onDone: () => void;
 }>) {
   const [loaded, setLoaded] = useState<Loaded | null>();
@@ -135,7 +137,10 @@ export function CompletedWorkoutExerciseAdditionScreen({
       throw new Error('The addition was refused.');
     }
     setError(undefined);
-    onDone();
+    // The detail announces the addition, because this screen is gone by the
+    // time the new exercise is on screen.
+    if (onAdded) onAdded();
+    else onDone();
   };
 
   return (
