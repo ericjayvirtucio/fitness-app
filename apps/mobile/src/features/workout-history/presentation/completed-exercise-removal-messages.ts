@@ -20,8 +20,13 @@ const messages: Readonly<Record<CompletedExerciseRemovalRefusal, string>> = {
 export const emptyExerciseExplanation =
   'This exercise recorded nothing. Add a missing set, or remove the exercise from this workout.';
 
+/**
+ * Deliberately worded around the exercise rather than around the rule, because a
+ * one-set workout also shows the set-level explanation and two identical
+ * sentences read as a stutter to a screen reader.
+ */
 export const blockedRemovalExplanation =
-  'This exercise holds the only recorded sets in this workout. A completed workout keeps at least one recorded set, so delete the whole workout instead.';
+  'This exercise holds the only recorded sets in this workout, so removing it would leave nothing recorded. Delete the whole workout instead.';
 
 export const removalFailureMessage =
   'This exercise could not be removed. Nothing was changed.';
