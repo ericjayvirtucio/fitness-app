@@ -89,7 +89,8 @@ const twoSets = () => [
 function loader(
   session: WorkoutSession,
   correctSet: Record<string, unknown> = {},
-  refreshedWith: readonly WorkoutSession[] = [],
+  refreshedWith: readonly (WorkoutSession | null)[] = [],
+  deleteCompleted: jest.Mock = jest.fn(),
 ) {
   const reloads = [...refreshedWith];
   const useCases = {
@@ -99,8 +100,10 @@ function loader(
       editSet: jest.fn(),
       ...correctSet,
     },
+    deleteCompleted: { execute: deleteCompleted },
     getCompleted: {
-      execute: () => Promise.resolve(reloads.shift() ?? session),
+      execute: () =>
+        Promise.resolve(reloads.length > 0 ? reloads.shift() : session),
     },
     getProfile: { execute: () => Promise.resolve(null) },
   } as never;
@@ -265,6 +268,213 @@ describe('CompletedWorkoutScreen', () => {
       ).toBeOnTheScreen(),
     );
     expect(screen.getByText('Performed set 1: 12 reps')).toBeOnTheScreen();
+    alert.mockRestore();
+  });
+
+  it('offers whole-workout deletion only when the route supports it', async () => {
+    const loadUseCases = loader(completedSession(oneSet()));
+    const { rerender } = await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('Push-up')).toBeOnTheScreen());
+    expect(
+      screen.queryByTestId('delete-completed-workout'),
+    ).not.toBeOnTheScreen();
+
+    await rerender(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Delete this workout, Workout, August 8, 2026'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText(/cannot be undone/)).toBeOnTheScreen();
+  });
+
+  it('names the workout in the confirmation and keeps it when cancelled', async () => {
+    const deleteCompleted = jest.fn();
+    const alert = jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[0]?.onPress?.();
+      });
+    const loadUseCases = loader(
+      completedSession(oneSet()),
+      {},
+      [],
+      deleteCompleted,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+
+    expect(alert).toHaveBeenCalledWith(
+      'Delete Workout?',
+      expect.stringContaining('cannot be recovered'),
+      expect.arrayContaining([
+        expect.objectContaining({ style: 'cancel', text: 'Cancel' }),
+        expect.objectContaining({
+          style: 'destructive',
+          text: 'Delete Workout',
+        }),
+      ]),
+    );
+    expect(deleteCompleted).not.toHaveBeenCalled();
+    expect(screen.getByText('Performed set 1: 12 reps')).toBeOnTheScreen();
+    alert.mockRestore();
+  });
+
+  it('leaves the deleted detail once the workout is gone', async () => {
+    const alert = confirmDestructiveAlert();
+    const deleteCompleted = jest.fn().mockResolvedValue({ status: 'deleted' });
+    const onDeleted = jest.fn();
+    const loadUseCases = loader(
+      completedSession(oneSet()),
+      {},
+      [],
+      deleteCompleted,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={onDeleted}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+
+    await waitFor(() => expect(onDeleted).toHaveBeenCalledTimes(1));
+    expect(deleteCompleted).toHaveBeenCalledWith({
+      expected: {
+        completedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4) + 600_000,
+        startedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4),
+      },
+      sessionId: uuids[0],
+    });
+    alert.mockRestore();
+  });
+
+  it('states a refused workout deletion without exposing anything recorded', async () => {
+    const alert = confirmDestructiveAlert();
+    const deleteCompleted = jest
+      .fn()
+      .mockResolvedValue({ reason: 'not-found', status: 'refused' });
+    const onDeleted = jest.fn();
+    const loadUseCases = loader(
+      completedSession(oneSet()),
+      {},
+      [completedSession(oneSet()), null],
+      deleteCompleted,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={onDeleted}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Completed workout unavailable'),
+      ).toBeOnTheScreen(),
+    );
+    expect(onDeleted).not.toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
+  it('keeps the workout visible and disables retry while a deletion fails', async () => {
+    const alert = confirmDestructiveAlert();
+    const deleteCompleted = jest
+      .fn()
+      .mockRejectedValue(new Error('storage unavailable'));
+    const loadUseCases = loader(
+      completedSession(oneSet()),
+      {},
+      [],
+      deleteCompleted,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+
+    await waitFor(() =>
+      expect(screen.getByText(/could not be deleted/)).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('Performed set 1: 12 reps')).toBeOnTheScreen();
+    expect(deleteCompleted).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
+  });
+
+  it('ignores a repeated request while the first deletion is in flight', async () => {
+    const alert = confirmDestructiveAlert();
+    const deleteCompleted = jest.fn().mockReturnValue(new Promise(() => {}));
+    const loadUseCases = loader(
+      completedSession(oneSet()),
+      {},
+      [],
+      deleteCompleted,
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-completed-workout')).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+    await fireEvent.press(screen.getByTestId('delete-completed-workout'));
+
+    expect(deleteCompleted).toHaveBeenCalledTimes(1);
     alert.mockRestore();
   });
 });

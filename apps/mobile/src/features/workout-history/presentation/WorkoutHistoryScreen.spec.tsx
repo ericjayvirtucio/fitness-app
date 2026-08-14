@@ -173,4 +173,42 @@ describe('WorkoutHistoryScreen', () => {
       expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen(),
     );
   });
+
+  it('announces a deletion and shows the empty state when it removed the last workout', async () => {
+    await render(
+      <WorkoutHistoryScreen
+        hasDeletedWorkout
+        loadUseCases={() =>
+          Promise.resolve({
+            listPerformedExercises: { execute: () => Promise.resolve([]) },
+            getProfile: { execute: () => Promise.resolve(null) },
+            getSummary: {
+              execute: () =>
+                Promise.resolve({
+                  actualSetCount: 0,
+                  completedWorkoutCount: 0,
+                  distanceMillimeters: null,
+                  durationSeconds: null,
+                  elapsedWorkoutSeconds: 0,
+                  performedExerciseCount: 0,
+                  recordedLoadVolumeGramRepetitions: null,
+                  repetitions: null,
+                }),
+            },
+            list: {
+              execute: () => Promise.resolve({ items: [], nextCursor: null }),
+            },
+          } as never)
+        }
+        onOpenSession={jest.fn()}
+        onOpenExercise={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Completed workout deleted.')).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen();
+    expect(screen.getByText('0 completed workouts')).toBeOnTheScreen();
+  });
 });
