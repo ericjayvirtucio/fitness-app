@@ -328,6 +328,39 @@ describe('WorkoutSession completed correction', () => {
     expect(correctSets(session, 0, []).isSuccess).toBe(false);
   });
 
+  it('rejects a completed workout whose exercise positions leave a gap', () => {
+    const kept = exercise(0, twoSets());
+    const trailing = exercise(2, [set(10, RepetitionResult.valid(3), 0)]);
+
+    expect(
+      WorkoutSession.create({
+        ...completed([kept]),
+        exercises: [kept, trailing],
+      }).isSuccess,
+    ).toBe(false);
+  });
+
+  it('renumbers the survivors of a removed exercise without changing identifiers', () => {
+    const session = completed([
+      exercise(0, twoSets()),
+      exercise(1, [set(10, RepetitionResult.valid(3), 0)]),
+    ]);
+    const survivor = exerciseAt(session, 1);
+    const renumbered = unwrap(
+      WorkoutSessionExercise.create({ ...survivor, position: 0 }),
+    );
+    const rebuilt = unwrap(
+      WorkoutSession.create({ ...session, exercises: [renumbered] }),
+    );
+
+    expect(rebuilt.exercises).toHaveLength(1);
+    expect(exerciseAt(rebuilt, 0).id.value).toBe(survivor.id.value);
+    expect(exerciseAt(rebuilt, 0).position).toBe(0);
+    expect(exerciseAt(rebuilt, 0).sets.map((entry) => entry.id.value)).toEqual(
+      survivor.sets.map((entry) => entry.id.value),
+    );
+  });
+
   it('rejects a corrected result that does not match the captured logging mode', () => {
     const session = completed([exercise(0, twoSets())]);
     const duration = set(
