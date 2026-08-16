@@ -4,8 +4,14 @@ name: A workout is planned and completed against imported exercises alone
 - launchApp:
     clearState: true
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
 # Nothing is authored anywhere in this scenario. Everything below runs against
 # definitions the import wrote, which is the whole point of the sprint.
+#
+# The import ends on the Exercise Library, a pushed screen with no tab bar, so
+# relaunch to a known root rather than guessing at back gestures.
+- stopApp
+- launchApp
 - tapOn:
     id: tab-workout
 # Weekday cards are keyed by the domain Weekday value, where Monday is 1.

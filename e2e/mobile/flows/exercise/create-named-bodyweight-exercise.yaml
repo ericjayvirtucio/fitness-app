@@ -53,3 +53,12 @@ appId: com.fitnessapp.dev
       text: Edit ${EXERCISE_NAME}
     direction: DOWN
     centerElement: true
+# Ends back at the Workout tab. The Exercise Library is a pushed screen with no
+# tab bar, so a flow composed after this one would otherwise fail on its opening
+# `tapOn: id: tab-workout`. `create-exercise.yaml` ends the same way.
+- swipe:
+    start: 1%, 50%
+    end: 90%, 50%
+    duration: 500
+- assertVisible:
+    id: tab-workout

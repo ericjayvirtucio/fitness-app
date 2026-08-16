@@ -287,10 +287,17 @@ explanatory screen rather than an alert. Alerts in this repository belong to act
 that destroy.
 
 The Exercise Library renders a starter section in both its empty and its
-populated state, immediately above the existing "Create exercise" control. The
-empty state keeps its own "Create first exercise" action unchanged, so a person
-who wants to author their own is not pushed into the starter set; the two are
-offered side by side. Rendering the section in both states keeps the offer
+populated state, directly under the search field and **above** the catalog
+lists. Placement is not cosmetic: the library updates in place, so an import
+grows the list above whatever the person is looking at. With the section beneath
+the list, the retained scroll offset left the person stranded in the middle of
+twenty-six new cards, with both the control they had just pressed and its result
+off screen. Device QA caught exactly that. A presentation test asserts the order.
+
+The empty state keeps its own "Create first exercise" action and renders before
+the starter section, so a person who wants to author their own is not pushed
+into the starter set; the two are offered one after the other. "Create exercise"
+still closes the page. Rendering the section in both states keeps the offer
 reachable after erasure and for a person who authored a definition or two and
 then wants the rest, and keeps one code path rather than two.
 

@@ -85,6 +85,29 @@ async function renderLibrary(
   return { addStarterExercises };
 }
 
+/**
+ * Rendered text in document order, so the starter section's position relative to
+ * the catalog it writes can be asserted rather than assumed.
+ */
+function renderedText(): readonly string[] {
+  const collected: string[] = [];
+  const walk = (node: unknown): void => {
+    if (typeof node === 'string') {
+      collected.push(node);
+      return;
+    }
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+      return;
+    }
+    if (node && typeof node === 'object' && 'children' in node) {
+      walk(node.children);
+    }
+  };
+  walk(screen.toJSON());
+  return collected;
+}
+
 async function press(name: string) {
   await waitFor(() =>
     expect(screen.getByRole('button', { name })).toBeOnTheScreen(),
@@ -263,6 +286,27 @@ describe('ExerciseLibraryScreen starter exercises', () => {
     expect(
       screen.getByRole('button', { name: 'Add Push-up to favorites' }),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the offer and its result above the catalog it writes', async () => {
+    await renderLibrary({
+      items: [item('c335a500-2af1-5c5f-bb9c-cb3eb2aca115', 'Push-up')],
+    });
+    await waitFor(() => expect(screen.getByText('Push-up')).toBeOnTheScreen());
+
+    await press('Add starter exercises');
+    await waitFor(() => expect(screen.getByText(/^Added /u)).toBeOnTheScreen());
+
+    // The library updates in place, so a section below the list would leave the
+    // person stranded mid-catalog with the control they just pressed and its
+    // result scrolled off. Order is asserted, not assumed.
+    const order = renderedText();
+    const section = order.indexOf('Starter exercises');
+    const result = order.findIndex((text) => text.startsWith('Added '));
+    const catalog = order.indexOf('All exercises');
+    expect(section).toBeGreaterThan(-1);
+    expect(result).toBeGreaterThan(section);
+    expect(catalog).toBeGreaterThan(result);
   });
 
   it('refreshes an active search with what the import wrote', async () => {

@@ -109,9 +109,14 @@ failure switch.
 
 ## Experience
 
-The library renders the section in both states, above "Create exercise". The
-empty state keeps its own "Create first exercise" action, so authoring is offered
-beside importing rather than replaced by it.
+The library renders the section in both states, directly under the search field
+and above the catalog lists. That position is load-bearing: the library updates
+in place, so an import grows the list above the person's scroll offset, and a
+section beneath the list left them stranded mid-catalog with the control and its
+result off screen. Device QA found it; a presentation test now asserts the order.
+The empty state keeps its own "Create first exercise" action and renders first,
+so authoring is offered before importing rather than replaced by it, and
+"Create exercise" still closes the page.
 
 No destructive alert. The act creates data and destroys nothing, and every row it
 writes is deletable, so it follows the additive precedent set by completed

@@ -4,20 +4,33 @@ name: An imported exercise can be favorited, renamed, and deleted
 - launchApp:
     clearState: true
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-# The import leaves the screen at the starter section, so the list it wrote is
-# above rather than below.
+- assertVisible: Added 26 exercises to your library.
+# A populated library is far taller than one viewport, so the exercise is reached
+# by searching rather than by scrolling through the alphabet.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Add Burpee to favorites
+    direction: DOWN
+    centerElement: true
+- tapOn: Add Burpee to favorites
+# Favoriting reloads the library, which clears nothing the person typed, so the
+# search results still hold the one exercise.
+- scrollUntilVisible:
+    element:
+      text: Remove Burpee from favorites
+    direction: DOWN
+    centerElement: true
+- assertVisible: Remove Burpee from favorites
 - scrollUntilVisible:
     element:
       text: Edit Burpee
     direction: UP
-    centerElement: true
-- tapOn: Add Burpee to favorites
-# Favoriting reloads the library, which returns it to the top and adds a
-# Favorites section, so the same exercise is now reached going down.
-- scrollUntilVisible:
-    element:
-      text: Edit Burpee
-    direction: DOWN
     centerElement: true
 - tapOn: Edit Burpee
 - assertVisible: Edit exercise
@@ -35,12 +48,22 @@ name: An imported exercise can be favorited, renamed, and deleted
       text: Save exercise
     direction: DOWN
 - tapOn: Save exercise
+# Saving returns to the library, which was never unmounted and therefore still
+# holds the query typed earlier. The renamed exercise no longer matches it, so
+# the field is cleared before the new name is typed.
+- assertVisible: Exercise Library
+- tapOn:
+    id: exercise-library-search
+- eraseText: 20
+- inputText: E2E Renamed
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Edit E2E Renamed Movement
     direction: DOWN
     centerElement: true
-- assertVisible: Edit E2E Renamed Movement
 - tapOn: Edit E2E Renamed Movement
 - scrollUntilVisible:
     element:

@@ -14,18 +14,21 @@ name: Starter exercise library
 - tapOn: Open Exercise Library
 - assertVisible: No exercises yet
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Added 26 exercises to your library.
-    direction: DOWN
-    centerElement: true
+# The result stays where the control was, above the catalog it wrote.
 - assertVisible: Added 26 exercises to your library.
-# What it wrote is ordinary catalog content, listed the way the library lists
-# anything and favorited by nobody.
+# What it wrote is ordinary catalog content, reached through the library's own
+# search because a populated catalog is far taller than one viewport, and
+# favorited by nobody.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
-      text: Edit Burpee
-    direction: UP
+      text: Add Burpee to favorites
+    direction: DOWN
     centerElement: true
 - assertVisible: Add Burpee to favorites
 - stopApp
@@ -39,6 +42,13 @@ name: Starter exercise library
 - tapOn: Open Exercise Library
 - assertVisible: Exercise Library
 - assertNotVisible: No exercises yet
+- assertNotVisible: Added 26 exercises to your library.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Edit Burpee

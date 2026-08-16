@@ -193,6 +193,7 @@ export function ExerciseLibraryScreen({
       <TextField
         label="Search exercises"
         onChangeText={setQuery}
+        testID="exercise-library-search"
         value={query}
       />
       {query.trim() === '' && state.all.length === 0 ? (
@@ -203,7 +204,31 @@ export function ExerciseLibraryScreen({
           onAction={onCreate}
           title="No exercises yet"
         />
-      ) : (
+      ) : null}
+      {/*
+       * Above the lists, not below them. The library updates in place, so an
+       * import grows the catalog above whatever the person is looking at; with
+       * this section beneath the list, the retained scroll offset left them
+       * stranded in the middle of twenty-six new cards with both the control
+       * they had just pressed and its result off screen. Authoring still comes
+       * first on an empty library, and "Create exercise" still closes the page.
+       */}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader title={starterExerciseSectionTitle} />
+        <AppText color="secondary">{starterExerciseExplanation}</AppText>
+        <AppButton
+          isLoading={isImporting}
+          label={starterExerciseActionLabel}
+          onPress={() => void addStarterExercises()}
+          variant="outline"
+        />
+        {starterResult === null ? null : (
+          <AppText accessibilityLiveRegion="polite" color="secondary">
+            {starterResult}
+          </AppText>
+        )}
+      </View>
+      {query.trim() === '' && state.all.length === 0 ? null : (
         <>
           {query.trim() === '' && state.favorites.length > 0 ? (
             <ExerciseSection
@@ -229,21 +254,6 @@ export function ExerciseLibraryScreen({
           />
         </>
       )}
-      <View style={{ gap: spacing.md }}>
-        <SectionHeader title={starterExerciseSectionTitle} />
-        <AppText color="secondary">{starterExerciseExplanation}</AppText>
-        <AppButton
-          isLoading={isImporting}
-          label={starterExerciseActionLabel}
-          onPress={() => void addStarterExercises()}
-          variant="outline"
-        />
-        {starterResult === null ? null : (
-          <AppText accessibilityLiveRegion="polite" color="secondary">
-            {starterResult}
-          </AppText>
-        )}
-      </View>
       <AppButton label="Create exercise" onPress={onCreate} />
     </Screen>
   );

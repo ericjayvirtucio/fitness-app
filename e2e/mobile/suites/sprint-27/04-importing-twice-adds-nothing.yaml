@@ -4,17 +4,13 @@ name: Importing a second time adds nothing and says so
 - launchApp:
     clearState: true
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Added 26 exercises to your library.
-    direction: DOWN
-    centerElement: true
+- assertVisible: Added 26 exercises to your library.
+# The reusable flow starts from the Workout tab, and the library is a pushed
+# screen with no tab bar, so return to a known root rather than guessing at back
+# gestures.
+- stopApp
+- launchApp
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Your library already has all 26 starter exercises. Nothing was added.
-    direction: DOWN
-    centerElement: true
 - assertVisible: Your library already has all 26 starter exercises. Nothing was added.
 # The second import claims nothing it did not do.
 - assertNotVisible: Added 26 exercises to your library.

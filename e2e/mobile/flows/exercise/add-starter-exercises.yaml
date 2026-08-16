@@ -12,17 +12,20 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Exercise Library
 - assertVisible: Exercise Library
-# The starter section sits above "Create exercise" at the bottom of the screen,
-# so it is below the fold whenever the list above it holds anything, and can be
-# below it even on the empty state.
+# The starter section sits above the catalog, directly under the search field,
+# so it stays reachable however many definitions the library holds. It can still
+# begin below the fold on a short device, so it is scrolled to rather than
+# assumed.
 - scrollUntilVisible:
     element:
       text: Add starter exercises
     direction: DOWN
     centerElement: true
 - tapOn: Add starter exercises
-# Deliberately asserts nothing about the outcome. The library updates in place
-# and the list above the section grows, so the result moves; each scenario
-# scrolls to the sentence it expects rather than having this flow assert one
-# sentence that would be wrong for a second import.
+# Ends on the Exercise Library, which is a pushed screen with no tab bar. A
+# caller that needs the tabs relaunches rather than guessing at back gestures.
+#
+# Deliberately asserts nothing about the outcome. Each scenario asserts the
+# sentence it expects, because one sentence here would be wrong for a second
+# import.
 

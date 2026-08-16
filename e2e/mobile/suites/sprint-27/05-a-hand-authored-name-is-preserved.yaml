@@ -10,17 +10,20 @@ name: A hand-authored name is preserved and reported as skipped
     env:
       EXERCISE_NAME: Push-up
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Added 25 exercises to your library. 1 was already in your library and was left unchanged.
-    direction: DOWN
-    centerElement: true
 - assertVisible: Added 25 exercises to your library. 1 was already in your library and was left unchanged.
 # It never claims to have added what it skipped.
 - assertNotVisible: Added 26 exercises to your library.
+# The person's own definition is still there, and the starter entry that matched
+# it was skipped rather than added beside it.
+- tapOn:
+    id: exercise-library-search
+- inputText: Push-up
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Edit Push-up
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Edit Push-up

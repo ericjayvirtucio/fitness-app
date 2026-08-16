@@ -4,11 +4,7 @@ name: Imported exercises survive a relaunch
 - launchApp:
     clearState: true
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Added 26 exercises to your library.
-    direction: DOWN
-    centerElement: true
+- assertVisible: Added 26 exercises to your library.
 - stopApp
 - launchApp
 - tapOn:
@@ -20,12 +16,18 @@ name: Imported exercises survive a relaunch
 - tapOn: Open Exercise Library
 - assertVisible: Exercise Library
 - assertNotVisible: No exercises yet
+# A relaunch is a fresh visit, so the earlier result is gone while what it wrote
+# remains.
+- assertNotVisible: Added 26 exercises to your library.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Edit Burpee
     direction: DOWN
     centerElement: true
 - assertVisible: Edit Burpee
-# A relaunch is a fresh visit, so the result of the earlier import is gone while
-# what it wrote remains.
-- assertNotVisible: Added 26 exercises to your library.

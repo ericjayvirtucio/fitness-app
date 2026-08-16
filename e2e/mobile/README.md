@@ -300,10 +300,21 @@ screen while their lists are short and below it as soon as a scenario records
 more. A flow that worked against an empty state is not evidence that it works
 against a populated one; scroll to the control every time rather than only when a
 run has already failed. Sprint 27 proved the point on the empty state itself:
-adding the starter-exercise section above "Create exercise" made even an empty
-library tall enough to push that control down, so `create-exercise.yaml` — which
-forty-six suites compose — now scrolls to it instead of tapping it where it used
-to sit.
+adding the starter-exercise section made even an empty library tall enough to
+push "Create exercise" down, so `create-exercise.yaml` — which forty-six suites
+compose — now scrolls to it instead of tapping it where it used to sit.
+
+**`scrollUntilVisible` gives up long before the bottom of a very long screen.**
+The first Sprint 27 run failed six of seven scenarios this way: the import had
+worked and all twenty-six definitions were on the device, but the starter
+section sat beneath the catalog, and neither the result sentence below
+twenty-six cards nor an exercise partway up the alphabet could be reached before
+the scroll budget ran out. The evidence looked like a product failure and was
+not. Two lessons: put a control and its result where growth cannot bury them —
+the section moved above the lists, which is better for a person too — and reach
+one item in a long list through the screen's own search rather than by scrolling
+to it. The Exercise Library search carries `exercise-library-search` for that,
+alongside the picker's `exercise-picker-search`.
 
 **A populated catalog changes what the exercise picker's fallback shows.** The
 picker lists recently performed exercises first and falls back to the whole

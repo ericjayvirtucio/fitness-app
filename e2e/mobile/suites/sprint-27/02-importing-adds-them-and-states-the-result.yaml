@@ -4,26 +4,24 @@ name: Importing adds the starter exercises and states what happened
 - launchApp:
     clearState: true
 - runFlow: ../../flows/exercise/add-starter-exercises.yaml
-- scrollUntilVisible:
-    element:
-      text: Added 26 exercises to your library.
-    direction: DOWN
-    centerElement: true
+# The result appears where the control was, above the catalog it wrote, so it is
+# reached without scrolling past twenty-six cards.
 - assertVisible: Added 26 exercises to your library.
-# The library updates in place, so the definitions are reached by scrolling back
-# up rather than by reopening the screen.
+# A populated library is far taller than one viewport, so a definition is reached
+# by searching rather than by scrolling to it. Search is the library's own
+# control and it is what a person with a full catalog uses too.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 - scrollUntilVisible:
     element:
       text: Edit Burpee
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Edit Burpee
-- scrollUntilVisible:
-    element:
-      text: Edit Barbell Deadlift
-    direction: UP
-    centerElement: true
-- assertVisible: Edit Barbell Deadlift
 # Nothing arrives favorited: the control still offers to add the favorite rather
 # than to remove one.
-- assertVisible: Add Barbell Deadlift to favorites
+- assertVisible: Add Burpee to favorites
