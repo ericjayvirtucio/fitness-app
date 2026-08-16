@@ -153,6 +153,23 @@ changes are blocked while referenced. See
 [manual QA checklist](manual-testing/sprint-12-offline-workout-planner.md), and
 [troubleshooting guidance](troubleshooting/offline-workout-planner.md).
 
+## Active workout sessions
+
+At most one workout is active at a time. Starting, adding an exercise, recording
+a set, finishing, and discarding are each one short exclusive transaction, so an
+interruption at any point leaves a coherent workout or none — a failed discard
+leaves the workout with every set it held rather than one that recovers with its
+recorded work missing. Discarding is the only way to remove an active workout and
+refuses anything that is not active; completed history is removed through its own
+separate path. See
+[offline workout session architecture](architecture/offline-workout-sessions.md),
+[Specification 0028](../specs/0028-atomic-active-workout-lifecycle.md), the
+[Sprint 13 manual checklist](manual-testing/sprint-13-offline-workout-sessions.md),
+the
+[Sprint 28 manual checklist](manual-testing/sprint-28-atomic-active-workout-lifecycle.md),
+and
+[troubleshooting guidance](troubleshooting/offline-workout-sessions.md).
+
 ## Offline workout history
 
 Workout History reads completed session snapshots and provides detail,

@@ -62,10 +62,10 @@ Migration 9 creates `workout_session`, `workout_session_exercise`, and
 replacement. Migration 9 declares `ON DELETE CASCADE`, but the repository does
 not depend on it: it deletes `workout_set` rows, then `workout_session_exercise`
 rows, then the session, because the connection Expo opens for `runExclusive` has
-foreign keys off (see [local persistence](local-persistence.md)). Discarding runs
-on the main connection today and replacement runs inside a transaction; the
-explicit order makes both correct without depending on which connection is in
-use. Strict checks encode
+foreign keys off (see [local persistence](local-persistence.md)). Every path that
+removes owned rows — discard, replacement, correction, and completed deletion —
+runs inside such a transaction, so the explicit order is what makes the deletion
+complete rather than the declared cascade. Strict checks encode
 planned and actual unions. A fixed three-query read reconstructs and validates an
 active aggregate. Exercise and set changes replace the small active aggregate;
 completion updates only the parent status and completion timestamp so historical
@@ -78,9 +78,13 @@ one completed aggregate outright — sets, then session exercises, then the sess
 and verifies that no owned row survives before it returns; it refuses anything that is
 not completed, so widening `discard` is never needed and completed history stays
 unreachable from active workout screens (see
-[completed workout deletion](completed-workout-deletion.md)). Every confirmed mutation is
-a short transaction, so the active workout restores after termination, crash,
-restart, or cold offline launch.
+[completed workout deletion](completed-workout-deletion.md)). Abandoning an
+active workout uses the separate `discard` contract, which asserts
+`status = 'active'` when it looks the session up and again on the statement that
+deletes it. Every confirmed mutation, discard included, is one short exclusive
+transaction, so the active workout restores after termination, crash, restart, or
+cold offline launch, and an interrupted discard leaves the workout with every set
+it held rather than one that recovers with its recorded work missing.
 
 Start captures epoch time, local calendar date, and UTC offset. The captured date
 remains the historical grouping key across timezone changes. Completion stores

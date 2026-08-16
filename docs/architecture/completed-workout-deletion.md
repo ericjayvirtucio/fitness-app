@@ -57,16 +57,16 @@ deliberate absence of mutators.
 ## Why `deleteCompleted` is separate from `discard`
 
 `discard` removes an active session. Its only lifecycle guard is the
-`status = 'active'` predicate in its own `SELECT`, so widening that predicate
-would not merely rename a concept: it would make the active workout screen's
-discard control capable of removing completed history, because that screen calls
-the same use case with whatever identifier it holds.
+`status = 'active'` predicate in its own SQL, so widening that predicate would
+not merely rename a concept: it would make the active workout screen's discard
+control capable of removing completed history, because that screen calls the same
+use case with whatever identifier it holds.
 
 `deleteCompleted` therefore states its lifecycle policy in its name, confirms the
 stored row is completed with the start and completion instants the caller loaded,
 and refuses anything else. `discard` keeps its guard and its single
-active-session caller, and completed history is unreachable from active-workout
-screens.
+active-session caller, asserts that guard on both the lookup and the delete, and
+completed history is unreachable from active-workout screens.
 
 The two operations share mechanics rather than policy: both delete children
 through the same private child-first helper.
