@@ -17,6 +17,8 @@ import {
   DeleteExerciseUseCase,
   SetExerciseFavoriteUseCase,
   UpdateExerciseUseCase,
+  exerciseBrowseLimit,
+  exerciseSearchLimit,
 } from './exercise-catalog-use-cases';
 import type { ExerciseCatalogMutationContext } from './exercise-catalog-use-cases';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
@@ -246,19 +248,20 @@ describe('browsing a narrowed exercise catalog', () => {
     const repository = catalog();
     const browse = new BrowseExercisesUseCase(repository);
     await expect(browse.listAll()).resolves.toHaveLength(5);
-    expect(repository.listAll).toHaveBeenCalledWith(100, {
+    expect(repository.listAll).toHaveBeenCalledWith(exerciseBrowseLimit, {
       equipment: null,
       primaryMuscleGroup: null,
     });
     await expect(browse.search('bench')).resolves.toHaveLength(2);
-    expect(repository.search).toHaveBeenCalledWith('bench', 50, {
-      equipment: null,
-      primaryMuscleGroup: null,
-    });
+    expect(repository.search).toHaveBeenCalledWith(
+      'bench',
+      exerciseSearchLimit,
+      { equipment: null, primaryMuscleGroup: null },
+    );
   });
 
   it('narrows by equipment', async () => {
-    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll({
       equipment: 'dumbbell',
       primaryMuscleGroup: null,
     });
@@ -270,7 +273,7 @@ describe('browsing a narrowed exercise catalog', () => {
   });
 
   it('narrows by primary muscle group', async () => {
-    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll({
       equipment: null,
       primaryMuscleGroup: 'chest',
     });
@@ -282,7 +285,7 @@ describe('browsing a narrowed exercise catalog', () => {
   });
 
   it('requires both criteria to hold when both are narrowed', async () => {
-    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll({
       equipment: 'dumbbell',
       primaryMuscleGroup: 'chest',
     });
@@ -290,24 +293,23 @@ describe('browsing a narrowed exercise catalog', () => {
   });
 
   it('applies a search and a filter together', async () => {
-    const items = await new BrowseExercisesUseCase(catalog()).search(
-      'bench',
-      50,
-      { equipment: 'dumbbell', primaryMuscleGroup: null },
-    );
+    const items = await new BrowseExercisesUseCase(catalog()).search('bench', {
+      equipment: 'dumbbell',
+      primaryMuscleGroup: null,
+    });
     expect(names(items)).toEqual(['Dumbbell Bench Press']);
   });
 
   it('returns nothing rather than everything when a filter matches nothing', async () => {
     const browse = new BrowseExercisesUseCase(catalog());
     await expect(
-      browse.listAll(100, {
+      browse.listAll({
         equipment: 'dumbbell',
         primaryMuscleGroup: 'calves',
       }),
     ).resolves.toEqual([]);
     await expect(
-      browse.search('bench', 50, {
+      browse.search('bench', {
         equipment: 'cable',
         primaryMuscleGroup: null,
       }),
@@ -318,8 +320,8 @@ describe('browsing a narrowed exercise catalog', () => {
     const repository = catalog();
     const browse = new BrowseExercisesUseCase(repository);
     const filter = { equipment: 'dumbbell', primaryMuscleGroup: null } as const;
-    await expect(browse.listAll(2, filter)).resolves.toHaveLength(2);
-    await expect(browse.search('dumbbell', 1, filter)).resolves.toHaveLength(1);
+    await expect(browse.listAll(filter, 2)).resolves.toHaveLength(2);
+    await expect(browse.search('dumbbell', filter, 1)).resolves.toHaveLength(1);
     expect(repository.listAll).toHaveBeenCalledWith(2, filter);
     expect(repository.search).toHaveBeenCalledWith('dumbbell', 1, filter);
   });
@@ -327,7 +329,7 @@ describe('browsing a narrowed exercise catalog', () => {
   it('never reaches storage for a blank query, narrowed or not', async () => {
     const repository = catalog();
     await expect(
-      new BrowseExercisesUseCase(repository).search('   ', 50, {
+      new BrowseExercisesUseCase(repository).search('   ', {
         equipment: 'dumbbell',
         primaryMuscleGroup: null,
       }),
@@ -338,13 +340,12 @@ describe('browsing a narrowed exercise catalog', () => {
   it('cannot pass a value outside the vocabulary to the repository', async () => {
     const repository = catalog();
     await new BrowseExercisesUseCase(repository).listAll(
-      100,
       createExerciseCatalogFilter({
         equipment: "dumbbell' OR 1=1 --",
         primaryMuscleGroup: 'chest',
       }),
     );
-    expect(repository.listAll).toHaveBeenCalledWith(100, {
+    expect(repository.listAll).toHaveBeenCalledWith(exerciseBrowseLimit, {
       equipment: null,
       primaryMuscleGroup: 'chest',
     });
