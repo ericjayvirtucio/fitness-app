@@ -4,6 +4,10 @@ import type {
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
 import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
+import {
+  noExerciseCatalogFilter,
+  type ExerciseCatalogFilter,
+} from '../application/exercise-catalog-filter';
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import {
   escapeExerciseSearch,
@@ -46,18 +50,19 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
     );
   }
 
-  search(normalizedQuery: string, limit: number) {
-    return this.readMany(
-      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE normalized_name LIKE ? ESCAPE '\\' ORDER BY is_favorite DESC, normalized_name ASC, id ASC LIMIT ?`,
-      [`%${escapeExerciseSearch(normalizedQuery)}%`, limit],
-    );
+  search(
+    normalizedQuery: string,
+    limit: number,
+    filter: ExerciseCatalogFilter = noExerciseCatalogFilter,
+  ) {
+    return this.listMatching(normalizedQuery, limit, filter);
   }
 
-  listAll(limit: number) {
-    return this.readMany(
-      `SELECT ${exerciseColumns} FROM exercise_catalog_item ORDER BY normalized_name ASC, id ASC LIMIT ?`,
-      [limit],
-    );
+  listAll(
+    limit: number,
+    filter: ExerciseCatalogFilter = noExerciseCatalogFilter,
+  ) {
+    return this.listMatching(null, limit, filter);
   }
 
   listFavorites(limit: number) {
@@ -99,6 +104,47 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
       id.value,
     ]);
     return true;
+  }
+
+  /**
+   * The only place the catalog's browse and search statements are composed.
+   * Every clause is a code literal and every narrowed value arrives as a bound
+   * parameter, so no filter value is ever interpolated. A clause is omitted
+   * entirely when its criterion is absent, which keeps the unfiltered
+   * statements identical to the ones this repository has always issued and
+   * leaves the existing `(normalized_name, id)` index covering the ordering.
+   */
+  private listMatching(
+    normalizedQuery: string | null,
+    limit: number,
+    filter: ExerciseCatalogFilter,
+  ) {
+    const conditions: string[] = [];
+    const values: (number | string)[] = [];
+    if (normalizedQuery !== null) {
+      conditions.push("normalized_name LIKE ? ESCAPE '\\'");
+      values.push(`%${escapeExerciseSearch(normalizedQuery)}%`);
+    }
+    if (filter.equipment !== null) {
+      conditions.push('equipment = ?');
+      values.push(filter.equipment);
+    }
+    if (filter.primaryMuscleGroup !== null) {
+      conditions.push('primary_muscle_group = ?');
+      values.push(filter.primaryMuscleGroup);
+    }
+    // Ordering depends on whether the person supplied a name, never on whether
+    // they narrowed: a search surfaces favorites first, browsing is alphabetical.
+    const ordering =
+      normalizedQuery === null
+        ? 'normalized_name ASC, id ASC'
+        : 'is_favorite DESC, normalized_name ASC, id ASC';
+    const where =
+      conditions.length === 0 ? '' : ` WHERE ${conditions.join(' AND ')}`;
+    return this.readMany(
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item${where} ORDER BY ${ordering} LIMIT ?`,
+      [...values, limit],
+    );
   }
 
   private async readMany(

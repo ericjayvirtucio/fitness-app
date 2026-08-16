@@ -1,4 +1,14 @@
-import { DomainId, ExerciseDefinition, Weekday } from '@fitness/domain';
+import {
+  DomainId,
+  ExerciseDefinition,
+  Weekday,
+  type ExerciseEquipment,
+  type ExerciseMuscleGroup,
+} from '@fitness/domain';
+import {
+  createExerciseCatalogFilter,
+  type ExerciseCatalogFilter,
+} from './exercise-catalog-filter';
 import type { ExerciseCatalogRepository } from './exercise-catalog-repository';
 import { ExerciseCatalogItem } from './exercise-catalog-item';
 import {
@@ -77,17 +87,31 @@ class MemoryRepository implements ExerciseCatalogRepository {
     this.values.push(value);
     return Promise.resolve();
   });
-  listAll = jest.fn(() => Promise.resolve(this.values));
+  listAll = jest.fn((limit: number, filter?: ExerciseCatalogFilter) =>
+    Promise.resolve(this.matching(filter).slice(0, limit)),
+  );
   listFavorites = jest.fn(() =>
     Promise.resolve(this.values.filter((value) => value.isFavorite)),
   );
-  search = jest.fn((query: string) =>
-    Promise.resolve(
-      this.values.filter((value) =>
-        normalizeExerciseName(value.definition.name).includes(query),
+  search = jest.fn(
+    (query: string, limit: number, filter?: ExerciseCatalogFilter) =>
+      Promise.resolve(
+        this.matching(filter)
+          .filter((value) =>
+            normalizeExerciseName(value.definition.name).includes(query),
+          )
+          .slice(0, limit),
       ),
-    ),
   );
+  private matching(filter?: ExerciseCatalogFilter) {
+    return this.values.filter(
+      (value) =>
+        (filter?.equipment == null ||
+          value.definition.equipment === filter.equipment) &&
+        (filter?.primaryMuscleGroup == null ||
+          value.definition.primaryMuscleGroup === filter.primaryMuscleGroup),
+    );
+  }
   setFavorite = jest.fn(() => Promise.resolve(true));
   update = jest.fn((value: ExerciseCatalogItem) => {
     this.values = [value];
@@ -202,6 +226,154 @@ describe('exercise catalog application', () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 });
+
+describe('browsing a narrowed exercise catalog', () => {
+  function catalog() {
+    const repository = new MemoryRepository();
+    repository.values = [
+      classified('a', 'Dumbbell Bench Press', 'dumbbell', 'chest'),
+      classified('b', 'Dumbbell Fly', 'dumbbell', 'chest'),
+      classified('c', 'Dumbbell Curl', 'dumbbell', 'biceps'),
+      classified('d', 'Barbell Bench Press', 'barbell', 'chest'),
+      classified('e', 'Cable Row', 'cable', 'back'),
+    ];
+    return repository;
+  }
+  const names = (items: readonly ExerciseCatalogItem[]) =>
+    items.map((value) => value.definition.name);
+
+  it('browses everything exactly as before when nothing is narrowed', async () => {
+    const repository = catalog();
+    const browse = new BrowseExercisesUseCase(repository);
+    await expect(browse.listAll()).resolves.toHaveLength(5);
+    expect(repository.listAll).toHaveBeenCalledWith(100, {
+      equipment: null,
+      primaryMuscleGroup: null,
+    });
+    await expect(browse.search('bench')).resolves.toHaveLength(2);
+    expect(repository.search).toHaveBeenCalledWith('bench', 50, {
+      equipment: null,
+      primaryMuscleGroup: null,
+    });
+  });
+
+  it('narrows by equipment', async () => {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+      equipment: 'dumbbell',
+      primaryMuscleGroup: null,
+    });
+    expect(names(items)).toEqual([
+      'Dumbbell Bench Press',
+      'Dumbbell Fly',
+      'Dumbbell Curl',
+    ]);
+  });
+
+  it('narrows by primary muscle group', async () => {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+      equipment: null,
+      primaryMuscleGroup: 'chest',
+    });
+    expect(names(items)).toEqual([
+      'Dumbbell Bench Press',
+      'Dumbbell Fly',
+      'Barbell Bench Press',
+    ]);
+  });
+
+  it('requires both criteria to hold when both are narrowed', async () => {
+    const items = await new BrowseExercisesUseCase(catalog()).listAll(100, {
+      equipment: 'dumbbell',
+      primaryMuscleGroup: 'chest',
+    });
+    expect(names(items)).toEqual(['Dumbbell Bench Press', 'Dumbbell Fly']);
+  });
+
+  it('applies a search and a filter together', async () => {
+    const items = await new BrowseExercisesUseCase(catalog()).search(
+      'bench',
+      50,
+      { equipment: 'dumbbell', primaryMuscleGroup: null },
+    );
+    expect(names(items)).toEqual(['Dumbbell Bench Press']);
+  });
+
+  it('returns nothing rather than everything when a filter matches nothing', async () => {
+    const browse = new BrowseExercisesUseCase(catalog());
+    await expect(
+      browse.listAll(100, {
+        equipment: 'dumbbell',
+        primaryMuscleGroup: 'calves',
+      }),
+    ).resolves.toEqual([]);
+    await expect(
+      browse.search('bench', 50, {
+        equipment: 'cable',
+        primaryMuscleGroup: null,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it('keeps every narrowed read bounded', async () => {
+    const repository = catalog();
+    const browse = new BrowseExercisesUseCase(repository);
+    const filter = { equipment: 'dumbbell', primaryMuscleGroup: null } as const;
+    await expect(browse.listAll(2, filter)).resolves.toHaveLength(2);
+    await expect(browse.search('dumbbell', 1, filter)).resolves.toHaveLength(1);
+    expect(repository.listAll).toHaveBeenCalledWith(2, filter);
+    expect(repository.search).toHaveBeenCalledWith('dumbbell', 1, filter);
+  });
+
+  it('never reaches storage for a blank query, narrowed or not', async () => {
+    const repository = catalog();
+    await expect(
+      new BrowseExercisesUseCase(repository).search('   ', 50, {
+        equipment: 'dumbbell',
+        primaryMuscleGroup: null,
+      }),
+    ).resolves.toEqual([]);
+    expect(repository.search).not.toHaveBeenCalled();
+  });
+
+  it('cannot pass a value outside the vocabulary to the repository', async () => {
+    const repository = catalog();
+    await new BrowseExercisesUseCase(repository).listAll(
+      100,
+      createExerciseCatalogFilter({
+        equipment: "dumbbell' OR 1=1 --",
+        primaryMuscleGroup: 'chest',
+      }),
+    );
+    expect(repository.listAll).toHaveBeenCalledWith(100, {
+      equipment: null,
+      primaryMuscleGroup: 'chest',
+    });
+  });
+});
+
+function classified(
+  suffix: string,
+  name: string,
+  equipment: ExerciseEquipment,
+  primaryMuscleGroup: ExerciseMuscleGroup,
+) {
+  const id = DomainId.create(`550e8400-e29b-41d4-a716-44665544000${suffix}`);
+  if (!id.isSuccess) throw new Error('Invalid fixture');
+  const definition = ExerciseDefinition.create({
+    equipment,
+    id: id.value,
+    loggingMode: 'external-load-and-repetitions',
+    name,
+    primaryMuscleGroup,
+  });
+  if (!definition.isSuccess) throw new Error('Invalid fixture');
+  const result = ExerciseCatalogItem.create({
+    definition: definition.value,
+    isFavorite: false,
+  });
+  if (!result.isSuccess) throw new Error('Invalid fixture');
+  return result.value;
+}
 
 function weekday(value: number) {
   const result = Weekday.create(value);
