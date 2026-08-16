@@ -104,10 +104,19 @@ changes no field.
   whole workout, keeps it distinct from correcting one recorded set.
 - Sprint 23's explanation that the final recorded set cannot be deleted stops
   being a dead end and now points at deleting the workout instead.
-- `DiscardWorkoutSessionUseCase` runs its statements outside any transaction,
-  which this decision deliberately does not change. Completed deletion does not
+- `DiscardWorkoutSessionUseCase` ran its statements outside any transaction,
+  which this decision deliberately did not change. Completed deletion did not
   inherit that shape: it runs inside `runExclusive` like every other write to
-  authoritative history. Making active discard atomic is a separate change.
+  authoritative history. **Settled.** The separate change this consequence
+  anticipated was made in
+  [Specification 0028](../../specs/0028-atomic-active-workout-lifecycle.md):
+  discard now runs inside one exclusive transaction through the narrow
+  `WorkoutSessionTransactionContext`, and it asserts `status = 'active'` on the
+  statement that deletes the session as well as on the lookup, so the "widening
+  `discard`" hazard this decision reasoned about no longer depends on a predicate
+  three statements away from the write. Nothing about the decision itself
+  changes: `discard` and `deleteCompleted` remain separate, and completed history
+  remains unreachable from the active workout screen.
 
 ## Alternatives considered
 
@@ -118,8 +127,10 @@ changes no field.
 - **Widen `discard` to accept any status.** Rejected. It erases the lifecycle
   distinction between abandoning an active workout and deleting history; because
   the guard lives only in that method's SQL, widening it would make the active
-  workout screen's discard control capable of deleting completed records; it
-  currently runs outside a transaction; and the name states no lifecycle policy.
+  workout screen's discard control capable of deleting completed records; it ran
+  outside a transaction at the time of this decision; and the name states no
+  lifecycle policy. Specification 0028 settled the transaction point without
+  disturbing any of the others.
 - **A generic `deleteById` on the session repository.** Rejected. A delete
   contract with no lifecycle policy is one call site away from removing an active
   workout, and the policy would then live in whichever caller remembered it.

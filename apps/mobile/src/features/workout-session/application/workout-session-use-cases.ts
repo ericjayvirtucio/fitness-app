@@ -11,7 +11,10 @@ import type { TransactionRunner } from '../../../application/persistence/transac
 import { formatLocalCalendarDate } from '../../../application/date/local-calendar-date';
 import type { ExerciseCatalogRepository } from '../../exercise-catalog/application/exercise-catalog-repository';
 import type { WorkoutPlannerRepository } from '../../workout-planner/application/workout-planner-repository';
-import type { WorkoutSessionRepository } from './workout-session-repository';
+import type {
+  WorkoutSessionRepository,
+  WorkoutSessionTransactionContext,
+} from './workout-session-repository';
 
 export type WorkoutSessionContext = Readonly<{
   catalog: ExerciseCatalogRepository;
@@ -286,11 +289,28 @@ export class FinishWorkoutSessionUseCase {
   }
 }
 
+/**
+ * Abandons the active workout, or leaves it exactly as it was.
+ *
+ * The repository issues a lifecycle check and three deletes. Outside a
+ * transaction a failure between them left a workout that still recovered but
+ * had silently lost its recorded sets, and no read path could tell that from a
+ * workout nothing had been recorded in. One exclusive transaction removes that
+ * state: the aggregate is gone, or every set is still there.
+ *
+ * An invalid identifier is refused before the transaction opens, so a mistyped
+ * value never takes an exclusive lock.
+ */
 export class DiscardWorkoutSessionUseCase {
-  constructor(private readonly repository: WorkoutSessionRepository) {}
-  async execute(sessionId: unknown) {
+  constructor(
+    private readonly transactionRunner: TransactionRunner<WorkoutSessionTransactionContext>,
+  ) {}
+  execute(sessionId: unknown): Promise<boolean> {
     const id = DomainId.create(sessionId);
-    return id.isSuccess && (await this.repository.discard(id.value));
+    if (!id.isSuccess) return Promise.resolve(false);
+    return this.transactionRunner.run(({ sessions }) =>
+      sessions.discard(id.value),
+    );
   }
 }
 

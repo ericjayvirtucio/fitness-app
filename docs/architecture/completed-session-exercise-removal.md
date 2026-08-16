@@ -43,9 +43,9 @@ the complete child set of that workout from the passed aggregate, deleting every
 child before inserting any.
 
 The failure mode that justified splitting `deleteCompleted` from `discard` has no
-analogue here. `discard`'s only lifecycle guard was the `status = 'active'`
-predicate in its own SQL, so widening it would have made the active workout
-screen capable of deleting completed history. `correctCompleted` holds no
+analogue here. `discard`'s only lifecycle guard is the `status = 'active'`
+predicate in its own SQL, so widening it would make the active workout screen
+capable of deleting completed history. `correctCompleted` holds no
 statement that can reach the parent row at all, and its lifecycle guard is
 already the one a removal needs.
 

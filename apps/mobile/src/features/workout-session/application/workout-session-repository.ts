@@ -47,6 +47,21 @@ export interface WorkoutSessionRepository {
     id: DomainId,
     expected: CompletedWorkoutLifecycle,
   ): Promise<void>;
+  /**
+   * Abandons one active aggregate and every row it owns.
+   *
+   * Deliberately separate from `deleteCompleted`, which removes recorded
+   * history. Its lifecycle policy is the `status = 'active'` predicate,
+   * asserted both when the session is looked up and again on the statement that
+   * deletes it, so no caller reaching this method can remove a completed
+   * workout. Children are deleted before the parent, and the caller runs the
+   * whole method inside one exclusive transaction, so an interrupted discard
+   * leaves the session, its exercises, and its sets exactly as they were rather
+   * than a workout that recovers with its recorded sets missing.
+   *
+   * Reports whether an active session was found. Nothing is written when it was
+   * not.
+   */
   discard(id: DomainId): Promise<boolean>;
   getActive(): Promise<WorkoutSession | null>;
   getById(id: DomainId): Promise<WorkoutSession | null>;
@@ -54,6 +69,11 @@ export interface WorkoutSessionRepository {
   replace(session: WorkoutSession): Promise<void>;
 }
 
+/**
+ * The narrowest context a session write can run in: the session repository and
+ * nothing else. Discarding an active workout needs no Catalog and no Planner,
+ * so it is given neither.
+ */
 export type WorkoutSessionTransactionContext = Readonly<{
   sessions: WorkoutSessionRepository;
 }>;

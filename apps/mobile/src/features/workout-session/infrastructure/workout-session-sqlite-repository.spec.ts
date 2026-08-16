@@ -207,8 +207,9 @@ describe('WorkoutSessionSqliteRepository', () => {
       new WorkoutSessionSqliteRepository(database).discard(id(sessionId)),
     ).resolves.toBe(true);
     expect(database.runs.at(-1)?.statement).toContain(
-      'DELETE FROM workout_session WHERE id = ?',
+      'DELETE FROM workout_session WHERE id = ? AND status = ?',
     );
+    expect(database.runs.at(-1)?.parameters).toEqual([sessionId, 'active']);
   });
 
   it('discards sets and exercises before the session that owns them', async () => {
@@ -226,7 +227,7 @@ describe('WorkoutSessionSqliteRepository', () => {
     expect(database.runs.map((entry) => entry.parameters)).toEqual([
       [sessionId],
       [sessionId],
-      [sessionId],
+      [sessionId, 'active'],
     ]);
   });
 
