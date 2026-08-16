@@ -20,6 +20,14 @@ import {
   loggingModeOptions,
   muscleOptions,
 } from './exercise-options';
+import {
+  starterExerciseActionLabel,
+  starterExerciseExplanation,
+  starterExerciseImportedMessage,
+  starterExerciseRefusalMessage,
+  starterExerciseSectionTitle,
+  starterExerciseUnchangedMessage,
+} from './starter-exercise-messages';
 
 type UseCases = Awaited<ReturnType<typeof createExerciseCatalogUseCases>>;
 type State =
@@ -45,6 +53,8 @@ export function ExerciseLibraryScreen({
 }>) {
   const [query, setQuery] = useState('');
   const [state, setState] = useState<State>({ status: 'loading' });
+  const [starterResult, setStarterResult] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const load = useCallback(() => {
     setState({ status: 'loading' });
     void loadUseCases()
@@ -65,7 +75,15 @@ export function ExerciseLibraryScreen({
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
-  useFocusEffect(load);
+  // Returning to the library is a fresh visit, so a result from an earlier one
+  // is cleared here rather than left to describe a catalog the person has since
+  // changed. An import reloads through `load` directly and keeps its result.
+  useFocusEffect(
+    useCallback(() => {
+      setStarterResult(null);
+      load();
+    }, [load]),
+  );
   useEffect(() => {
     if (state.status !== 'ready') return;
     const timeout = setTimeout(
@@ -110,6 +128,45 @@ export function ExerciseLibraryScreen({
       load();
     } catch {
       setState({ status: 'error' });
+    }
+  };
+  /**
+   * Refreshes the lists without returning the screen to its loading state, so
+   * the result of an import stays on screen and announced while the library
+   * behind it updates in place.
+   */
+  const refreshLists = async (useCases: UseCases) => {
+    const [all, favorites, recents] = await Promise.all([
+      useCases.browse.listAll(),
+      useCases.browse.listFavorites(),
+      useCases.browse.listRecentlyPerformed(),
+    ]);
+    setState((current) =>
+      current.status === 'ready'
+        ? { ...current, all, favorites, recents }
+        : current,
+    );
+  };
+  const addStarterExercises = async () => {
+    setIsImporting(true);
+    setStarterResult(null);
+    try {
+      const outcome = await state.useCases.addStarterExercises.execute();
+      if (outcome.status === 'imported') await refreshLists(state.useCases);
+      setStarterResult(
+        outcome.status === 'imported'
+          ? starterExerciseImportedMessage(
+              outcome.addedCount,
+              outcome.skippedCount,
+            )
+          : outcome.status === 'unchanged'
+            ? starterExerciseUnchangedMessage
+            : starterExerciseRefusalMessage(outcome.reason),
+      );
+    } catch {
+      setState({ status: 'error' });
+    } finally {
+      setIsImporting(false);
     }
   };
   const results = query.trim() === '' ? state.all : state.search;
@@ -166,6 +223,21 @@ export function ExerciseLibraryScreen({
           />
         </>
       )}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader title={starterExerciseSectionTitle} />
+        <AppText color="secondary">{starterExerciseExplanation}</AppText>
+        <AppButton
+          isLoading={isImporting}
+          label={starterExerciseActionLabel}
+          onPress={() => void addStarterExercises()}
+          variant="outline"
+        />
+        {starterResult === null ? null : (
+          <AppText accessibilityLiveRegion="polite" color="secondary">
+            {starterResult}
+          </AppText>
+        )}
+      </View>
       <AppButton label="Create exercise" onPress={onCreate} />
     </Screen>
   );

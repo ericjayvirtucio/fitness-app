@@ -363,7 +363,7 @@ describe('Starter exercise import on a real database', () => {
 
     const page = await new ExerciseCatalogExportSqliteReader(
       database,
-    ).listExercisesPage({ after: null, limit: starterExercises.length + 1 });
+    ).listExercisesPage({ limit: starterExercises.length + 1 });
 
     expect(page.items).toHaveLength(starterExercises.length);
     expect(page.items.every((item) => !item.isFavorite)).toBe(true);
