@@ -69,6 +69,18 @@ favorites use deterministic name and ID ordering. Exact normalized-name matches
 show a warning and require explicit confirmation, but remain legal; similar names
 are independent and never merged.
 
+Browsing and searching also accept optional criteria: one equipment value and one
+primary muscle group, held as an application-owned `ExerciseCatalogFilter` whose
+`null` means "not narrowed on this field". A value outside the domain vocabulary
+maps to `null` rather than raising, because only a programming mistake can
+produce one and refusing to narrow cannot show the wrong catalog. Ordering
+depends on whether a name was supplied, never on whether the list was narrowed.
+See [Specification 0029](../../specs/0029-exercise-library-filtering.md).
+
+Favorites and performed recents are shortcuts to the whole catalog, so neither is
+read or shown while a search or a filter is narrowing it. A narrowed library
+therefore issues fewer queries than an unnarrowed one.
+
 Favorites persist in the exercise row and can change without editing the pure
 definition. Performed recents derive the latest completed Workout Session actual
 set for each source definition UUID. Creation, editing, Planner selection, and
@@ -107,11 +119,29 @@ stable `PersistenceError` messages. Focused bounded queries avoid per-card and
 cross-capability reads. A leading-wildcard scan is acceptable at personal-catalog
 scale; no FTS, cache, worker, or global state is used.
 
+Browse and search statements are composed in one private repository method. Each
+clause is a code literal contributing exactly one bound parameter, and an absent
+criterion contributes no clause, so an unnarrowed read issues the statement the
+catalog has always issued. Equipment and primary muscle group are deliberately
+unindexed: a filtered browse costs 0.0125 ms at 300 rows and 0.185 ms at 5000
+against the existing indexes, both columns are low cardinality, and the existing
+`(normalized_name, id)` index already covers the ordering, so a covering
+classification index would save microseconds a person cannot perceive.
+
 ## Experience, accessibility, and privacy
 
 Workout remains a landing page so Planner and Session can later become peers of
 Exercise Library. Nested routes provide browse, create, and edit. Cards show only
 name, principal equipment, primary muscle, logging mode, and favorite action.
+
+The library narrows through its search field and two single-choice filters that
+sit beside it, cleared together by one control. Filter state lives in the screen
+and is not persisted. The filters are absent while the library is empty, because
+there is nothing to narrow. A narrowed list that matched nothing states what is
+narrowed rather than claiming the library is empty, and a list that came back at
+its read bound says so instead of silently showing a prefix of the catalog. The
+Exercise Picker is deliberately unchanged, so the Planner, the active Session,
+and completed-workout addition still browse and search identically.
 
 The experience uses Dynamic Type, keyboard-aware scrolling, native radio-group
 semantics, minimum touch targets, textual validation, live error regions,
