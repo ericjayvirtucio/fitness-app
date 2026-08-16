@@ -268,6 +268,16 @@ does not work here, because the iOS number pad exposes no dismiss action; use a
 short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
 
+**Adding a section to a screen invalidates every unscrolled assertion below it.**
+A screen that acts in place keeps its scroll offset across the change, and that
+offset is only clamped back by the content height. Sprint 26 added an
+"Add exercise to this workout" section to the completed detail, which made the
+page taller, so the offset a removal leaves behind stopped clamping far enough to
+bring the surviving exercise's recorded set back on screen — and a Sprint 25
+scenario that had passed for a sprint began failing on an assertion about
+behavior that had not changed. Scroll to what you assert on any screen that
+mutates in place, rather than relying on a clamp.
+
 **A control that sits last on a screen moves below the fold as the list above it
 grows.** "Create exercise" in the Exercise Library, "Add Exercise To This
 Workout" on the completed detail, and the deletion section beneath it are all on

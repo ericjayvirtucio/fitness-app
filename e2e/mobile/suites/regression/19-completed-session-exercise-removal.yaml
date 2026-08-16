@@ -17,7 +17,14 @@ name: Completed session exercise removal
     env:
       EXERCISE_NAME: E2E Squat
       EXERCISE_POSITION: '2'
-- assertVisible: 'Performed set 1: 12 reps'
+# A removal leaves the detail scrolled to where the removed exercise was, and the
+# detail is taller than one viewport, so the surviving exercise's recorded set is
+# above the fold and absent from the hierarchy until the flow scrolls back up.
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 12 reps'
+    direction: UP
+    centerElement: true
 - assertNotVisible: E2E Squat
 # The removal ends on the completed detail, a pushed screen with no tab bar, and
 # the reusable flows start from the Workout tab. Relaunch to a known root rather
