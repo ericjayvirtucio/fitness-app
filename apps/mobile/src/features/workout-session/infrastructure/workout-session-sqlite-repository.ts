@@ -178,9 +178,13 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
       );
       if (existing === null) return false;
       await this.deleteChildren(id.value);
-      await this.database.run('DELETE FROM workout_session WHERE id = ?', [
-        id.value,
-      ]);
+      // The status predicate is repeated on the delete rather than trusted from
+      // the check above, so the guard holds at the statement that destroys the
+      // row instead of three statements earlier.
+      await this.database.run(
+        'DELETE FROM workout_session WHERE id = ? AND status = ?',
+        [id.value, 'active'],
+      );
       return true;
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
@@ -218,7 +222,9 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
    * transaction on a connection of its own, where `PRAGMA foreign_keys` is off
    * and cannot be turned on once the transaction has begun, so
    * `ON DELETE CASCADE` would leave orphan `workout_set` and
-   * `workout_session_exercise` rows that no read path can see.
+   * `workout_session_exercise` rows that no read path can see. Every caller
+   * runs inside such a transaction, so the explicit order is what makes the
+   * deletion complete rather than the declared cascade.
    */
   private async deleteChildren(sessionId: string): Promise<void> {
     await this.database.run(

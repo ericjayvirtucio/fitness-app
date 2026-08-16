@@ -4,8 +4,13 @@ import {
   type WorkoutSession,
 } from '@fitness/domain';
 import type { TransactionRunner } from '../../../application/persistence/transaction-runner';
-import type { WorkoutSessionRepository } from './workout-session-repository';
+import { PersistenceError } from '../../../infrastructure/persistence/persistence-error';
+import type {
+  WorkoutSessionRepository,
+  WorkoutSessionTransactionContext,
+} from './workout-session-repository';
 import {
+  DiscardWorkoutSessionUseCase,
   FinishWorkoutSessionUseCase,
   StartWorkoutSessionUseCase,
   WorkoutSessionMutationUseCases,
@@ -20,6 +25,9 @@ const ids = Array.from(
 
 class Sessions implements WorkoutSessionRepository {
   current: WorkoutSession | null = null;
+  discardCalls = 0;
+  /** Rejects the next write, so a persistence failure can be observed. */
+  failNextDiscard = false;
   complete(session: WorkoutSession) {
     this.current = session;
     return Promise.resolve(session);
@@ -32,7 +40,12 @@ class Sessions implements WorkoutSessionRepository {
     this.current = null;
     return Promise.resolve();
   }
-  discard() {
+  discard(id: DomainId) {
+    this.discardCalls += 1;
+    if (this.failNextDiscard)
+      return Promise.reject(new PersistenceError('operation-failed'));
+    if (this.current?.status !== 'active' || !this.current.id.equals(id))
+      return Promise.resolve(false);
     this.current = null;
     return Promise.resolve(true);
   }
@@ -74,7 +87,21 @@ function fixture() {
     run: (operation) => operation(context),
   };
   let index = 0;
-  return { context, generateId: () => ids[index++]!, runner, sessions };
+  const discards = { count: 0 };
+  const discardRunner: TransactionRunner<WorkoutSessionTransactionContext> = {
+    run: (operation) => {
+      discards.count += 1;
+      return operation({ sessions });
+    },
+  };
+  return {
+    context,
+    discardRunner,
+    discards,
+    generateId: () => ids[index++]!,
+    runner,
+    sessions,
+  };
 }
 
 function value<T>(
@@ -154,5 +181,75 @@ describe('Workout Session use cases', () => {
       true,
     );
     expect(sessions.current?.status).toBe('completed');
+  });
+});
+
+describe('Discarding an active workout', () => {
+  function started() {
+    const parts = fixture();
+    const start = new StartWorkoutSessionUseCase(
+      parts.runner,
+      parts.generateId,
+      () => 1_700_000_000_000,
+    );
+    return start.executeEmpty().then((outcome) => {
+      if (outcome.status !== 'started') throw new Error('Invalid fixture');
+      return { ...parts, session: outcome.session };
+    });
+  }
+
+  it('discards an active session inside exactly one transaction', async () => {
+    const { discardRunner, discards, session, sessions } = await started();
+    const useCase = new DiscardWorkoutSessionUseCase(discardRunner);
+    await expect(useCase.execute(session.id.value)).resolves.toBe(true);
+    expect(sessions.current).toBeNull();
+    expect(discards.count).toBe(1);
+    expect(sessions.discardCalls).toBe(1);
+  });
+
+  it('reports a missing session without writing', async () => {
+    const { discardRunner, sessions } = fixture();
+    const useCase = new DiscardWorkoutSessionUseCase(discardRunner);
+    await expect(useCase.execute(ids[0])).resolves.toBe(false);
+    expect(sessions.current).toBeNull();
+  });
+
+  it('refuses a completed workout and leaves it stored', async () => {
+    const { discardRunner, runner, session, sessions } = await started();
+    const mutations = new WorkoutSessionMutationUseCases(runner, () => ids[5]!);
+    await mutations.addExercise(session.id.value, ids[6]);
+    const exercise = sessions.current?.exercises[0];
+    if (!exercise) throw new Error('Invalid fixture');
+    await mutations.addSet(
+      session.id.value,
+      exercise.id.value,
+      RepetitionResult.valid(8),
+    );
+    await new FinishWorkoutSessionUseCase(
+      runner,
+      () => 1_700_000_001_000,
+    ).execute(session.id.value);
+    const useCase = new DiscardWorkoutSessionUseCase(discardRunner);
+    await expect(useCase.execute(session.id.value)).resolves.toBe(false);
+    expect(sessions.current?.status).toBe('completed');
+  });
+
+  it('refuses an invalid identifier without opening a transaction', async () => {
+    const { discardRunner, discards, sessions } = await started();
+    const useCase = new DiscardWorkoutSessionUseCase(discardRunner);
+    await expect(useCase.execute('not-a-uuid')).resolves.toBe(false);
+    expect(discards.count).toBe(0);
+    expect(sessions.discardCalls).toBe(0);
+    expect(sessions.current?.status).toBe('active');
+  });
+
+  it('propagates a write failure instead of reporting a discard', async () => {
+    const { discardRunner, session, sessions } = await started();
+    sessions.failNextDiscard = true;
+    const useCase = new DiscardWorkoutSessionUseCase(discardRunner);
+    await expect(useCase.execute(session.id.value)).rejects.toBeInstanceOf(
+      PersistenceError,
+    );
+    expect(sessions.current?.status).toBe('active');
   });
 });

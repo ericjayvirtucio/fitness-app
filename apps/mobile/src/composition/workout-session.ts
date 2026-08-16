@@ -8,6 +8,7 @@ import {
   StartWorkoutSessionUseCase,
   WorkoutSessionMutationUseCases,
 } from '../features/workout-session/application/workout-session-use-cases';
+import type { WorkoutSessionTransactionContext } from '../features/workout-session/application/workout-session-repository';
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infrastructure/workout-planner-sqlite-repository';
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
@@ -25,13 +26,23 @@ export async function createWorkoutSessionUseCases() {
     planner: new WorkoutPlannerSqliteRepository(transaction),
     sessions: new WorkoutSessionSqliteRepository(transaction),
   }));
+  // Discarding needs the session repository and nothing else, so it gets its
+  // own exclusive transaction rather than one carrying a Catalog and a Planner
+  // it must never write through.
+  const discardRunner =
+    new SqliteTransactionRunner<WorkoutSessionTransactionContext>(
+      database,
+      (transaction) => ({
+        sessions: new WorkoutSessionSqliteRepository(transaction),
+      }),
+    );
   const now = () => Date.now();
   return Object.freeze({
     browseExercises: new BrowseExercisesUseCase(
       new ExerciseCatalogSqliteRepository(database),
       new WorkoutHistorySqliteRepository(database),
     ),
-    discard: new DiscardWorkoutSessionUseCase(sessions),
+    discard: new DiscardWorkoutSessionUseCase(discardRunner),
     finish: new FinishWorkoutSessionUseCase(runner, now),
     getActive: new GetActiveWorkoutSessionUseCase(sessions),
     getProfile: new GetProfileUseCase(
