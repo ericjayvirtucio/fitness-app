@@ -59,7 +59,12 @@ describe('ExerciseEditorScreen', () => {
       'Delete Bench Press? This cannot be undone.',
       expect.arrayContaining([
         expect.objectContaining({ style: 'cancel' }),
-        expect.objectContaining({ style: 'destructive' }),
+        // The destructive option reads differently from the control that opened
+        // it, so nothing has to tell them apart by position.
+        expect.objectContaining({
+          style: 'destructive',
+          text: 'Delete this exercise',
+        }),
       ]),
     );
   });
