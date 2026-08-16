@@ -320,11 +320,15 @@ One fixed sentence per refusal, in
 identifier, a table, a statement, or a path, so a failure cannot leak the catalog
 it protects.
 
-| Refusal               | Sentence                                                       |
-| --------------------- | -------------------------------------------------------------- |
-| `content-invalid`     | Starter exercises could not be added. Nothing was changed.     |
-| `write-failed`        | Starter exercises could not be added. Nothing was changed.     |
-| `storage-unavailable` | Your exercises are unavailable right now. Nothing was changed. |
+| Refusal           | Sentence                                                   |
+| ----------------- | ---------------------------------------------------------- |
+| `content-invalid` | Starter exercises could not be added. Nothing was changed. |
+| `write-failed`    | Starter exercises could not be added. Nothing was changed. |
+
+Storage being unavailable is deliberately not a third refusal. The composition
+root has already opened the database by the time this control exists, so a
+failure at press time is a failed write, and a failure before that leaves the
+library in the error state it already shows.
 
 ## Derived behavior
 
