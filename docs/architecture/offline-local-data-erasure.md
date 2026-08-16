@@ -24,6 +24,16 @@ The `data-lifecycle` capability coordinates only. It owns no table and issues no
 SQL. It owns the Data controls hub, the deletion screen, the order in which
 capabilities are erased, verification, and the workflow.
 
+## What erasure returns the installation to
+
+Erasure reaches an installation that holds nothing, verified by the same eight
+probes restore uses. Nothing re-creates a record afterwards. The Exercise
+Library's starter set is the case worth stating: it is an offer in the
+application's own code, not data in the database, so erasure removes every
+definition it once wrote and the offer is simply available again. Nothing is
+written until the person presses the control. See the
+[starter exercise library architecture](starter-exercise-library.md).
+
 ## Capability ownership
 
 Each capability implements one narrow port in its own infrastructure folder,

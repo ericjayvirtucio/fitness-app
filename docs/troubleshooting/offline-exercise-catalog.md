@@ -1,5 +1,10 @@
 # Offline exercise catalog troubleshooting
 
+Definitions added from the starter set behave exactly like ones typed by hand, so
+every guide below applies to them unchanged. Problems specific to the import
+itself are in the
+[starter exercise library guide](starter-exercise-library.md).
+
 ## A referenced exercise cannot be deleted or change logging mode
 
 This is expected once Workout Planner data uses the definition. Remove or replace
