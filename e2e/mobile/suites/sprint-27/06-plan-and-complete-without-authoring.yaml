@@ -1,0 +1,106 @@
+appId: com.fitnessapp.dev
+name: A workout is planned and completed against imported exercises alone
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+# Nothing is authored anywhere in this scenario. Everything below runs against
+# definitions the import wrote, which is the whole point of the sprint.
+#
+# The import ends on the Exercise Library, a pushed screen with no tab bar, so
+# relaunch to a known root rather than guessing at back gestures.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+# Weekday cards are keyed by the domain Weekday value, where Monday is 1.
+- tapOn:
+    id: weekday-card-1
+- assertVisible: Plan Monday
+- tapOn:
+    id: planned-workout-name
+- inputText: E2E Starter Day
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      text: Add exercise
+    direction: DOWN
+- tapOn: Add exercise
+# A populated catalog makes the picker's whole-catalog fallback long, so the
+# exercise is searched for rather than expected to be on screen. That is the
+# reliable way to reach any definition from this picker.
+- tapOn:
+    id: exercise-picker-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Add Burpee
+    direction: DOWN
+    centerElement: true
+- tapOn: Add Burpee
+- scrollUntilVisible:
+    element:
+      id: planned-sets-0
+    direction: DOWN
+- tapOn:
+    id: planned-sets-0
+- eraseText: 6
+- inputText: '3'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: planned-repetitions-0
+    direction: DOWN
+- tapOn:
+    id: planned-repetitions-0
+- eraseText: 6
+- inputText: '8'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: save-planned-workout
+    direction: DOWN
+- tapOn:
+    id: save-planned-workout
+- assertVisible: 'Edit Monday, E2E Starter Day'
+# Now record work against the same imported definition and let history hold it.
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+- tapOn:
+    id: exercise-picker-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Add Burpee
+    direction: DOWN
+    centerElement: true
+- tapOn: Add Burpee
+- tapOn: Add Set for Burpee
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: '12'
+- tapOn: Save Set
+- assertVisible: 'Set 1: 12 reps'
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: 12 reps'
+- assertVisible: Burpee

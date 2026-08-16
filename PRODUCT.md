@@ -90,6 +90,21 @@ With addition, the correction lifecycle is complete: a completed workout's
 results, its exercises, and the workout itself can each be corrected, reduced,
 extended, or deleted by their owner.
 
+Every one of those capabilities assumed the person already had exercises to
+train with, and a new installation has none. The Exercise Library's first screen
+was an empty list and an invitation to author definitions by hand, choosing
+equipment, a muscle group, and a logging mode before there was any reason to
+know what those mean. The library now offers a starter set the person can add in
+one deliberate action, covering every way the application records work and
+including exercises that need no equipment at all. It is offered, never seeded:
+an installation holds nothing until the person asks, which is what keeps
+restoring a saved export onto a new device possible and keeps erasing everything
+a way back to an empty installation. What it adds is theirs from the moment it
+exists — renameable, re-classifiable, deletable, and exportable — and a
+definition they already wrote is never overwritten, never duplicated, and always
+reported as left alone. The application offers content; it does not endorse these
+movements, rank them above what the person writes, or tell anybody how to train.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

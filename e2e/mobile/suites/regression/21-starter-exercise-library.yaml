@@ -1,0 +1,62 @@
+appId: com.fitnessapp.dev
+name: Starter exercise library
+---
+- launchApp:
+    clearState: true
+# A fresh installation offers the starter set beside authoring rather than
+# holding content nobody asked for.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: No exercises yet
+# The library is a pushed screen with no tab bar, and the import flow starts from
+# the Workout tab, so return to a known root before composing it rather than
+# guessing at back gestures.
+- stopApp
+- launchApp
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+# The result stays where the control was, above the catalog it wrote.
+- assertVisible: Added 26 exercises to your library.
+# What it wrote is ordinary catalog content, reached through the library's own
+# search because a populated catalog is far taller than one viewport, and
+# favorited by nobody.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Add Burpee to favorites
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add Burpee to favorites
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+- assertNotVisible: No exercises yet
+- assertNotVisible: Added 26 exercises to your library.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Edit Burpee
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Burpee

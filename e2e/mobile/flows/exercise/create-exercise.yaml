@@ -8,6 +8,16 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Exercise Library
 - assertVisible: Exercise Library
+# "Create exercise" is the last control on the screen and the starter-exercise
+# section now sits above it, so even the empty state can push it below the fold.
+# This flow used to tap it directly, which is exactly the trap the harness
+# documents: a flow that worked against a shorter screen is not evidence that it
+# works against a taller one.
+- scrollUntilVisible:
+    element:
+      text: Create exercise
+    direction: DOWN
+    centerElement: true
 - tapOn: Create exercise
 - tapOn:
     id: exercise-name-input

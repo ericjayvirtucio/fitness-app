@@ -120,7 +120,13 @@ export function ExerciseEditorScreen({
                 setErrors({ form: 'Exercise could not be deleted.' }),
               ),
           style: 'destructive',
-          text: 'Delete exercise',
+          // Deliberately different from the screen's own "Delete exercise"
+          // control. The repository's other destructive alerts already read
+          // differently from the control that opens them, so no positional
+          // selector is needed to tell an alert option from the button behind
+          // it; this one predated that convention and could not be confirmed
+          // without one.
+          text: 'Delete this exercise',
         },
       ],
     );

@@ -191,6 +191,15 @@ in between cannot be silently joined. When the installation is not empty,
 nothing is deleted, nothing is modified, and the screen suggests exporting
 first. No overwrite option is offered.
 
+Nothing the application does on its own can make an installation non-empty. The
+Exercise Library's starter set is offered rather than seeded precisely because
+`exercise_catalog_item` is one of the probed tables: a first-launch seed would
+make every fresh installation ineligible for restore, which is the moment restore
+exists for. An installation that has imported the starter set is refused, and
+correctly so — it holds records, exactly as one where the person typed the same
+definitions does. See the
+[starter exercise library architecture](starter-exercise-library.md).
+
 ## Writes and transaction
 
 `RestoreDataExportUseCase` opens one exclusive transaction through the existing

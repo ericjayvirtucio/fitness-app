@@ -207,6 +207,24 @@ exclusive transaction, child-first. See
 and
 [troubleshooting guidance](troubleshooting/completed-workout-exercise-addition.md).
 
+## Starter exercise library
+
+The Exercise Library offers a code-owned set of twenty-six exercise definitions
+that a person can add in one deliberate press, from the empty state and from the
+populated library alike. It is an import, never a seed: nothing is written until
+the person asks, which is what keeps a fresh installation eligible for restore
+and keeps erasure a way back to an empty installation. Entries whose normalized
+name or identifier the catalog already holds are skipped and reported, never
+overwritten. Everything it writes is an ordinary catalog row with no origin
+column, marker, or privileged tier, and the whole import runs in one exclusive
+transaction that rolls back completely on failure. No migration, schema change,
+or dependency was added. See the
+[starter exercise library architecture](architecture/starter-exercise-library.md),
+[Specification 0027](../specs/0027-starter-exercise-library.md), the
+[Sprint 27 manual checklist](manual-testing/sprint-27-starter-exercise-library.md),
+and
+[troubleshooting guidance](troubleshooting/starter-exercise-library.md).
+
 ## Completed workout deletion
 
 One completed workout can be deleted from its own detail screen after a

@@ -1,0 +1,79 @@
+appId: com.fitnessapp.dev
+name: An imported exercise can be favorited, renamed, and deleted
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+# A populated library is far taller than one viewport, so the exercise is reached
+# by searching rather than by scrolling through the alphabet.
+- tapOn:
+    id: exercise-library-search
+- inputText: Burpee
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Add Burpee to favorites
+    direction: DOWN
+    centerElement: true
+- tapOn: Add Burpee to favorites
+# Favoriting reloads the library, which clears nothing the person typed, so the
+# search results still hold the one exercise.
+- scrollUntilVisible:
+    element:
+      text: Remove Burpee from favorites
+    direction: DOWN
+    centerElement: true
+- assertVisible: Remove Burpee from favorites
+- scrollUntilVisible:
+    element:
+      text: Edit Burpee
+    direction: UP
+    centerElement: true
+- tapOn: Edit Burpee
+- assertVisible: Edit exercise
+- tapOn:
+    id: exercise-name-input
+- eraseText: 20
+- inputText: E2E Renamed Movement
+# A short drag dismisses the keyboard, because the screen uses
+# keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      text: Save exercise
+    direction: DOWN
+- tapOn: Save exercise
+# Saving returns to the library, which was never unmounted and therefore still
+# holds the query typed earlier. The renamed exercise no longer matches it, so
+# the field is cleared before the new name is typed.
+- assertVisible: Exercise Library
+- tapOn:
+    id: exercise-library-search
+- eraseText: 20
+- inputText: E2E Renamed
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Renamed Movement
+    direction: DOWN
+    centerElement: true
+- tapOn: Edit E2E Renamed Movement
+- scrollUntilVisible:
+    element:
+      text: Delete exercise
+    direction: DOWN
+    centerElement: true
+- tapOn: Delete exercise
+- assertVisible: Delete E2E Renamed Movement\? This cannot be undone.
+# The alert's destructive option reads differently from the control that opened
+# it, so no positional selector is needed to tell them apart.
+- tapOn: Delete this exercise
+- assertVisible: Exercise Library
+- assertNotVisible: Edit E2E Renamed Movement

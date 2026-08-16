@@ -22,7 +22,12 @@ workout without losing the correct work beside it; one exercise that was
 performed but never logged can be added to the completed workout it belongs to,
 with the set it recorded, instead of inventing a second workout that never
 happened; and one completed workout recorded entirely by mistake can be deleted
-on its own instead of erasing everything. The Profile area records historical body
+on its own instead of erasing everything. The Exercise Library ships empty and
+offers, in one deliberate action, a set of twenty-six common exercise
+definitions covering every logging mode, so the Workout area is usable
+immediately without authoring anything first; what it adds is ordinary,
+editable, deletable content the person owns, and nothing is ever written without
+the person asking. The Profile area records historical body
 weight check-ins that can also update the current profile weight in one
 deliberate action. The Progress tab derives text-first Nutrition, Hydration,
 completed-workout, and recorded body-weight summaries for Today, This Week, and
@@ -126,6 +131,9 @@ separation are documented in
 Exercise-definition ownership, logging modes, catalog lifecycle, persistence, and
 future Planner/Session reference rules are documented in
 [docs/architecture/offline-exercise-catalog.md](docs/architecture/offline-exercise-catalog.md).
+The starter exercise content, why it is an explicit import rather than a seed,
+and what that preserves in restore and erasure are documented in
+[docs/architecture/starter-exercise-library.md](docs/architecture/starter-exercise-library.md).
 Recurring-plan semantics, prescriptions, ordering, catalog references, and the
 future Workout Session seam are documented in
 [docs/architecture/offline-workout-planner.md](docs/architecture/offline-workout-planner.md).

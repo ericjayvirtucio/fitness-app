@@ -20,6 +20,14 @@ import {
   loggingModeOptions,
   muscleOptions,
 } from './exercise-options';
+import {
+  starterExerciseActionLabel,
+  starterExerciseExplanation,
+  starterExerciseImportedMessage,
+  starterExerciseRefusalMessage,
+  starterExerciseSectionTitle,
+  starterExerciseUnchangedMessage,
+} from './starter-exercise-messages';
 
 type UseCases = Awaited<ReturnType<typeof createExerciseCatalogUseCases>>;
 type State =
@@ -45,6 +53,8 @@ export function ExerciseLibraryScreen({
 }>) {
   const [query, setQuery] = useState('');
   const [state, setState] = useState<State>({ status: 'loading' });
+  const [starterResult, setStarterResult] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const load = useCallback(() => {
     setState({ status: 'loading' });
     void loadUseCases()
@@ -65,7 +75,15 @@ export function ExerciseLibraryScreen({
       })
       .catch(() => setState({ status: 'error' }));
   }, [loadUseCases]);
-  useFocusEffect(load);
+  // Returning to the library is a fresh visit, so a result from an earlier one
+  // is cleared here rather than left to describe a catalog the person has since
+  // changed. An import reloads through `load` directly and keeps its result.
+  useFocusEffect(
+    useCallback(() => {
+      setStarterResult(null);
+      load();
+    }, [load]),
+  );
   useEffect(() => {
     if (state.status !== 'ready') return;
     const timeout = setTimeout(
@@ -112,6 +130,51 @@ export function ExerciseLibraryScreen({
       setState({ status: 'error' });
     }
   };
+  /**
+   * Refreshes the lists without returning the screen to its loading state, so
+   * the result of an import stays on screen and announced while the library
+   * behind it updates in place.
+   */
+  const refreshLists = async (useCases: UseCases) => {
+    // Search is refreshed too. Its own effect only re-runs when the query or the
+    // use cases change, and an import changes neither, so results typed before
+    // the import would otherwise keep describing the catalog as it was.
+    const [all, favorites, recents, search] = await Promise.all([
+      useCases.browse.listAll(),
+      useCases.browse.listFavorites(),
+      useCases.browse.listRecentlyPerformed(),
+      query.trim() === ''
+        ? Promise.resolve<readonly ExerciseCatalogItem[]>([])
+        : useCases.browse.search(query),
+    ]);
+    setState((current) =>
+      current.status === 'ready'
+        ? { ...current, all, favorites, recents, search }
+        : current,
+    );
+  };
+  const addStarterExercises = async () => {
+    setIsImporting(true);
+    setStarterResult(null);
+    try {
+      const outcome = await state.useCases.addStarterExercises.execute();
+      if (outcome.status === 'imported') await refreshLists(state.useCases);
+      setStarterResult(
+        outcome.status === 'imported'
+          ? starterExerciseImportedMessage(
+              outcome.addedCount,
+              outcome.skippedCount,
+            )
+          : outcome.status === 'unchanged'
+            ? starterExerciseUnchangedMessage
+            : starterExerciseRefusalMessage(outcome.reason),
+      );
+    } catch {
+      setState({ status: 'error' });
+    } finally {
+      setIsImporting(false);
+    }
+  };
   const results = query.trim() === '' ? state.all : state.search;
   return (
     <Screen
@@ -130,6 +193,7 @@ export function ExerciseLibraryScreen({
       <TextField
         label="Search exercises"
         onChangeText={setQuery}
+        testID="exercise-library-search"
         value={query}
       />
       {query.trim() === '' && state.all.length === 0 ? (
@@ -140,7 +204,31 @@ export function ExerciseLibraryScreen({
           onAction={onCreate}
           title="No exercises yet"
         />
-      ) : (
+      ) : null}
+      {/*
+       * Above the lists, not below them. The library updates in place, so an
+       * import grows the catalog above whatever the person is looking at; with
+       * this section beneath the list, the retained scroll offset left them
+       * stranded in the middle of twenty-six new cards with both the control
+       * they had just pressed and its result off screen. Authoring still comes
+       * first on an empty library, and "Create exercise" still closes the page.
+       */}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader title={starterExerciseSectionTitle} />
+        <AppText color="secondary">{starterExerciseExplanation}</AppText>
+        <AppButton
+          isLoading={isImporting}
+          label={starterExerciseActionLabel}
+          onPress={() => void addStarterExercises()}
+          variant="outline"
+        />
+        {starterResult === null ? null : (
+          <AppText accessibilityLiveRegion="polite" color="secondary">
+            {starterResult}
+          </AppText>
+        )}
+      </View>
+      {query.trim() === '' && state.all.length === 0 ? null : (
         <>
           {query.trim() === '' && state.favorites.length > 0 ? (
             <ExerciseSection

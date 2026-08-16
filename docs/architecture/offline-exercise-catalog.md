@@ -18,6 +18,12 @@ and UUID injection. Raw SQLite rows never leave infrastructure.
 Favorite state is catalog metadata rather than exercise-definition semantics.
 There is no generic catalog service or repository shared with Nutrition.
 
+The catalog can also be populated in one deliberate act from a code-owned starter
+set. That import writes ordinary catalog rows through the same domain
+construction and the same repository, so nothing in this document has a special
+case for where a definition came from. See the
+[starter exercise library architecture](starter-exercise-library.md).
+
 ## Definition and logging modes
 
 An exercise has a UUID, trimmed display name, one principal equipment category,
