@@ -15,11 +15,22 @@ appId: com.fitnessapp.dev
 # a text selector would stop saying which screen it meant.
 #
 # The controls sit below the starter section and directly above the lists they
-# narrow, so both are reached by scrolling down from wherever the caller left the
-# screen. Assumes the library is already open and holds at least one definition;
-# the controls are absent while it is empty. Ends on the Exercise Library, a
-# pushed screen with no tab bar, so a caller that needs the tabs relaunches.
+# narrow. A caller can arrive above them, having just imported, or below them,
+# having just read the summary of an earlier filter — and `scrollUntilVisible`
+# only searches the direction it is given, so a single downward pass finds
+# nothing when the equipment group is already overhead. The starter offer is
+# always above both filters, so anchoring on it first makes the following
+# downward scroll correct from either side.
+#
+# Assumes the library is already open and holds at least one definition; the
+# controls are absent while it is empty. Ends on the Exercise Library, a pushed
+# screen with no tab bar, so a caller that needs the tabs relaunches.
 - assertVisible: Exercise Library
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: UP
+    centerElement: true
 - scrollUntilVisible:
     element:
       id: ${EQUIPMENT_FILTER_ID}

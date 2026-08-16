@@ -44,6 +44,17 @@ appId: com.fitnessapp.dev
       text: Save exercise
     direction: DOWN
 - tapOn: Save exercise
+# Saving returns to a library this definition has just made non-empty, which is
+# exactly when its filter controls appear between the starter section and the
+# list. The screen is taller than it was a moment ago, so the new card starts
+# below the fold: scroll to it rather than trusting a position that only held
+# while the library was empty. This is the same lesson that moved this flow off
+# tapping "Create exercise" where it used to sit.
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Push-up
+    direction: DOWN
+    centerElement: true
 - assertVisible: Edit E2E Push-up
 - tapOn: Add E2E Push-up to favorites
 - stopApp
@@ -60,6 +71,11 @@ appId: com.fitnessapp.dev
             text: Open Exercise Library
           direction: DOWN
       - tapOn: Open Exercise Library
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Push-up
+    direction: DOWN
+    centerElement: true
 - assertVisible: Edit E2E Push-up
 - swipe:
     start: 1%, 50%

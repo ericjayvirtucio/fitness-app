@@ -37,4 +37,11 @@ name: Deleting the last completed workout leaves an empty history
       text: Open Exercise Library
     direction: DOWN
 - tapOn: Open Exercise Library
+# A populated library carries its filter controls between the starter section and
+# the list, so the card sits below the fold on arrival.
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Push-up
+    direction: DOWN
+    centerElement: true
 - assertVisible: Edit E2E Push-up

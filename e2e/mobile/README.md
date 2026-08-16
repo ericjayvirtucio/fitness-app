@@ -171,6 +171,18 @@ absent while the library is empty, which is deliberate: an empty library has
 nothing to narrow, and the first-run screen every other suite meets is exactly as
 tall as it was.
 
+Two rules follow from controls that appear with the first definition. A flow that
+**creates** the first record changes which sections the screen has, so an
+assertion written when the library was empty is not evidence about the library it
+just populated: `create-exercise.yaml` asserts "Edit E2E Push-up" immediately
+after saving, and that card moved below the fold the moment the filters appeared
+above it — eight regression scenarios failed on it. And `scrollUntilVisible`
+searches only the direction it is given, so a reusable flow that can be entered
+from above _or_ below its target must anchor first: the filter flow scrolls up to
+"Add starter exercises", which is always above both filters, before scrolling
+down to an option. Applying a filter twice in one scenario is exactly the case
+that exposed it.
+
 That placement is why the first Sprint 29 run failed seven scenarios out of
 seven. The controls started beside the search field, and they appear the moment
 an import makes the library non-empty — so the import inserted most of a viewport
