@@ -77,6 +77,19 @@ goes with it. The rest of the workout is kept, the surviving exercises keep thei
 identity and order, and a removal that would leave a workout with nothing recorded
 is refused in words that point at deleting the workout instead.
 
+Every one of those acts subtracts. Work that was performed but never logged had
+no remedy at all: the only way to record it was a second workout that never
+happened, which inflates the completed workout count and elapsed workout time and
+lies about when the work occurred. One exercise can now be added to the completed
+workout it belongs to, with the first set it recorded, entered in the same
+action. It is added at the end, every exercise already in the workout keeps its
+identity, order, and captured detail, and the workout's own start and completion
+times never move. The application does not claim to know the work happened — the
+interface asks the person to record what they performed, and records their claim.
+With addition, the correction lifecycle is complete: a completed workout's
+results, its exercises, and the workout itself can each be corrected, reduced,
+extended, or deleted by their owner.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy
@@ -97,6 +110,6 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
 - **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action, and
   correct a recorded set inside a completed workout, remove one exercise from it,
-  or delete one completed workout, instead of losing everything to fix one
-  mistake.
+  add one exercise that was performed but never logged, or delete one completed
+  workout, instead of losing everything to fix one mistake.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.

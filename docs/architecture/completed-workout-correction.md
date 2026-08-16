@@ -162,9 +162,10 @@ and erasure removes corrected history like any other.
 Each recorded set on the completed workout screen offers "Correct recorded set"
 and "Delete recorded set"; each exercise offers "Add missing set". Editing and
 adding open a dedicated screen so the completed detail stays visibly historical,
-without a finish, discard, add-exercise, or reorder control. The one removal
-control it does carry acts on a completed session exercise, never on an active
-workout.
+without a finish, discard, resume, or reorder control. The removal and
+add-exercise controls it does carry act on completed history alone, never on an
+active workout, and adding opens its own screen for the same reason correction
+does.
 
 The correction screen separates the planned target as captured, the result as
 currently recorded, and the editable fields, and states plainly that correction

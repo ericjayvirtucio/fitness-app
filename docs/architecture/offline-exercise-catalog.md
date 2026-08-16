@@ -80,8 +80,11 @@ other valid edits appear in current mutable plans. There is no tombstone,
 archive, undo, or synchronization behavior.
 
 Workout Sessions copy exercise name and logging mode when an exercise enters the
-session. Source catalog UUIDs remain non-relational provenance, so session
-snapshots do not block deletion or require a mutable catalog join.
+session, including when one is
+[added to a completed workout](completed-workout-exercise-addition.md), which
+reads a definition to capture a new snapshot and never to reinterpret an existing
+one. Source catalog UUIDs remain non-relational provenance, so session snapshots
+do not block deletion or require a mutable catalog join.
 
 ## Persistence and performance
 

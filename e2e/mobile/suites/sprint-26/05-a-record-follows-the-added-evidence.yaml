@@ -1,0 +1,37 @@
+appId: com.fitnessapp.dev
+name: A personal record follows the evidence an addition provides
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/exercise/create-alternate-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+# The added exercise has never been performed, so it holds no record at all
+# until this addition provides the first evidence for it.
+- runFlow:
+    file: ../../flows/workout/add-completed-exercise.yaml
+    env:
+      EXERCISE_NAME: E2E Squat
+      REPETITIONS: '20'
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+- scrollUntilVisible:
+    element:
+      text: Open performance history for E2E Squat
+    direction: DOWN
+    centerElement: true
+- tapOn: Open performance history for E2E Squat
+- assertVisible: Personal records
+- assertVisible: 'Most recorded repetitions in a set, 20 repetitions, .*'

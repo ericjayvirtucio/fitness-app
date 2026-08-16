@@ -16,6 +16,13 @@ name: One exercise is removed and the rest of the workout survives
     env:
       EXERCISE_NAME: E2E Squat
       EXERCISE_POSITION: '2'
-- assertVisible: 'Performed set 1: 12 reps'
+# A removal leaves the detail scrolled to where the removed exercise was, and the
+# detail is taller than one viewport, so the surviving exercise's recorded set is
+# above the fold and absent from the hierarchy until the flow scrolls back up.
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 12 reps'
+    direction: UP
+    centerElement: true
 - assertNotVisible: 'Performed set 1: 20 reps'
 - assertNotVisible: E2E Squat

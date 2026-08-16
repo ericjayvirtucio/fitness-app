@@ -190,6 +190,23 @@ the workout with no recorded set is refused in words. The write reuses the
 and
 [troubleshooting guidance](troubleshooting/completed-session-exercise-removal.md).
 
+## Completed workout exercise addition
+
+One exercise that was performed but never logged can be added to a completed
+workout, with the first set it recorded, entered in the same action and saved
+explicitly. It is appended last, so every existing exercise keeps its identifier,
+position, and captured snapshots, and the parent workout and its lifecycle
+instants are untouched. The Exercise Catalog is read once, to capture a fresh
+snapshot for the exercise entering the session now; no existing snapshot is
+re-read. An addition to a workout already holding the maximum number of exercises
+is refused in words. The write reuses the `correctCompleted` contract inside one
+exclusive transaction, child-first. See
+[completed workout exercise addition architecture](architecture/completed-workout-exercise-addition.md),
+[ADR 0021](decisions/0021-completed-workout-exercise-addition.md), the
+[Sprint 26 manual checklist](manual-testing/sprint-26-completed-workout-exercise-addition.md),
+and
+[troubleshooting guidance](troubleshooting/completed-workout-exercise-addition.md).
+
 ## Completed workout deletion
 
 One completed workout can be deleted from its own detail screen after a

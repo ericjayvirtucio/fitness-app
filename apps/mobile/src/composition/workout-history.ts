@@ -1,4 +1,7 @@
 import { randomUUID } from 'expo-crypto';
+import { AddCompletedWorkoutExerciseUseCase } from '../features/workout-history/application/add-completed-workout-exercise-use-case';
+import { BrowseExercisesUseCase } from '../features/exercise-catalog/application/exercise-catalog-use-cases';
+import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/infrastructure/exercise-catalog-sqlite-repository';
 import { CorrectCompletedWorkoutSetUseCase } from '../features/workout-history/application/correct-completed-workout-set-use-case';
 import { DeleteCompletedWorkoutUseCase } from '../features/workout-history/application/delete-completed-workout-use-case';
 import { RemoveCompletedWorkoutExerciseUseCase } from '../features/workout-history/application/remove-completed-workout-exercise-use-case';
@@ -27,7 +30,24 @@ export async function createWorkoutHistoryUseCases() {
     new SqliteTransactionRunner(database, (transaction) => ({
       sessions: new WorkoutSessionSqliteRepository(transaction),
     }));
+  // The catalog joins one workflow only, and only so an added exercise can
+  // capture a fresh snapshot. No history read model gains a catalog dependency.
+  const additionWrites = new SqliteTransactionRunner(
+    database,
+    (transaction) => ({
+      catalog: new ExerciseCatalogSqliteRepository(transaction),
+      sessions: new WorkoutSessionSqliteRepository(transaction),
+    }),
+  );
   return Object.freeze({
+    addCompletedExercise: new AddCompletedWorkoutExerciseUseCase(
+      additionWrites,
+      randomUUID,
+    ),
+    browseExercises: new BrowseExercisesUseCase(
+      new ExerciseCatalogSqliteRepository(database),
+      repository,
+    ),
     correctSet: new CorrectCompletedWorkoutSetUseCase(
       sessionWrites(),
       randomUUID,

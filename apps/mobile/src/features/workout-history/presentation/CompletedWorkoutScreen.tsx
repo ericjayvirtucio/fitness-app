@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Alert, StyleSheet, View } from 'react-native';
-import type {
-  UnitSystem,
-  WorkoutSession,
-  WorkoutSessionExercise,
-  WorkoutSet,
+import {
+  workoutSessionPolicy,
+  type UnitSystem,
+  type WorkoutSession,
+  type WorkoutSessionExercise,
+  type WorkoutSet,
 } from '@fitness/domain';
 import { createWorkoutHistoryUseCases } from '../../../composition/workout-history';
 import {
@@ -24,6 +25,11 @@ import {
 } from '../../workout-session/presentation/workout-result-formatting';
 import { fingerprintRecordedSet } from '../application/correct-completed-workout-set-use-case';
 import { completedWorkoutLifecycle } from '../application/delete-completed-workout-use-case';
+import {
+  additionConfirmedMessage,
+  additionExplanation,
+  workoutFullExplanation,
+} from './completed-exercise-addition-messages';
 import {
   blockedRemovalExplanation,
   completedExerciseRemovalRefusalMessage,
@@ -48,15 +54,19 @@ import { formatCapturedDate } from './workout-history-formatting';
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
 
 export function CompletedWorkoutScreen({
+  hasAddedExercise = false,
   id,
   loadUseCases = createWorkoutHistoryUseCases,
+  onAddExercise,
   onAddSet,
   onClose,
   onCorrectSet,
   onDeleted,
 }: Readonly<{
+  hasAddedExercise?: boolean;
   id: string;
   loadUseCases?: () => Promise<UseCases>;
+  onAddExercise?: () => void;
   onAddSet?: (exerciseId: string) => void;
   onClose: () => void;
   onCorrectSet?: (exerciseId: string, setId: string) => void;
@@ -314,6 +324,23 @@ export function CompletedWorkoutScreen({
           )}
         </Card>
       ))}
+      {onAddExercise ? (
+        <View style={styles.section}>
+          <SectionHeader title="Add exercise to this workout" />
+          <AppText color="secondary">{additionExplanation}</AppText>
+          {session.exercises.length >= workoutSessionPolicy.maximumExercises ? (
+            <AppText color="secondary">{workoutFullExplanation}</AppText>
+          ) : (
+            <AppButton
+              accessibilityLabel={`Add an exercise to this workout, ${session.name}, ${formatCapturedDate(session.startedLocalCalendarDate)}`}
+              label="Add Exercise To This Workout"
+              onPress={onAddExercise}
+              testID="add-completed-workout-exercise"
+              variant="outline"
+            />
+          )}
+        </View>
+      ) : null}
       {onDeleted ? (
         <View style={styles.deletion}>
           <SectionHeader title="Delete this workout" />
@@ -347,6 +374,13 @@ export function CompletedWorkoutScreen({
           {notice}
         </AppText>
       ) : null}
+      {/* Announced by the detail rather than by the addition screen, because the
+          addition screen is gone by the time the new exercise is on screen. */}
+      {hasAddedExercise ? (
+        <AppText accessibilityLiveRegion="polite" color="secondary">
+          {additionConfirmedMessage}
+        </AppText>
+      ) : null}
       <AppButton label="Back to History" onPress={onClose} variant="outline" />
     </Screen>
   );
@@ -354,6 +388,9 @@ export function CompletedWorkoutScreen({
 
 const styles = StyleSheet.create({
   deletion: {
+    gap: spacing.sm,
+  },
+  section: {
     gap: spacing.sm,
   },
   setRow: {

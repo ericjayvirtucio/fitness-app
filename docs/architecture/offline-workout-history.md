@@ -17,14 +17,17 @@ summaries.
 
 Session execution and mutation remain in `workout-session`. Completion still updates
 only the parent status and completion timestamp, and nothing but a deliberate user
-correction, a deliberate user removal, or a deliberate user deletion may change a
-completed session. History owns all three workflows and writes through the Workout
-Session repository contract. A correction changes recorded set results and cannot
-change a captured snapshot or move a lifecycle instant; a removal drops one session
-exercise with the sets it owns and renumbers the survivors; a deletion removes one
-whole completed workout with everything it owns. None of them changes anything else.
-See [completed workout correction](completed-workout-correction.md),
-[completed session exercise removal](completed-session-exercise-removal.md), and
+correction, a deliberate user removal, a deliberate user addition, or a deliberate
+user deletion may change a completed session. History owns all four workflows and
+writes through the Workout Session repository contract. A correction changes
+recorded set results and cannot change a captured snapshot or move a lifecycle
+instant; a removal drops one session exercise with the sets it owns and renumbers
+the survivors; an addition appends one session exercise holding the first set it
+recorded, renumbering nothing; a deletion removes one whole completed workout with
+everything it owns. None of them changes anything else. See
+[completed workout correction](completed-workout-correction.md),
+[completed session exercise removal](completed-session-exercise-removal.md),
+[completed workout exercise addition](completed-workout-exercise-addition.md), and
 [completed workout deletion](completed-workout-deletion.md).
 
 ## Captured dates and bounded history
@@ -85,7 +88,9 @@ Workout links to History without adding another primary tab. History provides Da
 Week, and Month range controls, previous/next period actions, a textual summary,
 bounded recent cards, and completed detail. Snapshot names, planned context, and
 performed sets remain visibly distinct. Completed detail also carries the correction
-controls for its recorded sets and never carries an active-workout control. Profile units affect formatting only.
+controls for its recorded sets, the per-exercise removal control, and one entry
+point for adding an exercise that was performed but never logged, and it never
+carries an active-workout control. Profile units affect formatting only.
 
 Screens support Dynamic Type, native headings and controls, descriptive history-card
 labels, explicit units, textual empty/error states, and privacy-safe stable test IDs.

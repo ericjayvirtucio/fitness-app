@@ -81,13 +81,15 @@ a zero record cannot exist. Absence is absence.
 
 Records are stable across relaunch, timezone change, unit-preference change,
 Catalog rename, Catalog deletion, Planner edits, export, restore, and
-replacement restore. Three deliberate acts move a record, and only those three: a
+replacement restore. Four deliberate acts move a record, and only those four: a
 [correction of a recorded set](completed-workout-correction.md), a
 [removal of one completed session exercise](completed-session-exercise-removal.md),
+an
+[addition of one session exercise to a completed workout](completed-workout-exercise-addition.md),
 and a [deletion of a completed workout](completed-workout-deletion.md). In every
 case the next read derives the new truth — an overstated or deleted record disappears
-and the next eligible result takes its place, or no record is claimed — with
-nothing to invalidate. Evidence never points at a workout, exercise, or set that no longer exists.
+and the next eligible result takes its place, an added result establishes or
+replaces one, or no record is claimed — with nothing to invalidate. Evidence never points at a workout, exercise, or set that no longer exists.
 
 ## Queries and indexes
 

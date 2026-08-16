@@ -30,7 +30,10 @@ and application outcome enforce at most one active session.
 
 At planned start, the session copies workout name, source weekday, ordered
 exercise names and logging modes, and planned prescriptions. Adding an exercise
-during execution snapshots its name and mode immediately. Source plan, planned
+during execution snapshots its name and mode immediately, and adding one to a
+completed workout captures the same snapshot at the moment of addition — the one
+place where a snapshot's instant and its workout's instant differ. See
+[completed workout exercise addition](completed-workout-exercise-addition.md). Source plan, planned
 exercise, and catalog UUIDs are provenance strings—not foreign keys or historical
 display sources.
 
