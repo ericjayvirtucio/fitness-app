@@ -15,11 +15,17 @@ name: A filter that matches nothing says so without claiming the library is empt
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Dumbbell and Chest. No exercises match these filters.
-# The empty-library state would render immediately below these controls, in the
-# same viewport this assertion is standing in, so its absence here is evidence
-# rather than a guess about something off screen.
+# The empty-library state renders above the starter section, near the top of the
+# screen, so the check for its absence is made from there. Asserting it from down
+# beside the summary would pass whatever the screen said, because off-screen
+# content is absent from the hierarchy rather than hidden.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-search
+    direction: UP
+    centerElement: true
 - assertNotVisible: No exercises yet
 - assertNotVisible: Create first exercise

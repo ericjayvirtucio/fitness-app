@@ -13,7 +13,7 @@ name: Clearing the filters restores the whole library
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Dumbbell and Chest. No exercises match these filters.
 # One action clears both criteria. The control is an AppButton, so it is reached

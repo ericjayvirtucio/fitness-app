@@ -427,6 +427,25 @@ describe('ExerciseLibraryScreen filtering', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps the filters below the starter section and above the lists', async () => {
+    await renderPopulated();
+
+    // These controls appear the moment the library stops being empty. Above the
+    // starter section they inserted most of a viewport above the control an
+    // import is pressed with, and the screen's retained scroll offset carried
+    // both that control and its result off screen. Order is asserted, not
+    // assumed, for the same reason the starter section's own position is.
+    const order = renderedText();
+    const starter = order.indexOf('Starter exercises');
+    const equipment = order.indexOf('Filter by equipment');
+    const muscle = order.indexOf('Filter by muscle group');
+    const catalog = order.indexOf('All exercises');
+    expect(starter).toBeGreaterThan(-1);
+    expect(equipment).toBeGreaterThan(starter);
+    expect(muscle).toBeGreaterThan(equipment);
+    expect(catalog).toBeGreaterThan(muscle);
+  });
+
   it('hides the filters while the library is empty', async () => {
     await renderLibrary();
 

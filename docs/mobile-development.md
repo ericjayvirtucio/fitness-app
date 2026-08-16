@@ -254,7 +254,9 @@ as they already are while a search is being typed, and one "Clear filters"
 control restores them. A narrowed list that matched nothing states what is
 narrowed instead of claiming the library is empty, and a list that came back at
 its read bound — 100 browsing, 50 searching — says so. Filter state belongs to
-the screen and is not persisted, the filters are absent while the library is
+the screen and is not persisted, the filters sit below the starter section and
+directly above the lists they narrow so that their appearance after an import
+cannot carry the import control off screen, they are absent while the library is
 empty, and the Exercise Picker is deliberately unchanged so the Planner, the
 active Session, and completed-workout addition still browse identically. The
 controls carry `exercise-library-equipment-filter` and

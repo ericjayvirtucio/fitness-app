@@ -165,20 +165,30 @@ default. Pass `exercise-library-equipment-filter-any` or
 `exercise-library-muscle-filter-any` to leave one of them unnarrowed. The options
 are tapped by identifier, not by their visible text, because the exercise editor
 labels its own equipment and muscle choices with the same words; an identifier
-keeps a step's screen unambiguous. The controls sit at the top of the library
-beside the search field, so the flow scrolls back up to `exercise-library-search`
-before reaching them rather than scrolling down for something above. They are
+keeps a step's screen unambiguous. The controls sit below the starter section and
+directly above the lists, so every reach is a single downward scroll. They are
 absent while the library is empty, which is deliberate: an empty library has
 nothing to narrow, and the first-run screen every other suite meets is exactly as
 tall as it was.
 
+That placement is why the first Sprint 29 run failed seven scenarios out of
+seven. The controls started beside the search field, and they appear the moment
+an import makes the library non-empty — so the import inserted most of a viewport
+above the control the flow had just pressed, and the retained scroll offset
+carried both it and "Added 26 exercises to your library." off screen. The
+evidence read like a broken import and was not: the rows were all there. It is
+the same trap Sprint 27 recorded, one level higher, and the fix was again to move
+the growing section rather than to teach the flows to chase it.
+
 Prove narrowing through the summary line's count, not by asserting that excluded
 definitions are gone. Off-screen content in a scroll view is absent from the
 hierarchy rather than hidden, so `assertNotVisible` on a filtered-out card would
-pass whatever the filter did. The one negative assertion Sprint 29 makes —
-that "No exercises yet" is absent while a filter matched nothing — is safe only
-because the empty state would render in the same viewport the assertion stands
-in, directly beneath the controls.
+pass whatever the filter did. The same rule decides where a negative assertion
+may stand: Sprint 29 checks that "No exercises yet" is absent while a filter
+matched nothing, and it scrolls back to `exercise-library-search` to do it,
+because the empty state renders near the top and the summary sits far below it.
+Asserted from beside the summary, that check would have passed whatever the
+screen said.
 
 A scenario that needs a definition sharing a starter name uses
 `flows/exercise/create-named-bodyweight-exercise.yaml`, which takes a required

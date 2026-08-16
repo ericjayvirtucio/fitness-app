@@ -30,7 +30,7 @@ name: A filter and a search narrow together
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Barbell. 2 exercises.
 - scrollUntilVisible:

@@ -13,7 +13,7 @@ name: Filters belong to the screen and do not survive a relaunch
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Dumbbell. 3 exercises.
 # Nothing about a filter is stored, so a relaunch returns the whole catalog. The

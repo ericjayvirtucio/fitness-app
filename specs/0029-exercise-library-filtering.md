@@ -189,8 +189,18 @@ No sentence carries SQL, a table name, an identifier, a path, or a stack trace.
 
 ## User-facing behavior
 
-Order on the screen: header, search field, filters, empty state, starter section,
+Order on the screen: header, search field, empty state, starter section, filters,
 Favorites, Recently performed, the results section, "Create exercise".
+
+The filters sit directly above the lists they narrow and below the starter
+section. Placement is not cosmetic, and the first attempt got it wrong: beside
+the search field, the controls appeared the moment an import made the library
+non-empty, inserting most of a viewport above the control the person had just
+pressed. The screen keeps its scroll offset, so both that control and its result
+were carried off screen — the same stranding the starter section was moved above
+the lists to prevent, one level higher. Device QA caught it there in Sprint 27
+and again here; all seven Sprint 29 scenarios failed on it before the controls
+moved down. A presentation test asserts the order.
 
 The filter controls are rendered only when the "No exercises yet" empty state is
 not. An empty library has nothing to narrow, and a first-run screen is not made

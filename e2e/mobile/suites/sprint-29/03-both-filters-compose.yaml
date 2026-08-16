@@ -15,7 +15,7 @@ name: Both filters narrow together
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Barbell and Chest. 1 exercise.
 - scrollUntilVisible:

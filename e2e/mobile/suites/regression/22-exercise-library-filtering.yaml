@@ -18,7 +18,7 @@ name: Exercise library filtering
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Barbell and Chest. 1 exercise.
 - scrollUntilVisible:
@@ -28,8 +28,8 @@ name: Exercise library filtering
     centerElement: true
 - assertVisible: Edit Barbell Bench Press
 # No starter definition is both a dumbbell and a chest movement. The library says
-# so, and the empty-library state — which would render in this same viewport — is
-# absent.
+# so, and the empty-library state is absent from the top of the screen where it
+# would render.
 - runFlow:
     file: ../../flows/exercise/filter-exercise-library.yaml
     env:
@@ -38,9 +38,14 @@ name: Exercise library filtering
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Dumbbell and Chest. No exercises match these filters.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-search
+    direction: UP
+    centerElement: true
 - assertNotVisible: No exercises yet
 - scrollUntilVisible:
     element:

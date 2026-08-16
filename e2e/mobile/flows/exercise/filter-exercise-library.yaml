@@ -14,19 +14,12 @@ appId: com.fitnessapp.dev
 # exercise editor labels its equipment and muscle choices with the same words and
 # a text selector would stop saying which screen it meant.
 #
-# Assumes the library is already open and holds at least one definition; the
-# controls are absent while it is empty. Ends on the Exercise Library, a pushed
-# screen with no tab bar, so a caller that needs the tabs relaunches.
+# The controls sit below the starter section and directly above the lists they
+# narrow, so both are reached by scrolling down from wherever the caller left the
+# screen. Assumes the library is already open and holds at least one definition;
+# the controls are absent while it is empty. Ends on the Exercise Library, a
+# pushed screen with no tab bar, so a caller that needs the tabs relaunches.
 - assertVisible: Exercise Library
-# The controls sit with the search field at the top of the screen, and a caller
-# usually arrives scrolled down — the starter import, for one, leaves the view
-# centered on its own section below them. Return to the search field first rather
-# than scrolling down for something that is above.
-- scrollUntilVisible:
-    element:
-      id: exercise-library-search
-    direction: UP
-    centerElement: true
 - scrollUntilVisible:
     element:
       id: ${EQUIPMENT_FILTER_ID}

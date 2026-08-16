@@ -135,7 +135,11 @@ Exercise Library. Nested routes provide browse, create, and edit. Cards show onl
 name, principal equipment, primary muscle, logging mode, and favorite action.
 
 The library narrows through its search field and two single-choice filters that
-sit beside it, cleared together by one control. Filter state lives in the screen
+sit directly above the lists they narrow, below the starter section, cleared
+together by one control. That placement is load-bearing: the filters appear as
+soon as the library stops being empty, and above the starter section their
+appearance carried the import control and its result off a screen that keeps its
+scroll offset. Filter state lives in the screen
 and is not persisted. The filters are absent while the library is empty, because
 there is nothing to narrow. A narrowed list that matched nothing states what is
 narrowed rather than claiming the library is empty, and a list that came back at

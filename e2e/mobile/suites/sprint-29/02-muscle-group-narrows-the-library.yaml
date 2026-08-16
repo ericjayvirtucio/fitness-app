@@ -15,7 +15,7 @@ name: Filtering by primary muscle group narrows the library
 - scrollUntilVisible:
     element:
       id: exercise-library-filter-summary
-    direction: UP
+    direction: DOWN
     centerElement: true
 - assertVisible: Filtered by Chest. 2 exercises.
 - scrollUntilVisible:

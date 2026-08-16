@@ -274,11 +274,48 @@ export function ExerciseLibraryScreen({
         testID="exercise-library-search"
         value={query}
       />
+      {isEmptyLibrary ? (
+        <EmptyState
+          actionLabel="Create first exercise"
+          description="Add an exercise definition for future planning and workout logging."
+          icon="barbell-outline"
+          onAction={onCreate}
+          title="No exercises yet"
+        />
+      ) : null}
       {/*
-       * Narrowing controls sit with the search field, because they do the same
-       * job. They are absent while the library is empty: there is nothing to
-       * narrow, and a first-run screen should not be made taller by controls
-       * that cannot do anything yet.
+       * Above the lists, not below them. The library updates in place, so an
+       * import grows the catalog above whatever the person is looking at; with
+       * this section beneath the list, the retained scroll offset left them
+       * stranded in the middle of twenty-six new cards with both the control
+       * they had just pressed and its result off screen. Authoring still comes
+       * first on an empty library, and "Create exercise" still closes the page.
+       */}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader title={starterExerciseSectionTitle} />
+        <AppText color="secondary">{starterExerciseExplanation}</AppText>
+        <AppButton
+          isLoading={isImporting}
+          label={starterExerciseActionLabel}
+          onPress={() => void addStarterExercises()}
+          variant="outline"
+        />
+        {starterResult === null ? null : (
+          <AppText accessibilityLiveRegion="polite" color="secondary">
+            {starterResult}
+          </AppText>
+        )}
+      </View>
+      {/*
+       * Directly above the lists they narrow, and deliberately below the starter
+       * section rather than beside the search field. These controls appear the
+       * moment the library stops being empty, so with them above that section an
+       * import inserted most of a viewport above the control the person had just
+       * pressed: the screen keeps its scroll offset, and both the button and its
+       * result were carried off screen — the same stranding the starter section
+       * was moved above the lists to prevent, one level higher. Device QA caught
+       * it there and again here. They are absent while the library is empty,
+       * because there is nothing to narrow.
        */}
       {isEmptyLibrary ? null : (
         <View style={{ gap: spacing.md }}>
@@ -330,38 +367,6 @@ export function ExerciseLibraryScreen({
           ) : null}
         </View>
       )}
-      {isEmptyLibrary ? (
-        <EmptyState
-          actionLabel="Create first exercise"
-          description="Add an exercise definition for future planning and workout logging."
-          icon="barbell-outline"
-          onAction={onCreate}
-          title="No exercises yet"
-        />
-      ) : null}
-      {/*
-       * Above the lists, not below them. The library updates in place, so an
-       * import grows the catalog above whatever the person is looking at; with
-       * this section beneath the list, the retained scroll offset left them
-       * stranded in the middle of twenty-six new cards with both the control
-       * they had just pressed and its result off screen. Authoring still comes
-       * first on an empty library, and "Create exercise" still closes the page.
-       */}
-      <View style={{ gap: spacing.md }}>
-        <SectionHeader title={starterExerciseSectionTitle} />
-        <AppText color="secondary">{starterExerciseExplanation}</AppText>
-        <AppButton
-          isLoading={isImporting}
-          label={starterExerciseActionLabel}
-          onPress={() => void addStarterExercises()}
-          variant="outline"
-        />
-        {starterResult === null ? null : (
-          <AppText accessibilityLiveRegion="polite" color="secondary">
-            {starterResult}
-          </AppText>
-        )}
-      </View>
       {isEmptyLibrary ? null : (
         <>
           {!hasQuery && !isNarrowed && state.favorites.length > 0 ? (
