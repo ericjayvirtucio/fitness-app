@@ -136,14 +136,20 @@ export function ExerciseLibraryScreen({
    * behind it updates in place.
    */
   const refreshLists = async (useCases: UseCases) => {
-    const [all, favorites, recents] = await Promise.all([
+    // Search is refreshed too. Its own effect only re-runs when the query or the
+    // use cases change, and an import changes neither, so results typed before
+    // the import would otherwise keep describing the catalog as it was.
+    const [all, favorites, recents, search] = await Promise.all([
       useCases.browse.listAll(),
       useCases.browse.listFavorites(),
       useCases.browse.listRecentlyPerformed(),
+      query.trim() === ''
+        ? Promise.resolve<readonly ExerciseCatalogItem[]>([])
+        : useCases.browse.search(query),
     ]);
     setState((current) =>
       current.status === 'ready'
-        ? { ...current, all, favorites, recents }
+        ? { ...current, all, favorites, recents, search }
         : current,
     );
   };

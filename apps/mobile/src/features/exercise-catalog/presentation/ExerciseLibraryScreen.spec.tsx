@@ -40,6 +40,7 @@ async function renderLibrary(
   options: Readonly<{
     execute?: () => ImportResult;
     items?: readonly ExerciseCatalogItem[];
+    written?: readonly ExerciseCatalogItem[];
   }> = {},
 ) {
   const stored = [...(options.items ?? [])];
@@ -51,7 +52,11 @@ async function renderLibrary(
         skippedCount: 0,
         status: 'imported',
       }));
-  const addStarterExercises = jest.fn(execute);
+  const addStarterExercises = jest.fn(async () => {
+    const outcome = await execute();
+    if (outcome.status === 'imported') stored.push(...(options.written ?? []));
+    return outcome;
+  });
   await render(
     <ExerciseLibraryScreen
       loadUseCases={() =>
@@ -61,7 +66,14 @@ async function renderLibrary(
             listAll: () => Promise.resolve(stored),
             listFavorites: () => Promise.resolve([]),
             listRecentlyPerformed: () => Promise.resolve([]),
-            search: () => Promise.resolve([]),
+            search: (query: string) =>
+              Promise.resolve(
+                stored.filter((candidate) =>
+                  candidate.definition.name
+                    .toLowerCase()
+                    .includes(query.toLowerCase()),
+                ),
+              ),
           },
           setFavorite: { execute: () => Promise.resolve(true) },
         } as never)
@@ -251,5 +263,26 @@ describe('ExerciseLibraryScreen starter exercises', () => {
     expect(
       screen.getByRole('button', { name: 'Add Push-up to favorites' }),
     ).toBeOnTheScreen();
+  });
+
+  it('refreshes an active search with what the import wrote', async () => {
+    const burpee = item('1f84c6f7-9d3a-5864-adcf-52603afb15ce', 'Burpee');
+    await renderLibrary({ written: [burpee] });
+    await waitFor(() =>
+      expect(screen.getByText('No exercises yet')).toBeOnTheScreen(),
+    );
+    await fireEvent.changeText(
+      screen.getByLabelText('Search exercises'),
+      'Burpee',
+    );
+    await waitFor(() =>
+      expect(screen.getByText('No search results.')).toBeOnTheScreen(),
+    );
+
+    await press('Add starter exercises');
+
+    // Search has its own effect, which an import does not re-trigger, so a stale
+    // result would otherwise keep describing the catalog as it was.
+    await waitFor(() => expect(screen.getByText('Burpee')).toBeOnTheScreen());
   });
 });
