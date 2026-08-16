@@ -1,0 +1,25 @@
+appId: com.fitnessapp.dev
+name: A filter that matches nothing says so without claiming the library is empty
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+# No starter definition is both a dumbbell movement and a chest movement, which
+# is exactly the question a person cannot answer by scrolling.
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-library.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-library-equipment-filter-dumbbell
+      MUSCLE_FILTER_ID: exercise-library-muscle-filter-chest
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filter-summary
+    direction: UP
+    centerElement: true
+- assertVisible: Filtered by Dumbbell and Chest. No exercises match these filters.
+# The empty-library state would render immediately below these controls, in the
+# same viewport this assertion is standing in, so its absence here is evidence
+# rather than a guess about something off screen.
+- assertNotVisible: No exercises yet
+- assertNotVisible: Create first exercise

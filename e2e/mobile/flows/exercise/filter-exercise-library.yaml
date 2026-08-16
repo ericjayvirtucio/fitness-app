@@ -1,0 +1,46 @@
+appId: com.fitnessapp.dev
+---
+# Narrows the Exercise Library through its own filter controls, the way a person
+# does. The caller passes the two option identifiers, so one flow serves every
+# equipment and muscle-group combination a scenario needs.
+#
+# EQUIPMENT_FILTER_ID and MUSCLE_FILTER_ID are deliberately required rather than
+# defaulted: a flow's own `env` block is applied after the caller's `runFlow` env
+# and would silently override every value passed in. Pass
+# `exercise-library-equipment-filter-any` or
+# `exercise-library-muscle-filter-any` to leave one of them unnarrowed.
+#
+# Options are tapped by identifier rather than by their visible text, because the
+# exercise editor labels its equipment and muscle choices with the same words and
+# a text selector would stop saying which screen it meant.
+#
+# Assumes the library is already open and holds at least one definition; the
+# controls are absent while it is empty. Ends on the Exercise Library, a pushed
+# screen with no tab bar, so a caller that needs the tabs relaunches.
+- assertVisible: Exercise Library
+# The controls sit with the search field at the top of the screen, and a caller
+# usually arrives scrolled down — the starter import, for one, leaves the view
+# centered on its own section below them. Return to the search field first rather
+# than scrolling down for something that is above.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-search
+    direction: UP
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      id: ${EQUIPMENT_FILTER_ID}
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: ${EQUIPMENT_FILTER_ID}
+- scrollUntilVisible:
+    element:
+      id: ${MUSCLE_FILTER_ID}
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: ${MUSCLE_FILTER_ID}
+# Deliberately asserts nothing about the result. Each scenario asserts the list
+# and the summary sentence it expects, because one assertion here would be wrong
+# for a combination that matches nothing.

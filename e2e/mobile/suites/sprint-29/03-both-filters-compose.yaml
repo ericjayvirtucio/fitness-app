@@ -1,0 +1,26 @@
+appId: com.fitnessapp.dev
+name: Both filters narrow together
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-library.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-library-equipment-filter-barbell
+      MUSCLE_FILTER_ID: exercise-library-muscle-filter-chest
+# Five starter definitions use a barbell and two are chest movements; exactly one
+# is both, so the count proves the criteria are combined rather than replaced.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filter-summary
+    direction: UP
+    centerElement: true
+- assertVisible: Filtered by Barbell and Chest. 1 exercise.
+- scrollUntilVisible:
+    element:
+      text: Edit Barbell Bench Press
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Barbell Bench Press

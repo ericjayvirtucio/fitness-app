@@ -85,8 +85,9 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–27. Sprints 5, 7, and 14 deliberately return an unsupported-suite
-error because no product manual QA specification exists for them.
+15–27, and 29. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+error because no product manual QA specification exists for them. Sprint 28
+does too: it changed no screen and added no suite.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
 do not add database fixtures, deep-link seeders, network services, or production
@@ -156,6 +157,28 @@ person can still write a definition by hand, their assertions depend on the
 synthetic "E2E" names, and swapping forty-six suites onto imported content would
 be a large blast radius bought for nothing. The import must never become a way
 for the harness to skip a public screen.
+
+The Exercise Library's filters are driven through
+`flows/exercise/filter-exercise-library.yaml`, which takes a required
+`EQUIPMENT_FILTER_ID` and `MUSCLE_FILTER_ID` and tapes over neither with a
+default. Pass `exercise-library-equipment-filter-any` or
+`exercise-library-muscle-filter-any` to leave one of them unnarrowed. The options
+are tapped by identifier, not by their visible text, because the exercise editor
+labels its own equipment and muscle choices with the same words; an identifier
+keeps a step's screen unambiguous. The controls sit at the top of the library
+beside the search field, so the flow scrolls back up to `exercise-library-search`
+before reaching them rather than scrolling down for something above. They are
+absent while the library is empty, which is deliberate: an empty library has
+nothing to narrow, and the first-run screen every other suite meets is exactly as
+tall as it was.
+
+Prove narrowing through the summary line's count, not by asserting that excluded
+definitions are gone. Off-screen content in a scroll view is absent from the
+hierarchy rather than hidden, so `assertNotVisible` on a filtered-out card would
+pass whatever the filter did. The one negative assertion Sprint 29 makes —
+that "No exercises yet" is absent while a filter matched nothing — is safe only
+because the empty state would render in the same viewport the assertion stands
+in, directly beneath the controls.
 
 A scenario that needs a definition sharing a starter name uses
 `flows/exercise/create-named-bodyweight-exercise.yaml`, which takes a required
