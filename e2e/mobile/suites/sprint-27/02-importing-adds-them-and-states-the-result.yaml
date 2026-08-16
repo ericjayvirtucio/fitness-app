@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: Importing adds the starter exercises and states what happened
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- scrollUntilVisible:
+    element:
+      text: Added 26 exercises to your library.
+    direction: DOWN
+    centerElement: true
+- assertVisible: Added 26 exercises to your library.
+# The library updates in place, so the definitions are reached by scrolling back
+# up rather than by reopening the screen.
+- scrollUntilVisible:
+    element:
+      text: Edit Burpee
+    direction: UP
+    centerElement: true
+- assertVisible: Edit Burpee
+- scrollUntilVisible:
+    element:
+      text: Edit Barbell Deadlift
+    direction: UP
+    centerElement: true
+- assertVisible: Edit Barbell Deadlift
+# Nothing arrives favorited: the control still offers to add the favorite rather
+# than to remove one.
+- assertVisible: Add Barbell Deadlift to favorites

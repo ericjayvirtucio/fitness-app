@@ -1,0 +1,56 @@
+appId: com.fitnessapp.dev
+name: An imported exercise can be favorited, renamed, and deleted
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+# The import leaves the screen at the starter section, so the list it wrote is
+# above rather than below.
+- scrollUntilVisible:
+    element:
+      text: Edit Burpee
+    direction: UP
+    centerElement: true
+- tapOn: Add Burpee to favorites
+# Favoriting reloads the library, which returns it to the top and adds a
+# Favorites section, so the same exercise is now reached going down.
+- scrollUntilVisible:
+    element:
+      text: Edit Burpee
+    direction: DOWN
+    centerElement: true
+- tapOn: Edit Burpee
+- assertVisible: Edit exercise
+- tapOn:
+    id: exercise-name-input
+- eraseText: 20
+- inputText: E2E Renamed Movement
+# A short drag dismisses the keyboard, because the screen uses
+# keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      text: Save exercise
+    direction: DOWN
+- tapOn: Save exercise
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Renamed Movement
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit E2E Renamed Movement
+- tapOn: Edit E2E Renamed Movement
+- scrollUntilVisible:
+    element:
+      text: Delete exercise
+    direction: DOWN
+    centerElement: true
+- tapOn: Delete exercise
+- assertVisible: Delete E2E Renamed Movement\? This cannot be undone.
+# The alert's destructive option reads differently from the control that opened
+# it, so no positional selector is needed to tell them apart.
+- tapOn: Delete this exercise
+- assertVisible: Exercise Library
+- assertNotVisible: Edit E2E Renamed Movement

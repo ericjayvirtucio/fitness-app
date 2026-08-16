@@ -1,0 +1,34 @@
+appId: com.fitnessapp.dev
+name: An empty library offers starter exercises beside authoring
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+- assertVisible: No exercises yet
+# Authoring stays the empty state's own action. The starter offer sits beside
+# it rather than replacing it, so a person who wants to write their own is not
+# pushed into content they did not choose.
+- assertVisible: Create first exercise
+- scrollUntilVisible:
+    element:
+      text: Starter exercises
+    direction: DOWN
+    centerElement: true
+# The explanation states the count and who owns the result before anything is
+# written, which is what makes this an explicit act rather than a seed.
+- assertVisible: Add 26 common exercises to your library in one step.*
+- assertVisible: .*rename, change, favorite, or delete any of them.*
+- assertVisible: .*Exercises you already have are left alone.*
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add starter exercises

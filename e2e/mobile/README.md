@@ -49,6 +49,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 24 --platform ios
 ./scripts/qa.sh sprint 25 --platform ios
 ./scripts/qa.sh sprint 26 --platform ios
+./scripts/qa.sh sprint 27 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -84,7 +85,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–25. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+and 15–27. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
@@ -145,6 +146,20 @@ together with the parser, orchestration, and real-SQLite tests in
 `apps/mobile`. The same rule applies: no hidden replacement route, no database
 fixture, no production seeder, and no test-only bypass is added to close that
 gap.
+
+The starter exercise import is a product feature, not a fixture.
+`flows/exercise/add-starter-exercises.yaml` drives it through the public library
+screen, and only the Sprint 27 suite and regression scenario 21 compose it.
+Every other suite still authors its own definitions through
+`create-exercise.yaml`, deliberately: those are the only automated proof that a
+person can still write a definition by hand, their assertions depend on the
+synthetic "E2E" names, and swapping forty-six suites onto imported content would
+be a large blast radius bought for nothing. The import must never become a way
+for the harness to skip a public screen.
+
+A scenario that needs a definition sharing a starter name uses
+`flows/exercise/create-named-bodyweight-exercise.yaml`, which takes a required
+`EXERCISE_NAME`. `create-exercise.yaml` stays hard-coded for the reason below.
 
 Completed exercise removal needs a workout holding two distinguishable
 exercises, so `flows/exercise/create-alternate-exercise.yaml` adds a second
@@ -284,7 +299,29 @@ Workout" on the completed detail, and the deletion section beneath it are all on
 screen while their lists are short and below it as soon as a scenario records
 more. A flow that worked against an empty state is not evidence that it works
 against a populated one; scroll to the control every time rather than only when a
-run has already failed.
+run has already failed. Sprint 27 proved the point on the empty state itself:
+adding the starter-exercise section above "Create exercise" made even an empty
+library tall enough to push that control down, so `create-exercise.yaml` — which
+forty-six suites compose — now scrolls to it instead of tapping it where it used
+to sit.
+
+**A populated catalog changes what the exercise picker's fallback shows.** The
+picker lists recently performed exercises first and falls back to the whole
+catalog only while no completed workout exists. That fallback used to hold the
+one or two definitions a suite had authored; once the starter set has been
+imported it holds twenty-six, ordered by name, and the definition a scenario
+wants is usually several screens down. Type the name into
+`exercise-picker-search` rather than expecting the fallback list to show it —
+the same technique `flows/workout/add-completed-exercise.yaml` already uses for
+the completed-history picker, and the one every Sprint 27 scenario uses.
+
+**A destructive alert option must read differently from the control that opens
+it.** The data-erasure alert says "Delete everything" beside a screen control
+reading "Delete all local data", and completed-workout deletion says "Delete
+Workout", so each is reachable by text alone. The exercise editor's alert
+originally repeated its own control's "Delete exercise" verbatim, which left no
+way to confirm a deletion without a positional selector; it now reads "Delete
+this exercise". Keep new confirmations distinct for the same reason.
 
 **Reusable flows that start from a tab cannot follow a pushed screen.** Personal
 records, completed detail, the correction screens, and the Workout History a

@@ -1,0 +1,28 @@
+appId: com.fitnessapp.dev
+---
+# Opens the Exercise Library and adds the starter exercises the way a person
+# does: through the public library screen, with no fixture, no seeder, and no
+# hidden route. The starter import is a product feature, so it is exercised as
+# one; suites that need a definition of their own still author it.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+# The starter section sits above "Create exercise" at the bottom of the screen,
+# so it is below the fold whenever the list above it holds anything, and can be
+# below it even on the empty state.
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: DOWN
+    centerElement: true
+- tapOn: Add starter exercises
+# Deliberately asserts nothing about the outcome. The library updates in place
+# and the list above the section grows, so the result moves; each scenario
+# scrolls to the sentence it expects rather than having this flow assert one
+# sentence that would be wrong for a second import.
+
