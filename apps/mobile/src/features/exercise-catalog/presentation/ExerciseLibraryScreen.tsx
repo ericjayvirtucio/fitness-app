@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import { createExerciseCatalogUseCases } from '../../../composition/exercise-catalog';
@@ -10,15 +10,35 @@ import {
   LoadingIndicator,
   Screen,
   SectionHeader,
+  SelectionField,
   TextField,
   spacing,
 } from '../../../design-system';
+import {
+  isExerciseCatalogFilterActive,
+  noExerciseCatalogFilter,
+  toEquipmentFilter,
+  toMuscleGroupFilter,
+  type ExerciseCatalogFilter,
+} from '../application/exercise-catalog-filter';
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import {
+  clearFiltersLabel,
+  equipmentFilterLabel,
+  exerciseFilterSummaryMessage,
+  filteredSectionTitle,
+  muscleFilterLabel,
+} from './exercise-filter-messages';
+import {
+  anyFilterValue,
+  equipmentFilterOptions,
   equipmentOptions,
   labelFor,
   loggingModeOptions,
+  muscleFilterOptions,
   muscleOptions,
+  type EquipmentFilterValue,
+  type MuscleFilterValue,
 } from './exercise-options';
 import {
   starterExerciseActionLabel,
@@ -30,17 +50,16 @@ import {
 } from './starter-exercise-messages';
 
 type UseCases = Awaited<ReturnType<typeof createExerciseCatalogUseCases>>;
+type Lists = Readonly<{
+  all: readonly ExerciseCatalogItem[];
+  favorites: readonly ExerciseCatalogItem[];
+  recents: readonly ExerciseCatalogItem[];
+  search: readonly ExerciseCatalogItem[];
+}>;
 type State =
   | { status: 'loading' }
   | { status: 'error' }
-  | {
-      status: 'ready';
-      useCases: UseCases;
-      all: readonly ExerciseCatalogItem[];
-      favorites: readonly ExerciseCatalogItem[];
-      recents: readonly ExerciseCatalogItem[];
-      search: readonly ExerciseCatalogItem[];
-    };
+  | ({ status: 'ready'; useCases: UseCases } & Lists);
 
 export function ExerciseLibraryScreen({
   loadUseCases = createExerciseCatalogUseCases,
@@ -52,29 +71,64 @@ export function ExerciseLibraryScreen({
   onEdit: (id: string) => void;
 }>) {
   const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<ExerciseCatalogFilter>(
+    noExerciseCatalogFilter,
+  );
   const [state, setState] = useState<State>({ status: 'loading' });
   const [starterResult, setStarterResult] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  // A filter tap and a keystroke can both be in flight, and the catalog can be
+  // read again by a focus reload while either is. Only the newest read may write
+  // to the screen; an older one that resolves late is dropped rather than
+  // allowed to replace what the person has since asked for.
+  const requestRef = useRef(0);
+  const criteriaRef = useRef({ filter, query });
+  useEffect(() => {
+    criteriaRef.current = { filter, query };
+  }, [filter, query]);
+
+  const readLists = useCallback(
+    async (
+      useCases: UseCases,
+      activeFilter: ExerciseCatalogFilter,
+      activeQuery: string,
+    ): Promise<Lists> => {
+      // Favorites and Recently performed are shortcuts to the whole catalog, so
+      // they are not read while the person is narrowing it — exactly as they are
+      // already left unread and unshown while a search is being typed.
+      const isNarrowed = isExerciseCatalogFilterActive(activeFilter);
+      const empty: readonly ExerciseCatalogItem[] = [];
+      const [all, favorites, recents, search] = await Promise.all([
+        useCases.browse.listAll(activeFilter),
+        isNarrowed ? empty : useCases.browse.listFavorites(),
+        isNarrowed ? empty : useCases.browse.listRecentlyPerformed(),
+        activeQuery.trim() === ''
+          ? empty
+          : useCases.browse.search(activeQuery, activeFilter),
+      ]);
+      return { all, favorites, recents, search };
+    },
+    [],
+  );
+
+  // Deliberately depends on neither the filter nor the query: it is the reload a
+  // focus or a retry performs, and it must not re-run — flashing the loading
+  // state — every time either changes. It reads whichever criteria are current.
   const load = useCallback(() => {
     setState({ status: 'loading' });
+    const requestId = (requestRef.current += 1);
     void loadUseCases()
       .then(async (useCases) => {
-        const [all, favorites, recents] = await Promise.all([
-          useCases.browse.listAll(),
-          useCases.browse.listFavorites(),
-          useCases.browse.listRecentlyPerformed(),
-        ]);
-        setState({
-          all,
-          favorites,
-          recents,
-          search: [],
-          status: 'ready',
-          useCases,
-        });
+        const { filter: activeFilter, query: activeQuery } =
+          criteriaRef.current;
+        const lists = await readLists(useCases, activeFilter, activeQuery);
+        if (requestId !== requestRef.current) return;
+        setState({ ...lists, status: 'ready', useCases });
       })
-      .catch(() => setState({ status: 'error' }));
-  }, [loadUseCases]);
+      .catch(() => {
+        if (requestId === requestRef.current) setState({ status: 'error' });
+      });
+  }, [loadUseCases, readLists]);
   // Returning to the library is a fresh visit, so a result from an earlier one
   // is cleared here rather than left to describe a catalog the person has since
   // changed. An import reloads through `load` directly and keeps its result.
@@ -86,20 +140,28 @@ export function ExerciseLibraryScreen({
   );
   useEffect(() => {
     if (state.status !== 'ready') return;
-    const timeout = setTimeout(
-      () =>
-        void state.useCases.browse
-          .search(query)
-          .then((search) =>
-            setState((current) =>
-              current.status === 'ready' ? { ...current, search } : current,
-            ),
-          )
-          .catch(() => setState({ status: 'error' })),
-      200,
-    );
+    const { useCases } = state;
+    const timeout = setTimeout(() => {
+      const requestId = (requestRef.current += 1);
+      void readLists(useCases, filter, query)
+        .then((lists) =>
+          setState((current) =>
+            current.status === 'ready' && requestId === requestRef.current
+              ? { ...current, ...lists }
+              : current,
+          ),
+        )
+        .catch(() => {
+          if (requestId === requestRef.current) setState({ status: 'error' });
+        });
+    }, 200);
     return () => clearTimeout(timeout);
-  }, [query, state.status === 'ready' ? state.useCases : undefined]);
+  }, [
+    filter,
+    query,
+    readLists,
+    state.status === 'ready' ? state.useCases : undefined,
+  ]);
 
   if (state.status === 'loading')
     return (
@@ -136,20 +198,15 @@ export function ExerciseLibraryScreen({
    * behind it updates in place.
    */
   const refreshLists = async (useCases: UseCases) => {
-    // Search is refreshed too. Its own effect only re-runs when the query or the
-    // use cases change, and an import changes neither, so results typed before
-    // the import would otherwise keep describing the catalog as it was.
-    const [all, favorites, recents, search] = await Promise.all([
-      useCases.browse.listAll(),
-      useCases.browse.listFavorites(),
-      useCases.browse.listRecentlyPerformed(),
-      query.trim() === ''
-        ? Promise.resolve<readonly ExerciseCatalogItem[]>([])
-        : useCases.browse.search(query),
-    ]);
+    // Search and the active filter are applied here too. The narrowing effect
+    // only re-runs when the query, the filter, or the use cases change, and an
+    // import changes none of them, so lists read before the import would
+    // otherwise keep describing the catalog as it was.
+    const requestId = (requestRef.current += 1);
+    const lists = await readLists(useCases, filter, query);
     setState((current) =>
-      current.status === 'ready'
-        ? { ...current, all, favorites, recents, search }
+      current.status === 'ready' && requestId === requestRef.current
+        ? { ...current, ...lists }
         : current,
     );
   };
@@ -175,7 +232,21 @@ export function ExerciseLibraryScreen({
       setIsImporting(false);
     }
   };
-  const results = query.trim() === '' ? state.all : state.search;
+  const hasQuery = query.trim() !== '';
+  const isNarrowed = isExerciseCatalogFilterActive(filter);
+  const results = hasQuery ? state.search : state.all;
+  // An empty library is only an empty library when nothing is narrowing it.
+  // While a search or a filter is applied, an empty result is a statement about
+  // the narrowing, never about the catalog.
+  const isEmptyLibrary = !hasQuery && !isNarrowed && state.all.length === 0;
+  const filterLabels = [
+    filter.equipment === null
+      ? null
+      : labelFor(equipmentOptions, filter.equipment),
+    filter.primaryMuscleGroup === null
+      ? null
+      : labelFor(muscleOptions, filter.primaryMuscleGroup),
+  ].filter((label): label is string => label !== null);
   return (
     <Screen
       accessibilityLabel="Exercise Library"
@@ -196,7 +267,63 @@ export function ExerciseLibraryScreen({
         testID="exercise-library-search"
         value={query}
       />
-      {query.trim() === '' && state.all.length === 0 ? (
+      {/*
+       * Narrowing controls sit with the search field, because they do the same
+       * job. They are absent while the library is empty: there is nothing to
+       * narrow, and a first-run screen should not be made taller by controls
+       * that cannot do anything yet.
+       */}
+      {isEmptyLibrary ? null : (
+        <View style={{ gap: spacing.md }}>
+          <SelectionField
+            label={equipmentFilterLabel}
+            onChange={(value: EquipmentFilterValue) =>
+              setFilter((current) => ({
+                ...current,
+                equipment:
+                  value === anyFilterValue ? null : toEquipmentFilter(value),
+              }))
+            }
+            options={equipmentFilterOptions}
+            testID="exercise-library-equipment-filter"
+            value={filter.equipment ?? anyFilterValue}
+          />
+          <SelectionField
+            label={muscleFilterLabel}
+            onChange={(value: MuscleFilterValue) =>
+              setFilter((current) => ({
+                ...current,
+                primaryMuscleGroup:
+                  value === anyFilterValue ? null : toMuscleGroupFilter(value),
+              }))
+            }
+            options={muscleFilterOptions}
+            testID="exercise-library-muscle-filter"
+            value={filter.primaryMuscleGroup ?? anyFilterValue}
+          />
+          {isNarrowed ? (
+            <>
+              <AppText
+                accessibilityLiveRegion="polite"
+                color="secondary"
+                testID="exercise-library-filter-summary"
+              >
+                {exerciseFilterSummaryMessage(
+                  filterLabels,
+                  results.length,
+                  hasQuery,
+                )}
+              </AppText>
+              <AppButton
+                label={clearFiltersLabel}
+                onPress={() => setFilter(noExerciseCatalogFilter)}
+                variant="outline"
+              />
+            </>
+          ) : null}
+        </View>
+      )}
+      {isEmptyLibrary ? (
         <EmptyState
           actionLabel="Create first exercise"
           description="Add an exercise definition for future planning and workout logging."
@@ -228,9 +355,9 @@ export function ExerciseLibraryScreen({
           </AppText>
         )}
       </View>
-      {query.trim() === '' && state.all.length === 0 ? null : (
+      {isEmptyLibrary ? null : (
         <>
-          {query.trim() === '' && state.favorites.length > 0 ? (
+          {!hasQuery && !isNarrowed && state.favorites.length > 0 ? (
             <ExerciseSection
               items={state.favorites}
               onEdit={onEdit}
@@ -238,7 +365,7 @@ export function ExerciseLibraryScreen({
               title="Favorites"
             />
           ) : null}
-          {query.trim() === '' && state.recents.length > 0 ? (
+          {!hasQuery && !isNarrowed && state.recents.length > 0 ? (
             <ExerciseSection
               items={state.recents}
               onEdit={onEdit}
@@ -246,12 +373,25 @@ export function ExerciseLibraryScreen({
               title="Recently performed"
             />
           ) : null}
-          <ExerciseSection
-            items={results}
-            onEdit={onEdit}
-            onFavorite={(item) => void toggle(item)}
-            title={query.trim() === '' ? 'All exercises' : 'Search results'}
-          />
+          {/*
+           * A narrowed list that matched nothing says so once, in the summary
+           * above, rather than a second time under a heading that would promise
+           * results it does not have.
+           */}
+          {isNarrowed && results.length === 0 ? null : (
+            <ExerciseSection
+              items={results}
+              onEdit={onEdit}
+              onFavorite={(item) => void toggle(item)}
+              title={
+                hasQuery
+                  ? 'Search results'
+                  : isNarrowed
+                    ? filteredSectionTitle
+                    : 'All exercises'
+              }
+            />
+          )}
         </>
       )}
       <AppButton label="Create exercise" onPress={onCreate} />
