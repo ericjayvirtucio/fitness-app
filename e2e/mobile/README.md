@@ -52,6 +52,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 27 --platform ios
 ./scripts/qa.sh sprint 29 --platform ios
 ./scripts/qa.sh sprint 30 --platform ios
+./scripts/qa.sh sprint 31 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -87,7 +88,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, 29, and 30. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–31. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -279,6 +280,32 @@ product reaches them, through Workout, History, and the exercise as completed
 history names it, and a suite asserts the record's own wording rather than a
 badge or a color.
 
+Assisted records need an exercise whose logging mode is "Assistance + reps", and
+`flows/exercise/create-assisted-exercise.yaml` authors one rather than importing
+the starter set's own "Assisted Pull-up". Three reasons, in the order they bite:
+the synthetic "E2E Assisted Pull-up" name cannot be confused with the starter
+definition of nearly the same name; a two-definition catalog keeps the exercise
+picker's fallback list short enough to reach the card by scrolling, where an
+import of twenty-six would force every pick through `exercise-picker-search`; and
+choosing "Machine" beside "Assistance + reps" is the only automated proof that a
+person can still pair that mode with the equipment the domain allows. The starter
+definition is not wasted — it is the fixture for the Sprint 31 manual pass, which
+covers both routes.
+
+Recording the assisted set uses `flows/workout/complete-assisted-workout.yaml`,
+parameterised on `ASSISTANCE` and `REPETITIONS` with no defaults. It reaches the
+assistance field through `workout-set-resistance-input` rather than by text: the
+field's visible label and the input's accessible name are both "Assistance (kg)",
+so a text selector cannot say which of the two a step meant. The same identifier
+serves "Weight" and "Added weight", because it is the one resistance field the
+form renders. Both fields raise a number pad, so the flow drags before saving.
+
+Records are reached by name, and the assisted exercise has its own entry flow,
+`flows/workout/open-assisted-exercise-personal-records.yaml`. A second flow
+rather than a parameter on the existing one: that flow is composed by eleven
+scenarios across four suites, and a required variable would have to be threaded
+through every one of them to serve the two names this harness uses.
+
 Export, restore, replacement, and deletion are all reached through
 Profile → Data controls, so `flows/data-lifecycle/open-data-controls.yaml` is
 the single entry point the other lifecycle flows compose. Data controls appears
@@ -368,6 +395,16 @@ shared workout flows tapped `Add E2E Push-up` where it used to sit, and between
 them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
+
+**A record card replaces the sentence that stood in for it, and the screen grows.**
+Sprint 31 gave assisted work a personal record, so an exercise that used to show
+one line of explanation now shows a full card. That is the create-the-first-record
+class again — an assertion written against the screen before the record existed is
+not evidence about the screen that now holds it — and it is why every flow reaching
+the personal-records screen scrolls to what it asserts. The eleven existing
+scenarios that reach that screen all do so for definitions with no assisted
+history, so their screens are unchanged; that is a fact to re-verify against a run,
+not to assume.
 
 **Adding a section to a screen invalidates every unscrolled assertion below it.**
 A screen that acts in place keeps its scroll offset across the change, and that

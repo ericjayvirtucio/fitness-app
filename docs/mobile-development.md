@@ -327,11 +327,29 @@ and
 
 Opening a performed exercise from Workout History shows its best recorded
 results, derived only from completed actual sets and each linked to the workout
-that proves it. Categories are defined per logging mode, assisted work is
-explained rather than ranked, and nothing derived is stored or exported. See the
+that proves it. Categories are defined per logging mode, and nothing derived is
+stored or exported.
+
+Every logging mode the domain defines now yields a record. Assisted work claims
+"Least recorded assistance in a set", ordered ascending, and claims nothing about
+the repetitions performed under that assistance — the same way "Heaviest recorded
+load in a set" claims a load and stays silent about its repetitions. Ordering
+direction is a required field on each descriptor, because the dimension cannot
+decide it: load and assistance both order on resistance and order oppositely.
+Zero assistance is not recordable, because an unassisted repetition is a
+different logging mode with its own record group.
+
+The set form's resistance field carries `workout-set-resistance-input` whatever
+the mode labels it — "Weight", "Added weight", or "Assistance" — because its
+visible label and its accessible name are the same words, so a text selector
+cannot say which of the two an end-to-end step meant. See the
 [personal records architecture](architecture/workout-personal-records.md),
-[ADR 0017](decisions/0017-deterministic-workout-personal-records.md), the
+[ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
+[ADR 0022](decisions/0022-personal-record-ordering-direction.md),
+[Specification 0031](../specs/0031-assisted-repetition-records.md), the
 [Sprint 22 manual checklist](manual-testing/sprint-22-workout-personal-records.md),
+the
+[Sprint 31 manual checklist](manual-testing/sprint-31-assisted-repetition-records.md),
 and [troubleshooting guidance](troubleshooting/workout-personal-records.md).
 
 ## Offline Progress analytics
