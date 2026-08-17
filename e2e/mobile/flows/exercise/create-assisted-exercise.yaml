@@ -3,7 +3,7 @@ appId: com.fitnessapp.dev
 # Authors one assisted definition through the public exercise editor. The
 # starter set ships an "Assisted Pull-up", but this flow deliberately writes its
 # own: the synthetic "E2E" name keeps every later assertion unambiguous against
-# that starter definition, a two-definition catalog leaves the exercise picker's
+# that starter definition, a one-definition catalog leaves the exercise picker's
 # fallback list short enough to reach without typing, and choosing the equipment
 # is the only automated proof that a person can still pair "Assistance + reps"
 # with the equipment the domain allows.
@@ -34,8 +34,21 @@ appId: com.fitnessapp.dev
     start: 50%, 45%
     end: 50%, 40%
 # The domain restricts "Assistance + reps" to machine, resistance band, or
-# other, so this pairing is the one the product actually accepts.
+# other, so this pairing is the one the product actually accepts. Machine is the
+# sixth of ten equipment values and Back the second of thirteen muscle groups,
+# both further down the form than the options `create-exercise.yaml` picks, so
+# each is scrolled to rather than tapped where a shorter form would put it. The
+# form's own order — name, equipment, muscle group, logging mode — means every
+# reach here is a single downward scroll.
+- scrollUntilVisible:
+    element:
+      text: Machine
+    direction: DOWN
 - tapOn: Machine
+- scrollUntilVisible:
+    element:
+      text: Back
+    direction: DOWN
 - tapOn: Back
 - scrollUntilVisible:
     element:
