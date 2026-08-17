@@ -9,6 +9,40 @@ export const equipmentFilterLabel = 'Filter by equipment';
 export const muscleFilterLabel = 'Filter by muscle group';
 export const clearFiltersLabel = 'Clear filters';
 export const filteredSectionTitle = 'Filtered exercises';
+export const filtersLabel = 'Filters';
+
+const noFiltersAppliedMessage = 'No filters applied.';
+
+/**
+ * What the collapse control shows. The chosen values stay on it while the
+ * options are put away, so a person never has to expand the control to find out
+ * whether something is narrowing the list they are looking at.
+ */
+export function filtersControlLabel(labels: readonly string[]): string {
+  return labels.length === 0
+    ? filtersLabel
+    : `${filtersLabel}: ${joined(labels)}`;
+}
+
+/**
+ * What the collapse control is called to a screen reader: the act pressing it
+ * performs, then the same sentence the summary states. A person who cannot see
+ * the control hears both what it does and what is currently narrowed, and the
+ * expanded state itself is carried by `accessibilityState` rather than by words.
+ */
+export function filtersControlAccessibilityLabel(
+  isExpanded: boolean,
+  labels: readonly string[],
+  matchCount: number,
+  hasQuery: boolean,
+): string {
+  const action = isExpanded ? 'Hide filters.' : 'Show filters.';
+  return `${action} ${
+    labels.length === 0
+      ? noFiltersAppliedMessage
+      : exerciseFilterSummaryMessage(labels, matchCount, hasQuery)
+  }`;
+}
 
 const noFilterMatchesMessage = 'No exercises match these filters.';
 const noSearchAndFilterMatchesMessage =

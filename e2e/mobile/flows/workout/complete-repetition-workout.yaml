@@ -13,6 +13,15 @@ appId: com.fitnessapp.dev
 - tapOn: Start Empty Workout
 - assertVisible: Workout
 - tapOn: Add Exercise
+# The picker now carries a filter control between its search field and its
+# cards, so the first card sits lower than it did. A flow that worked against a
+# shorter picker is not evidence that it works against a taller one; scroll to
+# the card rather than tapping where it used to be.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Push-up
+    direction: DOWN
+    centerElement: true
 - tapOn: Add E2E Push-up
 - tapOn: Add Set for E2E Push-up
 - tapOn:

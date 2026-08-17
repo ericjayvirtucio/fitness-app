@@ -153,6 +153,12 @@ describe('CompletedWorkoutExerciseAdditionScreen', () => {
     expect(
       screen.getByText('Choose the exercise you performed'),
     ).toBeOnTheScreen();
+    // The picker composes its own filtering, so this screen offers the same
+    // narrowing as the Planner, the active Session, and the Exercise Library
+    // without wiring anything for it.
+    expect(
+      screen.getByTestId('exercise-picker-filters-toggle'),
+    ).toBeOnTheScreen();
   });
 
   it('requires the first recorded set before anything can be added', async () => {

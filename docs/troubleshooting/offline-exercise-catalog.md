@@ -37,6 +37,32 @@ retry. Do not bypass the Planner foreign key or logging-mode trigger; see the
   by the screen only and are cleared by relaunching the app; nothing about them
   is stored.
 
+## The filters cannot be found
+
+- **Symptoms:** The equipment and muscle-group options are not on screen.
+- **Likely cause:** They are put away. The library and every exercise picker show
+  one "Filters" button in their place, directly above the lists it narrows, and
+  the options open when it is pressed.
+- **Diagnose:** On the library, look between the starter-exercise section and the
+  first list; in a picker, look directly under the search field. The button is
+  absent only when there is nothing to narrow, which means the catalog is empty.
+- **Resolve:** Press it. Nothing about whether the options are open or away is
+  stored, so every screen opens with them away.
+
+## A picker lists nothing while a filter is applied
+
+- **Symptoms:** Choosing an exercise for a plan, an active workout, or a completed
+  workout shows no cards.
+- **Likely cause:** No definition carries both chosen values. The picker also
+  stops showing recently performed exercises while anything is narrowing the
+  catalog, exactly as the library stops showing Favorites and Recently performed.
+- **Diagnose:** Read the line under the Filters button. It states what is narrowed
+  and how many matched. "No exercises found" means the catalog itself is empty and
+  never appears while a filter is applied.
+- **Resolve:** Press Clear filters or choose different values. A filter belongs to
+  the picker: dismissing it and choosing again starts unnarrowed, exactly as a
+  typed search already does.
+
 ## The library says it is showing the first 100 exercises
 
 - **Symptoms:** A sentence above the list reports that only the first 100

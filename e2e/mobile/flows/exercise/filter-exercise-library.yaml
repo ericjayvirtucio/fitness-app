@@ -18,12 +18,12 @@ appId: com.fitnessapp.dev
 # narrow. A caller can arrive above them, having just imported, or below them,
 # having just read the summary of an earlier filter — and `scrollUntilVisible`
 # only searches the direction it is given, so a single downward pass finds
-# nothing when the equipment group is already overhead. The starter offer is
-# always above both filters, so anchoring on it first makes the following
-# downward scroll correct from either side.
+# nothing when the control is already overhead. The starter offer is always above
+# it, so anchoring on it first makes the following downward scroll correct from
+# either side.
 #
 # Assumes the library is already open and holds at least one definition; the
-# controls are absent while it is empty. Ends on the Exercise Library, a pushed
+# control is absent while it is empty. Ends on the Exercise Library, a pushed
 # screen with no tab bar, so a caller that needs the tabs relaunches.
 - assertVisible: Exercise Library
 - scrollUntilVisible:
@@ -31,6 +31,24 @@ appId: com.fitnessapp.dev
       text: Add starter exercises
     direction: UP
     centerElement: true
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filters-toggle
+    direction: DOWN
+    centerElement: true
+# The options are put away by default, so they are opened before one can be
+# tapped — and only when they are not already open, because a scenario that
+# filters twice would otherwise close them on its second pass. The check is made
+# with the toggle centred, which is the one viewport where the equipment group
+# renders if it is open: off-screen content is absent from the hierarchy rather
+# than hidden, so asking this question from anywhere else would answer it wrong.
+- runFlow:
+    when:
+      notVisible:
+        id: exercise-library-equipment-filter
+    commands:
+      - tapOn:
+          id: exercise-library-filters-toggle
 - scrollUntilVisible:
     element:
       id: ${EQUIPMENT_FILTER_ID}
