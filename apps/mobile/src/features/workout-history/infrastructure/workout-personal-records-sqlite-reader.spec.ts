@@ -302,25 +302,133 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
     ]);
   });
 
-  it('claims no record for assisted work and says which mode it was', async () => {
-    await history.store({
-      dayIndex: 0,
-      exercises: [
-        {
-          loggingMode: 'assistance-and-repetitions',
-          name: 'Assisted Pull-up',
-          sets: [{ repetitions: 8, resistanceGrams: 30_000 }],
-        },
-      ],
-    });
+  it('records the least assistance an assisted set needed', async () => {
+    await history.store(
+      {
+        dayIndex: 0,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            name: 'Assisted Pull-up',
+            sets: [
+              { repetitions: 8, resistanceGrams: 30_000 },
+              { repetitions: 5, resistanceGrams: 22_500 },
+            ],
+          },
+        ],
+      },
+      {
+        dayIndex: 3,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            name: 'Assisted Pull-up',
+            sets: [{ repetitions: 12, resistanceGrams: 45_000 }],
+          },
+        ],
+      },
+    );
+
+    const found = await read();
+    const record = recordFor(found, 'least-assistance');
+
+    expect(record?.canonicalValue).toBe(22_500);
+    expect(record?.loggingMode).toBe('assistance-and-repetitions');
+    expect(record?.occurrence.setPosition).toBe(1);
+    expect(record?.occurrence.startedLocalCalendarDate).toBe('2026-01-01');
+    expect(found.unsupportedLoggingModes).toEqual([]);
+    expect(found.latestExerciseNameSnapshot).toBe('Assisted Pull-up');
+  });
+
+  it('keeps an earlier lighter assistance when a later workout needed more', async () => {
+    await history.store(
+      {
+        dayIndex: 0,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            sets: [{ repetitions: 6, resistanceGrams: 18_000 }],
+          },
+        ],
+      },
+      {
+        dayIndex: 5,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            sets: [{ repetitions: 20, resistanceGrams: 40_000 }],
+          },
+        ],
+      },
+    );
 
     const found = await read();
 
-    expect(found.records).toEqual([]);
-    expect(found.unsupportedLoggingModes).toEqual([
-      'assistance-and-repetitions',
+    expect(recordFor(found, 'least-assistance')?.canonicalValue).toBe(18_000);
+    expect(
+      recordFor(found, 'least-assistance')?.occurrence.startedLocalCalendarDate,
+    ).toBe('2026-01-01');
+  });
+
+  it('awards equalled assistance to the earliest completed occurrence', async () => {
+    await history.store(
+      {
+        dayIndex: 2,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            sets: [{ repetitions: 6, resistanceGrams: 25_000 }],
+          },
+        ],
+      },
+      {
+        dayIndex: 8,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            sets: [{ repetitions: 9, resistanceGrams: 25_000 }],
+          },
+        ],
+      },
+    );
+
+    const found = await read();
+
+    expect(
+      recordFor(found, 'least-assistance')?.occurrence.startedLocalCalendarDate,
+    ).toBe('2026-01-03');
+  });
+
+  it('never compares assistance with the load of another mode', async () => {
+    await history.store(
+      {
+        dayIndex: 0,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions',
+            sets: [{ repetitions: 8, resistanceGrams: 30_000 }],
+          },
+        ],
+      },
+      {
+        dayIndex: 4,
+        exercises: [
+          {
+            loggingMode: 'external-load-and-repetitions',
+            sets: [{ repetitions: 5, resistanceGrams: 60_000 }],
+          },
+        ],
+      },
+    );
+
+    const found = await read();
+
+    expect(
+      found.records.map((record) => [record.category, record.canonicalValue]),
+    ).toEqual([
+      ['heaviest-load', 60_000],
+      ['least-assistance', 30_000],
     ]);
-    expect(found.latestExerciseNameSnapshot).toBe('Assisted Pull-up');
   });
 
   it('records both stored dimensions of a distance and duration set', async () => {
@@ -450,6 +558,63 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
 
     expect(details).toContain('workout_session_exercise_source_history');
     expect(details).not.toMatch(/SCAN workout_session_exercise\b/);
+  });
+
+  it('stays one bounded round trip however much history exists', async () => {
+    await history.store(
+      ...Array.from({ length: 40 }, (_unused, index) => ({
+        dayIndex: index,
+        exercises: [
+          {
+            loggingMode: 'assistance-and-repetitions' as const,
+            sets: Array.from({ length: 5 }, (_ignored, setPosition) => ({
+              repetitions: setPosition + 1,
+              resistanceGrams: 50_000 - index * 500 - setPosition * 10,
+            })),
+          },
+        ],
+      })),
+    );
+    const recording = new RecordingDatabase(database);
+
+    const found = await new WorkoutPersonalRecordsSqliteReader(
+      recording,
+    ).readExercisePersonalRecords(
+      unwrap(DomainId.create(syntheticExerciseIds.pushUp)),
+    );
+
+    expect(recording.statements).toHaveLength(2);
+    expect(recording.statements[0]?.split('UNION ALL')).toHaveLength(
+      personalRecordDescriptors.length,
+    );
+    expect(recordFor(found, 'least-assistance')?.canonicalValue).toBe(30_460);
+  });
+
+  it('writes nothing and leaves the schema version alone', async () => {
+    await history.store({
+      dayIndex: 0,
+      exercises: [
+        {
+          loggingMode: 'assistance-and-repetitions',
+          sets: [{ repetitions: 8, resistanceGrams: 30_000 }],
+        },
+      ],
+    });
+    const before = await database.getVersion();
+    const sets = await database.getAll<{ total: number }>(
+      'SELECT COUNT(*) AS total FROM workout_set',
+    );
+
+    await read();
+
+    expect(await database.getVersion()).toBe(before);
+    expect(
+      (
+        await database.getAll<{ total: number }>(
+          'SELECT COUNT(*) AS total FROM workout_set',
+        )
+      )[0]?.total,
+    ).toBe(sets[0]?.total);
   });
 
   it('orders every branch by the direction its descriptor declares', async () => {

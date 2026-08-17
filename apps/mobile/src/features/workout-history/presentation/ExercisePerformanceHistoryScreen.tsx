@@ -247,11 +247,16 @@ function PersonalRecords({
                     unitSystem={unitSystem}
                   />
                 ))}
+              {/*
+               * Every logging mode the domain defines now has a descriptor, so
+               * this explains a mode added to the domain before one describes
+               * what may be claimed about it. It is reached through the read
+               * model rather than through any mode name.
+               */}
               {records.unsupportedLoggingModes.includes(mode) ? (
                 <AppText color="secondary">
-                  {mode === 'assistance-and-repetitions'
-                    ? 'Personal records are not available for assisted work, because less assistance and more repetitions cannot be compared as one value.'
-                    : 'Personal records are not available for this way of recording yet.'}
+                  Personal records are not available for this way of recording
+                  yet.
                 </AppText>
               ) : null}
             </View>

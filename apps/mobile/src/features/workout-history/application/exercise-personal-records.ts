@@ -22,6 +22,7 @@ export const personalRecordCategories = Object.freeze([
   'longest-distance',
   'longest-distance-with-duration',
   'longest-duration-with-distance',
+  'least-assistance',
 ] as const);
 
 export type PersonalRecordCategory = (typeof personalRecordCategories)[number];
@@ -113,6 +114,21 @@ export const personalRecordDescriptors: readonly PersonalRecordDescriptor[] =
       eligibleLoggingModes: Object.freeze(['distance-and-duration'] as const),
       label: 'Longest recorded duration in a set',
     }),
+    /**
+     * Assisted work claims the assistance it needed and nothing else. Less
+     * assistance and more repetitions still do not collapse into one value, so
+     * this orders one dimension and stays silent about the other — exactly as
+     * `heaviest-load` does for the repetitions it never mentions.
+     */
+    Object.freeze({
+      category: 'least-assistance',
+      dimension: 'resistance',
+      direction: 'ascending',
+      eligibleLoggingModes: Object.freeze([
+        'assistance-and-repetitions',
+      ] as const),
+      label: 'Least recorded assistance in a set',
+    }),
   ] as const);
 
 export type ExercisePersonalRecordOccurrence = Readonly<{
@@ -163,9 +179,14 @@ export function personalRecordDescriptorsFor(
 }
 
 /**
- * `assistance-and-repetitions` is deliberately absent. Less assistance and more
- * repetitions do not order together, so the screen explains that instead of
- * presenting a value, and an unsupported mode is never shown as a zero.
+ * Every logging mode the domain defines is described here, so this currently
+ * answers `true` for all of them.
+ *
+ * It is kept because the two vocabularies live in different packages: a logging
+ * mode can be added to `@fitness/domain` before a descriptor decides what may
+ * truthfully be claimed about it. Until one does, the reader reports the mode as
+ * unsupported and the screen explains it, rather than dropping it silently or
+ * rendering it as a zero.
  */
 export function isPersonalRecordLoggingModeSupported(
   loggingMode: ExerciseLoggingMode,
