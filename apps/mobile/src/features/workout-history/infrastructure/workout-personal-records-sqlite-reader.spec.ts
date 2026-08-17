@@ -5,7 +5,11 @@ import type {
 } from '../../../infrastructure/persistence/database';
 import { PersistenceError } from '../../../infrastructure/persistence/persistence-error';
 import type { NodeSqliteDatabase } from '../../../infrastructure/persistence/testing/node-sqlite-database';
-import type { ExercisePersonalRecords } from '../application/exercise-personal-records';
+import {
+  personalRecordDescriptors,
+  type ExercisePersonalRecords,
+  type PersonalRecordDimension,
+} from '../application/exercise-personal-records';
 import {
   SyntheticWorkoutHistory,
   syntheticExerciseIds,
@@ -18,6 +22,18 @@ import { WorkoutPersonalRecordsSqliteReader } from './workout-personal-records-s
  * orchestration, so these run against a real SQLite database with the
  * repository's own migrations.
  */
+
+/**
+ * Declared here rather than imported, so the statement is checked against the
+ * column each dimension is meant to compare instead of against whatever the
+ * reader happens to think it is.
+ */
+const expectedColumns: Readonly<Record<PersonalRecordDimension, string>> = {
+  distance: 'actual.distance_millimeters',
+  duration: 'actual.duration_seconds',
+  repetitions: 'actual.repetitions',
+  resistance: 'actual.resistance_grams',
+};
 
 class RecordingDatabase implements DatabaseConnection {
   readonly statements: string[] = [];
@@ -434,6 +450,28 @@ describe('WorkoutPersonalRecordsSqliteReader', () => {
 
     expect(details).toContain('workout_session_exercise_source_history');
     expect(details).not.toMatch(/SCAN workout_session_exercise\b/);
+  });
+
+  it('orders every branch by the direction its descriptor declares', async () => {
+    const recording = new RecordingDatabase(database);
+
+    await new WorkoutPersonalRecordsSqliteReader(
+      recording,
+    ).readExercisePersonalRecords(
+      unwrap(DomainId.create(syntheticExerciseIds.pushUp)),
+    );
+    const statement = recording.statements[0] ?? '';
+
+    expect(statement.split('UNION ALL')).toHaveLength(
+      personalRecordDescriptors.length,
+    );
+    personalRecordDescriptors.forEach((descriptor) => {
+      expect(statement).toContain(
+        `ORDER BY ${expectedColumns[descriptor.dimension]} ${
+          descriptor.direction === 'ascending' ? 'ASC' : 'DESC'
+        },`,
+      );
+    });
   });
 
   it('binds the exercise identifier instead of writing it into the statement', async () => {

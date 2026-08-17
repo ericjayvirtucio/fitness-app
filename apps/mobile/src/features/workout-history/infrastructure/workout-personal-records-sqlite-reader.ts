@@ -45,10 +45,10 @@ const comparedColumns: Readonly<Record<PersonalRecordDimension, string>> =
 
 /**
  * One row per record category, selected by the same total order in every
- * branch: the compared value descending, then the earliest completed
- * occurrence. Equal values therefore report when the record was first achieved,
- * and the identifier tie-break only guarantees a stable answer — it never
- * changes the claim.
+ * branch: the compared value in the direction its descriptor declares, then the
+ * earliest completed occurrence. Equal values therefore report when the record
+ * was first achieved, and the identifier tie-break only guarantees a stable
+ * answer — it never changes the claim.
  *
  * Each branch is an independent `ORDER BY ... LIMIT 1` subquery so the compound
  * statement returns one candidate per category in a single round trip. Branch
@@ -116,7 +116,7 @@ function recordBranch(descriptor: PersonalRecordDescriptor): string {
       AND session.status = 'completed'
       AND exercise.logging_mode_snapshot IN (${modePlaceholders})
       AND ${comparedColumn} IS NOT NULL
-    ORDER BY ${comparedColumn} DESC,
+    ORDER BY ${comparedColumn} ${comparedOrder(descriptor)},
       session.started_local_calendar_date ASC,
       session.started_at_epoch_ms ASC,
       exercise.position ASC,
@@ -124,6 +124,16 @@ function recordBranch(descriptor: PersonalRecordDescriptor): string {
       actual.id ASC
     LIMIT 1
   )`;
+}
+
+/**
+ * The only part of a branch the descriptor changes. It is a compile-time
+ * constant chosen from a closed union in the descriptor table, never a bound
+ * value and never anything a person typed, so the statement stays fully
+ * parameterised everywhere it reads data.
+ */
+function comparedOrder(descriptor: PersonalRecordDescriptor): string {
+  return descriptor.direction === 'ascending' ? 'ASC' : 'DESC';
 }
 
 function recordParameters(exerciseDefinitionId: DomainId): DatabaseValue[] {

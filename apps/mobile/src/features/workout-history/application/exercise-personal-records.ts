@@ -36,9 +36,21 @@ export type PersonalRecordDimension =
 export type PersonalRecordUnit =
   'grams' | 'millimeters' | 'repetitions' | 'seconds';
 
+/**
+ * Which end of the ordered dimension is the achievement.
+ *
+ * This belongs beside the dimension rather than in the statement builder,
+ * because the dimension alone cannot decide it: `heaviest-load` and
+ * `least-assistance` both order on `resistance` and order oppositely. Naming it
+ * here keeps the comparison rule in one place, and makes adding a descriptor
+ * without deciding its direction a type error.
+ */
+export type PersonalRecordOrderingDirection = 'ascending' | 'descending';
+
 export type PersonalRecordDescriptor = Readonly<{
   category: PersonalRecordCategory;
   dimension: PersonalRecordDimension;
+  direction: PersonalRecordOrderingDirection;
   eligibleLoggingModes: readonly ExerciseLoggingMode[];
   label: string;
 }>;
@@ -48,6 +60,7 @@ export const personalRecordDescriptors: readonly PersonalRecordDescriptor[] =
     Object.freeze({
       category: 'most-repetitions',
       dimension: 'repetitions',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze([
         'repetitions',
         'bodyweight-and-repetitions',
@@ -57,6 +70,7 @@ export const personalRecordDescriptors: readonly PersonalRecordDescriptor[] =
     Object.freeze({
       category: 'heaviest-load',
       dimension: 'resistance',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze([
         'external-load-and-repetitions',
       ] as const),
@@ -65,6 +79,7 @@ export const personalRecordDescriptors: readonly PersonalRecordDescriptor[] =
     Object.freeze({
       category: 'heaviest-added-load',
       dimension: 'resistance',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze([
         'bodyweight-plus-load-and-repetitions',
       ] as const),
@@ -73,24 +88,28 @@ export const personalRecordDescriptors: readonly PersonalRecordDescriptor[] =
     Object.freeze({
       category: 'longest-duration',
       dimension: 'duration',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze(['duration'] as const),
       label: 'Longest recorded duration in a set',
     }),
     Object.freeze({
       category: 'longest-distance',
       dimension: 'distance',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze(['distance'] as const),
       label: 'Longest recorded distance in a set',
     }),
     Object.freeze({
       category: 'longest-distance-with-duration',
       dimension: 'distance',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze(['distance-and-duration'] as const),
       label: 'Longest recorded distance in a set',
     }),
     Object.freeze({
       category: 'longest-duration-with-distance',
       dimension: 'duration',
+      direction: 'descending',
       eligibleLoggingModes: Object.freeze(['distance-and-duration'] as const),
       label: 'Longest recorded duration in a set',
     }),

@@ -29,6 +29,12 @@ describe('personal record descriptors', () => {
     expect(unsupported).toEqual(['assistance-and-repetitions']);
   });
 
+  it('declares which end of its dimension every category orders on', () => {
+    personalRecordDescriptors.forEach((descriptor) => {
+      expect(['ascending', 'descending']).toContain(descriptor.direction);
+    });
+  });
+
   it('merges only the two repetition modes that record no load', () => {
     const merged = personalRecordDescriptors.filter(
       (descriptor) => descriptor.eligibleLoggingModes.length > 1,
