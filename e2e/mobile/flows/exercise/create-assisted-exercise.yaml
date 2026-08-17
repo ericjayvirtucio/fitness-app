@@ -1,0 +1,66 @@
+appId: com.fitnessapp.dev
+---
+# Authors one assisted definition through the public exercise editor. The
+# starter set ships an "Assisted Pull-up", but this flow deliberately writes its
+# own: the synthetic "E2E" name keeps every later assertion unambiguous against
+# that starter definition, a two-definition catalog leaves the exercise picker's
+# fallback list short enough to reach without typing, and choosing the equipment
+# is the only automated proof that a person can still pair "Assistance + reps"
+# with the equipment the domain allows.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+# "Create exercise" is the last control on the screen and every section above it
+# moves it further down, so it is scrolled to rather than tapped where it sat.
+- scrollUntilVisible:
+    element:
+      text: Create exercise
+    direction: DOWN
+    centerElement: true
+- tapOn: Create exercise
+- tapOn:
+    id: exercise-name-input
+- inputText: E2E Assisted Pull-up
+# A short drag dismisses the keyboard, because the screen uses
+# keyboardDismissMode="on-drag". Without it the keyboard covers the equipment
+# options and the tap meant for one of them appends a character to the name
+# field that still has focus.
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+# The domain restricts "Assistance + reps" to machine, resistance band, or
+# other, so this pairing is the one the product actually accepts.
+- tapOn: Machine
+- tapOn: Back
+- scrollUntilVisible:
+    element:
+      text: Assistance + reps
+    direction: DOWN
+- tapOn: Assistance + reps
+- scrollUntilVisible:
+    element:
+      text: Save exercise
+    direction: DOWN
+- tapOn: Save exercise
+# Saving returns to a library this definition may have just made non-empty,
+# which is when its filter controls appear above the list. The screen is taller
+# than it was a moment ago, so the new card starts below the fold.
+- scrollUntilVisible:
+    element:
+      text: Edit E2E Assisted Pull-up
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit E2E Assisted Pull-up
+# Returns to the tab shell the same way `create-exercise.yaml` does, so a suite
+# can compose a workout flow straight afterwards.
+- swipe:
+    start: 1%, 50%
+    end: 90%, 50%
+    duration: 500
+- assertVisible:
+    id: tab-workout

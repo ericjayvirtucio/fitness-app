@@ -1,0 +1,50 @@
+appId: com.fitnessapp.dev
+---
+# Completes one workout with a single recorded assisted set, through the same
+# public screens a person uses. Assistance and repetitions are both parameters
+# so a suite can record a first result, need less assistance, then need more,
+# without a second flow.
+#
+# ASSISTANCE and REPETITIONS are deliberately required rather than defaulted. A
+# flow's own `env` block is applied after the caller's `runFlow` env and
+# overrides it, so a default silently replaces every value a suite passes in.
+# An unset variable now fails loudly instead.
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+# The picker carries a filter control between its search field and its cards, so
+# the first card sits lower than an unfiltered list would suggest. Scroll to the
+# card rather than tapping where it used to sit.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Assisted Pull-up
+    direction: DOWN
+    centerElement: true
+- tapOn: Add E2E Assisted Pull-up
+- tapOn: Add Set for E2E Assisted Pull-up
+# The field is reached by identifier rather than by text: its visible label and
+# its accessible name are both "Assistance (kg)", so a text selector cannot say
+# which of the two a step meant.
+- tapOn:
+    id: workout-set-resistance-input
+- inputText: ${ASSISTANCE}
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: ${REPETITIONS}
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content area
+# does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- tapOn: Save Set
+# The active session writes a resistance result as "<mass> × <repetitions>" for
+# every mode that stores one, so this is the same sentence a loaded set shows.
+- assertVisible: 'Set 1: ${ASSISTANCE} kg × ${REPETITIONS}'
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0
