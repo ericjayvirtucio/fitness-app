@@ -129,6 +129,11 @@ describe('PlannedWorkoutEditorScreen', () => {
         screen.getByRole('button', { name: 'Add Bench Press' }),
       ).toBeOnTheScreen(),
     );
+    // The picker composes its own filtering, so the Planner offers the same
+    // narrowing as its two siblings without wiring anything for it.
+    expect(
+      screen.getByTestId('exercise-picker-filters-toggle'),
+    ).toBeOnTheScreen();
     await fireEvent.press(
       screen.getByRole('button', { name: 'Add Bench Press' }),
     );

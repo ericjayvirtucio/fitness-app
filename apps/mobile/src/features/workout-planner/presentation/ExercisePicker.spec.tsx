@@ -105,6 +105,13 @@ async function renderPicker(browse: Browse) {
   await act(() => jest.advanceTimersByTime(250));
 }
 
+async function choose(name: string) {
+  if (!screen.queryByLabelText('Filter by equipment'))
+    await fireEvent.press(screen.getByTestId('exercise-picker-filters-toggle'));
+  await fireEvent.press(screen.getByRole('radio', { name }));
+  await act(() => jest.advanceTimersByTime(250));
+}
+
 async function type(query: string) {
   await fireEvent.changeText(
     screen.getByTestId('exercise-picker-search'),
@@ -194,5 +201,118 @@ describe('ExercisePicker reads', () => {
       ).not.toBeOnTheScreen(),
     );
     expect(screen.getByLabelText('Add Dumbbell Curl')).toBeOnTheScreen();
+  });
+});
+
+describe('ExercisePicker filtering', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('offers the same control the library does, with its options away', async () => {
+    await renderPicker(browsing());
+
+    expect(
+      screen.getByTestId('exercise-picker-filters-toggle'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText('Filter by equipment'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('calls the catalog exactly as it does today while nothing is narrowed', async () => {
+    const browse = browsing();
+    await renderPicker(browse);
+
+    // The criteria are optional and default to no filter, so an unnarrowed
+    // picker issues the reads it has always issued.
+    expect(browse.listRecentlyPerformed).toHaveBeenCalledWith();
+    expect(browse.listAll).toHaveBeenCalledWith();
+  });
+
+  it('re-queries and re-renders when a filter is chosen', async () => {
+    const browse = browsing();
+    await renderPicker(browse);
+
+    await choose('Dumbbell');
+
+    expect(browse.listAll).toHaveBeenLastCalledWith({
+      equipment: 'dumbbell',
+      primaryMuscleGroup: null,
+    });
+    expect(screen.getByLabelText('Add Dumbbell Curl')).toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText('Add Barbell Bench Press'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('suppresses recently performed while the catalog is being narrowed', async () => {
+    const browse = browsing({ recents: [dumbbellBiceps] });
+    await renderPicker(browse);
+    expect(screen.getByText('Recently performed')).toBeOnTheScreen();
+
+    await choose('Barbell');
+
+    expect(screen.queryByText('Recently performed')).not.toBeOnTheScreen();
+    expect(screen.getByLabelText('Add Barbell Bench Press')).toBeOnTheScreen();
+  });
+
+  it('restores recently performed when the filter is cleared', async () => {
+    await renderPicker(browsing({ recents: [dumbbellBiceps] }));
+
+    await choose('Barbell');
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Clear filters' }),
+    );
+    await act(() => jest.advanceTimersByTime(250));
+
+    expect(screen.getByText('Recently performed')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Add Dumbbell Curl')).toBeOnTheScreen();
+  });
+
+  it('narrows a search as well as a browse', async () => {
+    const browse = browsing();
+    await renderPicker(browse);
+
+    await choose('Chest');
+    await type('Bench');
+
+    expect(browse.search).toHaveBeenLastCalledWith('Bench', {
+      equipment: null,
+      primaryMuscleGroup: 'chest',
+    });
+    expect(screen.getByLabelText('Add Barbell Bench Press')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Add Dumbbell Curl')).not.toBeOnTheScreen();
+  });
+
+  it('distinguishes a filtered miss from an empty catalog', async () => {
+    await renderPicker(browsing());
+
+    await choose('Dumbbell');
+    await choose('Calves');
+
+    expect(
+      screen.getByTestId('exercise-picker-filter-summary'),
+    ).toHaveTextContent(
+      'Filtered by Dumbbell and Calves. No exercises match these filters.',
+    );
+    expect(screen.queryByText('No exercises found')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'Create exercises in the Exercise Library before adding them to a plan.',
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('still says the catalog is empty when it is', async () => {
+    await renderPicker(browsing({ items: [] }));
+
+    expect(screen.getByText('No exercises found')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('exercise-picker-filters-toggle'),
+    ).not.toBeOnTheScreen();
   });
 });
