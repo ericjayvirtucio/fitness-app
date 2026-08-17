@@ -257,15 +257,54 @@ its read bound — 100 browsing, 50 searching — says so. Filter state belongs 
 the screen and is not persisted, the filters sit below the starter section and
 directly above the lists they narrow so that their appearance after an import
 cannot carry the import control off screen, they are absent while the library is
-empty, and the Exercise Picker is deliberately unchanged so the Planner, the
-active Session, and completed-workout addition still browse identically. The
-controls carry `exercise-library-equipment-filter` and
+empty. The controls carry `exercise-library-equipment-filter` and
 `exercise-library-muscle-filter`, each option suffixed with its value, and the
 summary carries `exercise-library-filter-summary`. No migration, schema change,
 index, or dependency was added. See the
 [offline exercise catalog architecture](architecture/offline-exercise-catalog.md),
 [Specification 0029](../specs/0029-exercise-library-filtering.md), the
 [Sprint 29 manual checklist](manual-testing/sprint-29-exercise-library-filtering.md),
+and
+[troubleshooting guidance](troubleshooting/offline-exercise-catalog.md).
+
+## Compact, reusable exercise filtering
+
+Both filters, their summary, and their clear action live in one capability-owned
+`ExerciseFilterControls`, used by the Exercise Library and by all three Exercise
+Pickers. It is not a design-system component, because it knows the equipment and
+muscle-group vocabularies and the product's own sentences about them; the
+disclosure it uses is an `AppButton` and a conditional render rather than a new
+shared primitive, since one collapsible is not yet a demonstrated reuse.
+
+Twenty-five options measure 576 px at default text and 1350 px at the largest
+accessible size, against a scroll viewport of roughly 700 px, so the choosing is
+put away by default behind a labelled "Filters" button and collapsing removes 532
+of those pixels. Only the choosing closes: the chosen values stay on the button's
+accessible name, and the summary and "Clear filters" are rendered outside the
+region that closes, so an active filter is never hidden by the control that
+applied it. The button is outside that region too, so it is the same element
+across an open and a close and focus is not lost. Its accessible name is the act
+pressing performs followed by the sentence the summary already states — "Show
+filters. Filtered by Dumbbell. 3 exercises." — and `accessibilityState.expanded`
+carries the open state, so nothing is announced twice.
+
+`ExercisePicker` composes the control rather than accepting it as a prop, so no
+consumer can switch filtering on or off and the Planner, the active Session, and
+completed-workout addition narrow identically. Recently performed is suppressed
+while a picker is narrowed, and a narrowed miss states what is narrowed instead
+of advising somebody who has a full catalog to create exercises. Picker criteria
+belong to the picker and reset when it is dismissed, exactly as its search
+already does, and its reads are now numbered so a superseded response — or a
+failure a newer read has replaced — cannot reach the screen.
+
+Picker identifiers mirror the library's under an `exercise-picker` prefix:
+`exercise-picker-filters-toggle`, `exercise-picker-equipment-filter`,
+`exercise-picker-muscle-filter`, and `exercise-picker-filter-summary`; the
+library's own toggle is `exercise-library-filters-toggle`. Nothing below
+presentation changed, and no migration, schema change, index, or dependency was
+added. See
+[Specification 0030](../specs/0030-compact-exercise-filtering.md), the
+[Sprint 30 manual checklist](manual-testing/sprint-30-compact-exercise-filtering.md),
 and
 [troubleshooting guidance](troubleshooting/offline-exercise-catalog.md).
 

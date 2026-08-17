@@ -143,9 +143,32 @@ scroll offset. Filter state lives in the screen
 and is not persisted. The filters are absent while the library is empty, because
 there is nothing to narrow. A narrowed list that matched nothing states what is
 narrowed rather than claiming the library is empty, and a list that came back at
-its read bound says so instead of silently showing a prefix of the catalog. The
-Exercise Picker is deliberately unchanged, so the Planner, the active Session,
-and completed-workout addition still browse and search identically.
+its read bound says so instead of silently showing a prefix of the catalog.
+
+Both filters, their summary, and their clear action live in one capability-owned
+control, `presentation/ExerciseFilterControls`. It is not a design-system
+component: it knows the equipment and muscle-group vocabularies and the sentences
+the product says about them, which the design system deliberately does not hold.
+Twenty-five options are four fifths of a viewport at default text and nearly two
+viewports at the largest accessible size, so the choosing is put away behind one
+labelled button and opened deliberately. What is put away is only the choosing —
+the chosen values stay on the control's own accessible name, and the summary and
+the clear action are rendered outside the region that closes, so an active filter
+is never hidden by the control that applied it. The button sits outside that
+region too, so it is the same element across an open and a close and focus is not
+lost. Expansion belongs to the control and is never persisted; the criteria
+belong to the screen. See
+[Specification 0030](../../specs/0030-compact-exercise-filtering.md).
+
+The Exercise Picker composes that same control, so the Planner, the active
+Session, and completed-workout addition browse, search, and narrow identically.
+Filtering is composed rather than offered as a prop, so no consumer can switch it
+on or off. Recently performed is suppressed while the picker is narrowed, for the
+reason the library suppresses Favorites and Recently performed: narrowing
+identifiers resolved from completed history could only be done in presentation
+over an unbounded fetch. A narrowed picker therefore issues one read rather than
+two, and a narrowed miss states what is narrowed instead of advising somebody
+with twenty-six definitions to go and create some.
 
 The experience uses Dynamic Type, keyboard-aware scrolling, native radio-group
 semantics, minimum touch targets, textual validation, live error regions,
