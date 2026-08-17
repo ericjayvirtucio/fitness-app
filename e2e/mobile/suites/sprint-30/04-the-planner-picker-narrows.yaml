@@ -1,0 +1,43 @@
+appId: com.fitnessapp.dev
+name: The Workout Planner picker narrows the catalog
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+# The Exercise Library is a pushed screen with no tab bar, so the tabs are
+# reached by relaunching rather than by guessing at a back gesture.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+# Weekday cards are keyed by the domain Weekday value, where Monday is 1.
+- tapOn:
+    id: weekday-card-1
+- assertVisible: Plan Monday
+- scrollUntilVisible:
+    element:
+      text: Add exercise
+    direction: DOWN
+- tapOn: Add exercise
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-picker.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-picker-equipment-filter-barbell
+      MUSCLE_FILTER_ID: exercise-picker-muscle-filter-chest
+# Five starter definitions use a barbell and two are chest movements; exactly one
+# is both, so the count proves the criteria are combined rather than replaced.
+- scrollUntilVisible:
+    element:
+      id: exercise-picker-filter-summary
+    direction: DOWN
+    centerElement: true
+- assertVisible: Filtered by Barbell and Chest. 1 exercise.
+# The picker's cards carry an accessible label, so the card is asserted by that
+# label rather than by the name inside it.
+- scrollUntilVisible:
+    element:
+      text: Add Barbell Bench Press
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add Barbell Bench Press

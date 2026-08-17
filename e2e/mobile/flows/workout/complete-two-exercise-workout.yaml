@@ -17,6 +17,13 @@ appId: com.fitnessapp.dev
 - tapOn: Start Empty Workout
 - assertVisible: Workout
 - tapOn: Add Exercise
+# The picker now carries a filter control between its search field and its
+# cards, so the first card sits lower than it did.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Push-up
+    direction: DOWN
+    centerElement: true
 - tapOn: Add E2E Push-up
 - tapOn: Add Set for E2E Push-up
 - tapOn:

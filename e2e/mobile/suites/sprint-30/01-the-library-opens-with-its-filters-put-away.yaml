@@ -1,0 +1,33 @@
+appId: com.fitnessapp.dev
+name: The library offers filtering without spending a screen on it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+# The control replaces twenty-five chips with one button in the same place. The
+# starter offer is always above it, so anchoring there first makes the following
+# downward scroll correct however the import left the screen.
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: UP
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filters-toggle
+    direction: DOWN
+    centerElement: true
+# An AppButton is read by its accessible label, not by the text inside it, and
+# that label states both what pressing does and that nothing is narrowed.
+- assertVisible: Show filters. No filters applied.
+# Both negative assertions are made from the one viewport where these groups
+# would render if they were open — directly under the centred control. Asserted
+# from anywhere else they would pass whatever the screen said, because
+# off-screen content is absent from the hierarchy rather than hidden.
+- assertNotVisible:
+    id: exercise-library-equipment-filter
+- assertNotVisible:
+    id: exercise-library-muscle-filter
+- assertNotVisible:
+    id: exercise-library-filter-summary

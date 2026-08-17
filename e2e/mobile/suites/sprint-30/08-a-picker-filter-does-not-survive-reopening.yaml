@@ -1,0 +1,44 @@
+appId: com.fitnessapp.dev
+name: A picker filter belongs to the picker and does not survive reopening it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-picker.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-picker-equipment-filter-dumbbell
+      MUSCLE_FILTER_ID: exercise-picker-muscle-filter-any
+- scrollUntilVisible:
+    element:
+      id: exercise-picker-filter-summary
+    direction: DOWN
+    centerElement: true
+- assertVisible: Filtered by Dumbbell. 3 exercises.
+# Dismissing the picker unmounts it, exactly as it already discards a typed
+# search, so reopening it is a fresh choice rather than a resumed one.
+- scrollUntilVisible:
+    element:
+      text: Cancel adding exercise
+    direction: DOWN
+    centerElement: true
+- tapOn: Cancel adding exercise
+- tapOn: Add Exercise
+- scrollUntilVisible:
+    element:
+      id: exercise-picker-filters-toggle
+    direction: DOWN
+    centerElement: true
+- assertVisible: Show filters. No filters applied.
+- assertNotVisible:
+    id: exercise-picker-filter-summary
+- assertNotVisible:
+    id: exercise-picker-equipment-filter

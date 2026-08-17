@@ -1,0 +1,84 @@
+appId: com.fitnessapp.dev
+name: Compact exercise filtering
+---
+- launchApp:
+    clearState: true
+# One uninterrupted pass across both surfaces the control now serves. The Sprint
+# 30 suite proves each behavior from clean state in isolation; this proves that
+# the library and a picker still agree with each other beside everything else the
+# regression run exercises, on screens several other scenarios traverse.
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: UP
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filters-toggle
+    direction: DOWN
+    centerElement: true
+# The options are away, so the library reaches its catalog without a screen of
+# chips in between. The negative assertion is made from the viewport where the
+# group would render if it were open.
+- assertVisible: Show filters. No filters applied.
+- assertNotVisible:
+    id: exercise-library-equipment-filter
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-library.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-library-equipment-filter-dumbbell
+      MUSCLE_FILTER_ID: exercise-library-muscle-filter-any
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filter-summary
+    direction: DOWN
+    centerElement: true
+- assertVisible: Filtered by Dumbbell. 3 exercises.
+# Closing the control keeps the filter stated and keeps one action that clears it.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filters-toggle
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: exercise-library-filters-toggle
+- assertVisible: Show filters. Filtered by Dumbbell. 3 exercises.
+- scrollUntilVisible:
+    element:
+      text: Clear filters
+    direction: DOWN
+    centerElement: true
+- tapOn: Clear filters
+- scrollUntilVisible:
+    element:
+      text: All exercises
+    direction: DOWN
+    centerElement: true
+- assertVisible: All exercises
+# The same control, the same wording, and the same narrowing inside a picker.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-picker.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-picker-equipment-filter-barbell
+      MUSCLE_FILTER_ID: exercise-picker-muscle-filter-chest
+- scrollUntilVisible:
+    element:
+      id: exercise-picker-filter-summary
+    direction: DOWN
+    centerElement: true
+- assertVisible: Filtered by Barbell and Chest. 1 exercise.
+- scrollUntilVisible:
+    element:
+      text: Add Barbell Bench Press
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add Barbell Bench Press

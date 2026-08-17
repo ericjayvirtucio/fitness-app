@@ -50,6 +50,8 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 25 --platform ios
 ./scripts/qa.sh sprint 26 --platform ios
 ./scripts/qa.sh sprint 27 --platform ios
+./scripts/qa.sh sprint 29 --platform ios
+./scripts/qa.sh sprint 30 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -85,7 +87,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, 29, and 30. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -170,6 +172,35 @@ directly above the lists, so every reach is a single downward scroll. They are
 absent while the library is empty, which is deliberate: an empty library has
 nothing to narrow, and the first-run screen every other suite meets is exactly as
 tall as it was.
+
+Since Sprint 30 the options are **put away by default** behind
+`exercise-library-filters-toggle`, so the flow opens them before it taps one —
+and only when they are not already open, because a scenario that filters twice
+would otherwise close them on its second pass. That check asks whether
+`exercise-library-equipment-filter` is visible, and it asks it from the one
+viewport where that group renders if it is open: with the toggle centred. Asked
+from anywhere else it would answer wrong, because off-screen content is absent
+from the hierarchy rather than hidden.
+
+The same control now serves all three Exercise Pickers through
+`flows/exercise/filter-exercise-picker.yaml`, with the same two required
+variables and the `exercise-picker` prefix instead:
+`exercise-picker-filters-toggle`, `exercise-picker-equipment-filter`,
+`exercise-picker-muscle-filter`, and `exercise-picker-filter-summary`. Two
+prefixes are deliberate — both surfaces can be reached in one run, and the picker
+is pushed over screens the library is not, so a step should never have to say
+which one it meant.
+
+The toggle is an `AppButton`, so it is asserted by its accessible label rather
+than by the text inside it: `Show filters. No filters applied.`,
+`Hide filters. No filters applied.`, or `Show filters. Filtered by Dumbbell. 3 exercises.`
+The summary and "Clear filters" are rendered outside the region that closes, so
+every assertion on them holds whether the options are open or away.
+
+A filter is the reliable way to reach a definition inside a picker without typing
+a name. The completed-history picker never falls back to the whole catalog, and
+the active-session picker stops doing so as soon as one workout is completed;
+narrowing suppresses recents in both, exactly as it does in the library.
 
 Two rules follow from controls that appear with the first definition. A flow that
 **creates** the first record changes which sections the screen has, so an
@@ -327,6 +358,16 @@ across the keys and appends digits to the field being edited. `hideKeyboard`
 does not work here, because the iOS number pad exposes no dismiss action; use a
 short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
+
+**Removing height invalidates assertions the same way adding it does.** Sprint 30
+put twenty-five filter chips away behind one button, which moved the Exercise
+Library's catalog roughly five hundred pixels _up_ and moved every picker's first
+card about seventy pixels _down_. Both directions break a tap written against the
+old height, and the picker direction is the one that reached furthest: five
+shared workout flows tapped `Add E2E Push-up` where it used to sit, and between
+them thirty-two suites compose one of those flows. Every one of them now scrolls
+to the card. Re-audit both directions whenever a section changes size, not only
+when it appears.
 
 **Adding a section to a screen invalidates every unscrolled assertion below it.**
 A screen that acts in place keeps its scroll offset across the change, and that
