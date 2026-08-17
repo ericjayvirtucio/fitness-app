@@ -35,6 +35,20 @@ export function exerciseFilterSummaryMessage(
   return `Filtered by ${joined(labels)}. ${outcome}`;
 }
 
+/**
+ * Said only when a list came back at the bound it is read under, so a truncated
+ * catalog is stated rather than silently shown. The advice is to narrow further,
+ * which stays true whether or not the person has already narrowed once.
+ */
+export function truncatedListMessage(
+  shownCount: number,
+  hasQuery: boolean,
+): string {
+  return hasQuery
+    ? `Showing the first ${shownCount} matches. Narrow the list to see the rest.`
+    : `Showing the first ${shownCount} exercises. Narrow the list to see the rest.`;
+}
+
 function joined(labels: readonly string[]): string {
   return labels.length > 1 ? labels.join(' and ') : (labels[0] ?? '');
 }

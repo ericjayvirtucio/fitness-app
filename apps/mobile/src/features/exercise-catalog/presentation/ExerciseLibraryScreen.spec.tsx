@@ -586,6 +586,27 @@ describe('ExerciseLibraryScreen filtering', () => {
       screen.queryByTestId('exercise-library-filter-summary'),
     ).not.toBeOnTheScreen();
   });
+
+  it('states plainly when a list came back at its bound', async () => {
+    const many = Array.from({ length: 100 }, (_, index) =>
+      classified(
+        `44444444-4444-4444-8444-${String(index).padStart(12, '0')}`,
+        `Exercise ${String(index).padStart(3, '0')}`,
+        'dumbbell',
+        'chest',
+      ),
+    );
+    await renderLibrary({ items: many });
+
+    await waitFor(() =>
+      expect(screen.getByText('Exercise 000')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText(
+        'Showing the first 100 exercises. Narrow the list to see the rest.',
+      ),
+    ).toBeOnTheScreen();
+  });
 });
 
 function dumbbellCurlRecent(): ExerciseCatalogItem {

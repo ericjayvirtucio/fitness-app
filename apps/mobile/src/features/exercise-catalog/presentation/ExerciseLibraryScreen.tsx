@@ -23,11 +23,16 @@ import {
 } from '../application/exercise-catalog-filter';
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import {
+  exerciseBrowseLimit,
+  exerciseSearchLimit,
+} from '../application/exercise-catalog-use-cases';
+import {
   clearFiltersLabel,
   equipmentFilterLabel,
   exerciseFilterSummaryMessage,
   filteredSectionTitle,
   muscleFilterLabel,
+  truncatedListMessage,
 } from './exercise-filter-messages';
 import {
   anyFilterValue,
@@ -247,6 +252,8 @@ export function ExerciseLibraryScreen({
       ? null
       : labelFor(muscleOptions, filter.primaryMuscleGroup),
   ].filter((label): label is string => label !== null);
+  const isTruncated =
+    results.length === (hasQuery ? exerciseSearchLimit : exerciseBrowseLimit);
   return (
     <Screen
       accessibilityLabel="Exercise Library"
@@ -381,6 +388,11 @@ export function ExerciseLibraryScreen({
           {isNarrowed && results.length === 0 ? null : (
             <ExerciseSection
               items={results}
+              notice={
+                isTruncated
+                  ? truncatedListMessage(results.length, hasQuery)
+                  : undefined
+              }
               onEdit={onEdit}
               onFavorite={(item) => void toggle(item)}
               title={
@@ -401,11 +413,13 @@ export function ExerciseLibraryScreen({
 
 function ExerciseSection({
   items,
+  notice,
   onEdit,
   onFavorite,
   title,
 }: Readonly<{
   items: readonly ExerciseCatalogItem[];
+  notice?: string | undefined;
   onEdit: (id: string) => void;
   onFavorite: (item: ExerciseCatalogItem) => void;
   title: string;
@@ -413,6 +427,9 @@ function ExerciseSection({
   return (
     <View style={{ gap: spacing.md }}>
       <SectionHeader title={title} />
+      {notice === undefined ? null : (
+        <AppText color="secondary">{notice}</AppText>
+      )}
       {items.length === 0 ? (
         <AppText color="secondary">No {title.toLowerCase()}.</AppText>
       ) : (
