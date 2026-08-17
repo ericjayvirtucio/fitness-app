@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: An assisted record opens the completed workout that proves it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
+- tapOn:
+    id: personal-record-card
+- assertVisible: 'Performed set 1: 20 kg × 8'
+# A completed workout, not the active session the set was recorded in.
+- assertNotVisible: Finish Workout

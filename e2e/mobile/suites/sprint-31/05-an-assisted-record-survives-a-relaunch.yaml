@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: An assisted record survives a relaunch
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
+# Nothing was persisted for the record itself, so this proves the claim is
+# derived again from stored history rather than held in memory.
+- assertVisible: 'Least recorded assistance in a set, 20 kilograms, .*'

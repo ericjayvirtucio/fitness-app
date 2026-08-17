@@ -1,0 +1,21 @@
+appId: com.fitnessapp.dev
+name: Assisted repetition records
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '15'
+      REPETITIONS: '6'
+- runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
+- assertVisible: 'Least recorded assistance in a set, 15 kilograms, .*'
+- tapOn:
+    id: personal-record-card
+- assertVisible: 'Performed set 1: 15 kg × 6'
