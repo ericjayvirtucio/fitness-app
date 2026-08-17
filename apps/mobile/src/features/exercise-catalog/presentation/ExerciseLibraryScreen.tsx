@@ -10,15 +10,12 @@ import {
   LoadingIndicator,
   Screen,
   SectionHeader,
-  SelectionField,
   TextField,
   spacing,
 } from '../../../design-system';
 import {
   isExerciseCatalogFilterActive,
   noExerciseCatalogFilter,
-  toEquipmentFilter,
-  toMuscleGroupFilter,
   type ExerciseCatalogFilter,
 } from '../application/exercise-catalog-filter';
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
@@ -26,24 +23,16 @@ import {
   exerciseBrowseLimit,
   exerciseSearchLimit,
 } from '../application/exercise-catalog-use-cases';
+import { ExerciseFilterControls } from './ExerciseFilterControls';
 import {
-  clearFiltersLabel,
-  equipmentFilterLabel,
-  exerciseFilterSummaryMessage,
   filteredSectionTitle,
-  muscleFilterLabel,
   truncatedListMessage,
 } from './exercise-filter-messages';
 import {
-  anyFilterValue,
-  equipmentFilterOptions,
   equipmentOptions,
   labelFor,
   loggingModeOptions,
-  muscleFilterOptions,
   muscleOptions,
-  type EquipmentFilterValue,
-  type MuscleFilterValue,
 } from './exercise-options';
 import {
   starterExerciseActionLabel,
@@ -244,14 +233,6 @@ export function ExerciseLibraryScreen({
   // While a search or a filter is applied, an empty result is a statement about
   // the narrowing, never about the catalog.
   const isEmptyLibrary = !hasQuery && !isNarrowed && state.all.length === 0;
-  const filterLabels = [
-    filter.equipment === null
-      ? null
-      : labelFor(equipmentOptions, filter.equipment),
-    filter.primaryMuscleGroup === null
-      ? null
-      : labelFor(muscleOptions, filter.primaryMuscleGroup),
-  ].filter((label): label is string => label !== null);
   const isTruncated =
     results.length === (hasQuery ? exerciseSearchLimit : exerciseBrowseLimit);
   return (
@@ -314,58 +295,19 @@ export function ExerciseLibraryScreen({
        * pressed: the screen keeps its scroll offset, and both the button and its
        * result were carried off screen — the same stranding the starter section
        * was moved above the lists to prevent, one level higher. Device QA caught
-       * it there and again here. They are absent while the library is empty,
-       * because there is nothing to narrow.
+       * it there and again here. Collapsing shrinks that insertion but does not
+       * remove it, because expanding restores every one of those chips right
+       * here. They are absent while the library is empty, because there is
+       * nothing to narrow.
        */}
       {isEmptyLibrary ? null : (
-        <View style={{ gap: spacing.md }}>
-          <SelectionField
-            label={equipmentFilterLabel}
-            onChange={(value: EquipmentFilterValue) =>
-              setFilter((current) => ({
-                ...current,
-                equipment:
-                  value === anyFilterValue ? null : toEquipmentFilter(value),
-              }))
-            }
-            options={equipmentFilterOptions}
-            testID="exercise-library-equipment-filter"
-            value={filter.equipment ?? anyFilterValue}
-          />
-          <SelectionField
-            label={muscleFilterLabel}
-            onChange={(value: MuscleFilterValue) =>
-              setFilter((current) => ({
-                ...current,
-                primaryMuscleGroup:
-                  value === anyFilterValue ? null : toMuscleGroupFilter(value),
-              }))
-            }
-            options={muscleFilterOptions}
-            testID="exercise-library-muscle-filter"
-            value={filter.primaryMuscleGroup ?? anyFilterValue}
-          />
-          {isNarrowed ? (
-            <>
-              <AppText
-                accessibilityLiveRegion="polite"
-                color="secondary"
-                testID="exercise-library-filter-summary"
-              >
-                {exerciseFilterSummaryMessage(
-                  filterLabels,
-                  results.length,
-                  hasQuery,
-                )}
-              </AppText>
-              <AppButton
-                label={clearFiltersLabel}
-                onPress={() => setFilter(noExerciseCatalogFilter)}
-                variant="outline"
-              />
-            </>
-          ) : null}
-        </View>
+        <ExerciseFilterControls
+          filter={filter}
+          hasQuery={hasQuery}
+          matchCount={results.length}
+          onChange={setFilter}
+          testIDPrefix="exercise-library"
+        />
       )}
       {isEmptyLibrary ? null : (
         <>

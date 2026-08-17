@@ -402,7 +402,18 @@ describe('ExerciseLibraryScreen filtering', () => {
     return rendered;
   }
 
+  // The options are put away by default, so anything that reaches one opens the
+  // control first. Every assertion below is the one Sprint 29 already made; only
+  // the reaching changed.
+  async function expandFilters() {
+    if (screen.queryByLabelText('Filter by equipment')) return;
+    await fireEvent.press(
+      screen.getByTestId('exercise-library-filters-toggle'),
+    );
+  }
+
   async function choose(name: string) {
+    await expandFilters();
     await fireEvent.press(screen.getByRole('radio', { name }));
     await act(() => jest.advanceTimersByTime(250));
   }
@@ -414,8 +425,62 @@ describe('ExerciseLibraryScreen filtering', () => {
     jest.useRealTimers();
   });
 
+  it('puts the filter options away by default and still offers the control', async () => {
+    await renderPopulated();
+
+    expect(
+      screen.getByTestId('exercise-library-filters-toggle'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: 'Show filters. No filters applied.' }),
+    ).toHaveProp('accessibilityState', {
+      busy: false,
+      disabled: false,
+      expanded: false,
+    });
+    expect(
+      screen.queryByLabelText('Filter by equipment'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText('Filter by muscle group'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps an active filter visible and stated while the options are put away', async () => {
+    await renderPopulated();
+
+    await choose('Dumbbell');
+    await fireEvent.press(
+      screen.getByRole('button', {
+        name: 'Hide filters. Filtered by Dumbbell. 2 exercises.',
+      }),
+    );
+
+    // Putting the options away must never put away the fact that something is
+    // narrowing the list. The control says what is chosen, the summary says what
+    // came back, and one action still clears both.
+    expect(
+      screen.queryByLabelText('Filter by equipment'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId('exercise-library-filters-toggle'),
+    ).toHaveTextContent('Filters: Dumbbell');
+    expect(
+      screen.getByRole('button', {
+        name: 'Show filters. Filtered by Dumbbell. 2 exercises.',
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('exercise-library-filter-summary'),
+    ).toHaveTextContent('Filtered by Dumbbell. 2 exercises.');
+    expect(
+      screen.getByRole('button', { name: 'Clear filters' }),
+    ).toBeOnTheScreen();
+  });
+
   it('offers both filters as named groups with a selected state', async () => {
     await renderPopulated();
+    await expandFilters();
 
     expect(screen.getByLabelText('Filter by equipment')).toBeOnTheScreen();
     expect(screen.getByLabelText('Filter by muscle group')).toBeOnTheScreen();
@@ -429,6 +494,7 @@ describe('ExerciseLibraryScreen filtering', () => {
 
   it('keeps the filters below the starter section and above the lists', async () => {
     await renderPopulated();
+    await expandFilters();
 
     // These controls appear the moment the library stops being empty. Above the
     // starter section they inserted most of a viewport above the control an
@@ -452,6 +518,9 @@ describe('ExerciseLibraryScreen filtering', () => {
     await waitFor(() =>
       expect(screen.getByText('No exercises yet')).toBeOnTheScreen(),
     );
+    expect(
+      screen.queryByTestId('exercise-library-filters-toggle'),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByLabelText('Filter by equipment'),
     ).not.toBeOnTheScreen();
