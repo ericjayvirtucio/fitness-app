@@ -15,12 +15,39 @@ retry. Do not bypass the Planner foreign key or logging-mode trigger; see the
 ## Exercise does not appear in search
 
 - **Symptoms:** A known exercise is absent from search results.
-- **Likely cause:** The query does not occur in its normalized name, the row was
-  deleted, or the catalog failed to reload.
-- **Diagnose:** Clear the query, confirm the exercise appears under All exercises,
-  then retry with different casing and collapsed whitespace.
+- **Likely cause:** The query does not occur in its normalized name, a filter
+  excludes it, the row was deleted, or the catalog failed to reload.
+- **Diagnose:** Clear the query and press Clear filters, confirm the exercise
+  appears under All exercises, then retry with different casing and collapsed
+  whitespace.
 - **Resolve:** Edit an incorrect name or return to the library to reload. Search is
   literal substring matching; synonyms and fuzzy matching are not supported.
+
+## The library looks empty after filtering
+
+- **Symptoms:** No exercises are listed while a filter is applied.
+- **Likely cause:** No definition carries both the chosen equipment and the chosen
+  primary muscle group. The starter set, for example, contains no dumbbell chest
+  exercise.
+- **Diagnose:** Read the line above the list. It states what is filtered and
+  whether the search is also narrowing the result. "No exercises yet" is the only
+  message that means the library itself is empty, and it never appears while
+  anything is narrowed.
+- **Resolve:** Press Clear filters, or choose a different value. Filters are held
+  by the screen only and are cleared by relaunching the app; nothing about them
+  is stored.
+
+## The library says it is showing the first 100 exercises
+
+- **Symptoms:** A sentence above the list reports that only the first 100
+  exercises, or the first 50 matches, are shown.
+- **Likely cause:** The catalog holds more definitions than a single list is read
+  under. Lists are deliberately bounded.
+- **Diagnose:** The bound is per list: 100 while browsing, 50 while searching.
+  The message appears only when a list came back at exactly that bound.
+- **Resolve:** Narrow with a filter or a search. Do not raise the bound as a
+  workaround; paging is deferred, and the message exists so a truncated list is
+  never shown silently.
 
 ## Favorite does not persist
 

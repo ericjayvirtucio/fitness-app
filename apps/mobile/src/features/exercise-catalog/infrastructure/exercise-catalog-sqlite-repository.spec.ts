@@ -10,6 +10,7 @@ class FakeDatabase implements DatabaseConnection {
   row: unknown = null;
   rows: readonly unknown[] = [];
   error?: Error;
+  reads: { parameters: DatabaseParameters; statement: string }[] = [];
   runs: { parameters: DatabaseParameters; statement: string }[] = [];
   exec() {
     return Promise.resolve();
@@ -22,10 +23,10 @@ class FakeDatabase implements DatabaseConnection {
       ? Promise.reject(this.error)
       : Promise.resolve(this.row as TResult | null);
   }
-  getAll<TResult>() {
-    return this.error
-      ? Promise.reject(this.error)
-      : Promise.resolve(this.rows as readonly TResult[]);
+  getAll<TResult>(statement: string, parameters: DatabaseParameters = []) {
+    if (this.error) return Promise.reject(this.error);
+    this.reads.push({ parameters, statement });
+    return Promise.resolve(this.rows as readonly TResult[]);
   }
   run(statement: string, parameters: DatabaseParameters = []) {
     if (this.error) return Promise.reject(this.error);
@@ -108,6 +109,63 @@ describe('ExerciseCatalogSqliteRepository', () => {
     const database = new FakeDatabase();
     await new ExerciseCatalogSqliteRepository(database).search('100%_\\', 50);
     expect(database.rows).toEqual([]);
+  });
+
+  it('issues the statements it always has when nothing is narrowed', async () => {
+    const database = new FakeDatabase();
+    const repository = new ExerciseCatalogSqliteRepository(database);
+    await repository.listAll(100);
+    await repository.search('bench', 50);
+
+    expect(database.reads[0]).toEqual({
+      parameters: [100],
+      statement:
+        'SELECT id, display_name, normalized_name, equipment, primary_muscle_group, logging_mode, notes, is_favorite FROM exercise_catalog_item ORDER BY normalized_name ASC, id ASC LIMIT ?',
+    });
+    expect(database.reads[1]).toEqual({
+      parameters: ['%bench%', 50],
+      statement:
+        "SELECT id, display_name, normalized_name, equipment, primary_muscle_group, logging_mode, notes, is_favorite FROM exercise_catalog_item WHERE normalized_name LIKE ? ESCAPE '\\' ORDER BY is_favorite DESC, normalized_name ASC, id ASC LIMIT ?",
+    });
+  });
+
+  it('binds every narrowed value and interpolates none of them', async () => {
+    const database = new FakeDatabase();
+    const repository = new ExerciseCatalogSqliteRepository(database);
+    await repository.listAll(100, {
+      equipment: 'dumbbell',
+      primaryMuscleGroup: 'chest',
+    });
+    await repository.search('press', 50, {
+      equipment: 'dumbbell',
+      primaryMuscleGroup: null,
+    });
+
+    expect(database.reads).toHaveLength(2);
+    expect(database.reads[0]?.statement).toBe(
+      'SELECT id, display_name, normalized_name, equipment, primary_muscle_group, logging_mode, notes, is_favorite FROM exercise_catalog_item WHERE equipment = ? AND primary_muscle_group = ? ORDER BY normalized_name ASC, id ASC LIMIT ?',
+    );
+    expect(database.reads[0]?.parameters).toEqual(['dumbbell', 'chest', 100]);
+    expect(database.reads[1]?.statement).toBe(
+      "SELECT id, display_name, normalized_name, equipment, primary_muscle_group, logging_mode, notes, is_favorite FROM exercise_catalog_item WHERE normalized_name LIKE ? ESCAPE '\\' AND equipment = ? ORDER BY is_favorite DESC, normalized_name ASC, id ASC LIMIT ?",
+    );
+    expect(database.reads[1]?.parameters).toEqual(['%press%', 'dumbbell', 50]);
+    for (const read of database.reads) {
+      expect(read.statement).not.toContain('dumbbell');
+      expect(read.statement).not.toContain('chest');
+      expect(read.statement).not.toContain('press');
+    }
+  });
+
+  it('narrows in one query rather than reading and filtering afterwards', async () => {
+    const database = new FakeDatabase();
+    database.rows = [row];
+    await new ExerciseCatalogSqliteRepository(database).listAll(100, {
+      equipment: 'barbell',
+      primaryMuscleGroup: 'chest',
+    });
+    expect(database.reads).toHaveLength(1);
+    expect(database.runs).toEqual([]);
   });
 
   it.each([

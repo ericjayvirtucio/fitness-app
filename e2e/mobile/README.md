@@ -85,8 +85,9 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-and 15–27. Sprints 5, 7, and 14 deliberately return an unsupported-suite
-error because no product manual QA specification exists for them.
+15–27, and 29. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+error because no product manual QA specification exists for them. Sprint 28
+does too: it changed no screen and added no suite.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
 do not add database fixtures, deep-link seeders, network services, or production
@@ -156,6 +157,50 @@ person can still write a definition by hand, their assertions depend on the
 synthetic "E2E" names, and swapping forty-six suites onto imported content would
 be a large blast radius bought for nothing. The import must never become a way
 for the harness to skip a public screen.
+
+The Exercise Library's filters are driven through
+`flows/exercise/filter-exercise-library.yaml`, which takes a required
+`EQUIPMENT_FILTER_ID` and `MUSCLE_FILTER_ID` and tapes over neither with a
+default. Pass `exercise-library-equipment-filter-any` or
+`exercise-library-muscle-filter-any` to leave one of them unnarrowed. The options
+are tapped by identifier, not by their visible text, because the exercise editor
+labels its own equipment and muscle choices with the same words; an identifier
+keeps a step's screen unambiguous. The controls sit below the starter section and
+directly above the lists, so every reach is a single downward scroll. They are
+absent while the library is empty, which is deliberate: an empty library has
+nothing to narrow, and the first-run screen every other suite meets is exactly as
+tall as it was.
+
+Two rules follow from controls that appear with the first definition. A flow that
+**creates** the first record changes which sections the screen has, so an
+assertion written when the library was empty is not evidence about the library it
+just populated: `create-exercise.yaml` asserts "Edit E2E Push-up" immediately
+after saving, and that card moved below the fold the moment the filters appeared
+above it — eight regression scenarios failed on it. And `scrollUntilVisible`
+searches only the direction it is given, so a reusable flow that can be entered
+from above _or_ below its target must anchor first: the filter flow scrolls up to
+"Add starter exercises", which is always above both filters, before scrolling
+down to an option. Applying a filter twice in one scenario is exactly the case
+that exposed it.
+
+That placement is why the first Sprint 29 run failed seven scenarios out of
+seven. The controls started beside the search field, and they appear the moment
+an import makes the library non-empty — so the import inserted most of a viewport
+above the control the flow had just pressed, and the retained scroll offset
+carried both it and "Added 26 exercises to your library." off screen. The
+evidence read like a broken import and was not: the rows were all there. It is
+the same trap Sprint 27 recorded, one level higher, and the fix was again to move
+the growing section rather than to teach the flows to chase it.
+
+Prove narrowing through the summary line's count, not by asserting that excluded
+definitions are gone. Off-screen content in a scroll view is absent from the
+hierarchy rather than hidden, so `assertNotVisible` on a filtered-out card would
+pass whatever the filter did. The same rule decides where a negative assertion
+may stand: Sprint 29 checks that "No exercises yet" is absent while a filter
+matched nothing, and it scrolls back to `exercise-library-search` to do it,
+because the empty state renders near the top and the summary sits far below it.
+Asserted from beside the summary, that check would have passed whatever the
+screen said.
 
 A scenario that needs a definition sharing a starter name uses
 `flows/exercise/create-named-bodyweight-exercise.yaml`, which takes a required

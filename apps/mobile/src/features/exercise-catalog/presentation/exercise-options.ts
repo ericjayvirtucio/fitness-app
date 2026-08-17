@@ -54,6 +54,25 @@ export const loggingModeOptions: readonly SelectionOption<ExerciseLoggingMode>[]
       ({ label, value }) as SelectionOption<ExerciseLoggingMode>,
   );
 
+/**
+ * The library narrows on one equipment value and one muscle group at a time, so
+ * each filter is the same single-choice control the editor uses, with an
+ * explicit "any" option standing for the unnarrowed list. A sentinel keeps the
+ * control a radio group — every state, including "not filtered", is a visible
+ * choice with a selected state — rather than a group that can silently hold
+ * nothing.
+ */
+export const anyFilterValue = 'any';
+
+export type EquipmentFilterValue = ExerciseEquipment | typeof anyFilterValue;
+export type MuscleFilterValue = ExerciseMuscleGroup | typeof anyFilterValue;
+
+export const equipmentFilterOptions: readonly SelectionOption<EquipmentFilterValue>[] =
+  [{ label: 'Any equipment', value: anyFilterValue }, ...equipmentOptions];
+
+export const muscleFilterOptions: readonly SelectionOption<MuscleFilterValue>[] =
+  [{ label: 'Any muscle group', value: anyFilterValue }, ...muscleOptions];
+
 export function labelFor<TValue extends string>(
   options: readonly SelectionOption<TValue>[],
   value: TValue,

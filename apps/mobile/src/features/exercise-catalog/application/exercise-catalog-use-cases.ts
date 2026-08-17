@@ -3,6 +3,10 @@ import {
   buildExerciseCatalogItem,
   type SaveExerciseInput,
 } from './build-exercise-catalog-item';
+import {
+  noExerciseCatalogFilter,
+  type ExerciseCatalogFilter,
+} from './exercise-catalog-filter';
 import type { ExerciseCatalogItem } from './exercise-catalog-item';
 import { normalizeExerciseName } from './exercise-catalog-name';
 import type { ExerciseCatalogRepository } from './exercise-catalog-repository';
@@ -141,13 +145,26 @@ export class DeleteExerciseUseCase {
   }
 }
 
+/**
+ * The bounds every catalog list is read under. They are exported because the
+ * library states plainly when a list came back at its bound rather than showing
+ * a silently truncated catalog.
+ */
+export const exerciseBrowseLimit = 100;
+export const exerciseSearchLimit = 50;
+
 export class BrowseExercisesUseCase {
   constructor(
     private readonly repository: ExerciseCatalogRepository,
     private readonly recentReader?: PerformedExerciseRecentReader,
   ) {}
-  listAll(limit = 100) {
-    return this.repository.listAll(limit);
+  // Criteria come before the bound so a caller that narrows does not have to
+  // restate the limit this use case owns.
+  listAll(
+    filter: ExerciseCatalogFilter = noExerciseCatalogFilter,
+    limit = exerciseBrowseLimit,
+  ) {
+    return this.repository.listAll(limit, filter);
   }
   listFavorites(limit = 20) {
     return this.repository.listFavorites(limit);
@@ -164,11 +181,15 @@ export class BrowseExercisesUseCase {
       }),
     );
   }
-  search(query: string, limit = 50) {
+  search(
+    query: string,
+    filter: ExerciseCatalogFilter = noExerciseCatalogFilter,
+    limit = exerciseSearchLimit,
+  ) {
     const normalized = normalizeExerciseName(query);
     return normalized === ''
       ? Promise.resolve(Object.freeze([]))
-      : this.repository.search(normalized, limit);
+      : this.repository.search(normalized, limit, filter);
   }
 }
 

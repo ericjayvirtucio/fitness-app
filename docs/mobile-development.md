@@ -242,6 +242,33 @@ or dependency was added. See the
 and
 [troubleshooting guidance](troubleshooting/starter-exercise-library.md).
 
+## Exercise Library filtering
+
+The Exercise Library narrows by one equipment value and one primary muscle group
+alongside its existing name search. Each narrowed read is one bounded,
+parameter-bound query on the path browsing and searching already used; no filter
+value is interpolated, and an absent criterion contributes no clause, so an
+unnarrowed read issues the statement the catalog has always issued. Favorites and
+Recently performed are hidden and unread while anything narrows the list, exactly
+as they already are while a search is being typed, and one "Clear filters"
+control restores them. A narrowed list that matched nothing states what is
+narrowed instead of claiming the library is empty, and a list that came back at
+its read bound — 100 browsing, 50 searching — says so. Filter state belongs to
+the screen and is not persisted, the filters sit below the starter section and
+directly above the lists they narrow so that their appearance after an import
+cannot carry the import control off screen, they are absent while the library is
+empty, and the Exercise Picker is deliberately unchanged so the Planner, the
+active Session, and completed-workout addition still browse identically. The
+controls carry `exercise-library-equipment-filter` and
+`exercise-library-muscle-filter`, each option suffixed with its value, and the
+summary carries `exercise-library-filter-summary`. No migration, schema change,
+index, or dependency was added. See the
+[offline exercise catalog architecture](architecture/offline-exercise-catalog.md),
+[Specification 0029](../specs/0029-exercise-library-filtering.md), the
+[Sprint 29 manual checklist](manual-testing/sprint-29-exercise-library-filtering.md),
+and
+[troubleshooting guidance](troubleshooting/offline-exercise-catalog.md).
+
 ## Completed workout deletion
 
 One completed workout can be deleted from its own detail screen after a

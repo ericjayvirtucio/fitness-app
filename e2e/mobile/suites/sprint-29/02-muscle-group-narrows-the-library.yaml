@@ -1,0 +1,26 @@
+appId: com.fitnessapp.dev
+name: Filtering by primary muscle group narrows the library
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+- runFlow:
+    file: ../../flows/exercise/filter-exercise-library.yaml
+    env:
+      EQUIPMENT_FILTER_ID: exercise-library-equipment-filter-any
+      MUSCLE_FILTER_ID: exercise-library-muscle-filter-chest
+# Two of the twenty-six starter definitions are chest movements, and they carry
+# different equipment, so this proves the muscle group narrows on its own.
+- scrollUntilVisible:
+    element:
+      id: exercise-library-filter-summary
+    direction: DOWN
+    centerElement: true
+- assertVisible: Filtered by Chest. 2 exercises.
+- scrollUntilVisible:
+    element:
+      text: Edit Barbell Bench Press
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Barbell Bench Press
