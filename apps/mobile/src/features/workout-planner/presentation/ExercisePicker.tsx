@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import {
   AppButton,
@@ -35,8 +35,15 @@ export function ExercisePicker({
   const [items, setItems] = useState<readonly ExerciseCatalogItem[]>([]);
   const [isShowingRecents, setIsShowingRecents] = useState(false);
   const [error, setError] = useState<string>();
+  // Debouncing keeps a burst of keystrokes to one read, but it does not order
+  // the reads it does issue: a slow one can still resolve after a newer one and
+  // replace what the person has since asked for. Every read is numbered, and a
+  // response whose number is no longer current is discarded — including its
+  // failure, so a stale error cannot outlive the read that caused it.
+  const requestRef = useRef(0);
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const requestId = (requestRef.current += 1);
       const isEmptyQuery = query.trim() === '';
       const result = isEmptyQuery
         ? browse.listRecentlyPerformed().then(async (recents) => ({
@@ -46,11 +53,14 @@ export function ExercisePicker({
         : browse.search(query).then((items) => ({ items, isRecent: false }));
       void result
         .then((loaded) => {
+          if (requestId !== requestRef.current) return;
           setItems(loaded.items);
           setIsShowingRecents(loaded.isRecent);
+          setError(undefined);
         })
         .catch(() => {
-          setError('Exercises could not be loaded.');
+          if (requestId === requestRef.current)
+            setError('Exercises could not be loaded.');
         });
     }, 200);
     return () => clearTimeout(timeout);
