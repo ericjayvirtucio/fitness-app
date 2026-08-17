@@ -298,7 +298,10 @@ assistance field through `workout-set-resistance-input` rather than by text: the
 field's visible label and the input's accessible name are both "Assistance (kg)",
 so a text selector cannot say which of the two a step meant. The same identifier
 serves "Weight" and "Added weight", because it is the one resistance field the
-form renders. Both fields raise a number pad, so the flow drags before saving.
+form renders.
+
+It fills **repetitions first and assistance second**, which is the set form's
+bottom-up order and not a preference — see the trap below.
 
 Records are reached by name, and the assisted exercise has its own entry flow,
 `flows/workout/open-assisted-exercise-personal-records.yaml`. A second flow
@@ -385,6 +388,18 @@ across the keys and appends digits to the field being edited. `hideKeyboard`
 does not work here, because the iOS number pad exposes no dismiss action; use a
 short drag in the content area instead, which the screens honour through
 `keyboardDismissMode="on-drag"`.
+
+**A two-field form must be filled bottom-up, or the number pad eats the second
+tap.** The set form puts assistance above repetitions. Filling top-down leaves
+the pad covering the repetitions field, so `tapOn` with its identifier resolves
+to the right coordinates and taps a key sitting over them — focus never moves,
+and the digit lands in the field still holding it. Sprint 31's first run failed
+all six scenarios this way: `20` became `2028`, repetitions stayed empty, and the
+screenshot showed the product correctly refusing with "Enter valid values for
+this set." The evidence read like a broken assertion and was not; the product was
+right and the flow was wrong. An identifier does not protect a tap from the
+keyboard — only reaching the higher field second does, which is why the guidance
+above says filling a form bottom-up avoids the problem entirely.
 
 **Removing height invalidates assertions the same way adding it does.** Sprint 30
 put twenty-five filter chips away behind one button, which moved the Exercise

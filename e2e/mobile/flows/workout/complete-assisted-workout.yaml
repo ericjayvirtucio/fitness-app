@@ -24,15 +24,23 @@ appId: com.fitnessapp.dev
     centerElement: true
 - tapOn: Add E2E Assisted Pull-up
 - tapOn: Add Set for E2E Assisted Pull-up
-# The field is reached by identifier rather than by text: its visible label and
-# its accessible name are both "Assistance (kg)", so a text selector cannot say
-# which of the two a step meant.
-- tapOn:
-    id: workout-set-resistance-input
-- inputText: ${ASSISTANCE}
+# Filled bottom-up, and that is not a style choice. Assistance sits above
+# repetitions, so filling top-down leaves the number pad covering the
+# repetitions field: the tap meant for it lands on a key instead, and the digit
+# is appended to the assistance field that still has focus. That is exactly what
+# the first run of this flow did — "20" became "2028", repetitions stayed empty,
+# and the product correctly refused the set. Reaching the higher field second
+# means the pad is never between a tap and its target.
+#
+# Both fields are reached by identifier rather than by text: the assistance
+# field's visible label and its accessible name are both "Assistance (kg)", so a
+# text selector cannot say which of the two a step meant.
 - tapOn:
     id: workout-set-repetitions-input
 - inputText: ${REPETITIONS}
+- tapOn:
+    id: workout-set-resistance-input
+- inputText: ${ASSISTANCE}
 # The number pad covers the save control, and scrolling with it open drags
 # across the keys and appends digits to the field. `hideKeyboard` cannot help:
 # the iOS number pad exposes no dismiss action. A short drag in the content area
