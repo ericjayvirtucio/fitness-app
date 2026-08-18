@@ -12,6 +12,7 @@ import {
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet,
+  type ExerciseLoggingMode,
   type Result,
 } from '@fitness/domain';
 import { CompletedWorkoutSetCorrectionScreen } from './CompletedWorkoutSetCorrectionScreen';
@@ -42,7 +43,9 @@ function id(value: string) {
   return unwrap(DomainId.create(value));
 }
 
-function completedSession() {
+function completedSession(
+  loggingMode: ExerciseLoggingMode = 'external-load-and-repetitions',
+) {
   const set = unwrap(
     WorkoutSet.create({
       id: id(setId),
@@ -57,10 +60,10 @@ function completedSession() {
     WorkoutSessionExercise.create({
       exerciseNameSnapshot: 'Bench press',
       id: id(exerciseId),
-      loggingModeSnapshot: 'external-load-and-repetitions',
+      loggingModeSnapshot: loggingMode,
       plannedPrescriptionSnapshot: unwrap(
         createPlannedPrescription({
-          loggingMode: 'external-load-and-repetitions',
+          loggingMode,
           repetitions: 8,
           resistance: unwrap(Mass.create(60, 'kilogram')),
           sets: 3,
@@ -109,6 +112,22 @@ function loader(correctSet: Record<string, unknown> = {}) {
   return () => Promise.resolve(useCases);
 }
 
+/**
+ * The correction screen shows the previous value beside the new one, so it is
+ * the screen where an unqualified mass is most expensive to misread.
+ */
+function assistedLoader() {
+  const useCases = {
+    correctSet: { addSet: jest.fn(), deleteSet: jest.fn(), editSet: jest.fn() },
+    getCompleted: {
+      execute: () =>
+        Promise.resolve(completedSession('assistance-and-repetitions')),
+    },
+    getProfile: { execute: () => Promise.resolve(null) },
+  } as never;
+  return () => Promise.resolve(useCases);
+}
+
 function missingLoader() {
   const useCases = {
     correctSet: { addSet: jest.fn(), deleteSet: jest.fn(), editSet: jest.fn() },
@@ -151,6 +170,30 @@ describe('CompletedWorkoutSetCorrectionScreen', () => {
     expect(screen.getByText('Edit recorded result')).toBeOnTheScreen();
     expect(screen.getByLabelText('Save Correction')).toBeOnTheScreen();
     expect(screen.getByLabelText('Cancel Correction')).toBeOnTheScreen();
+  });
+
+  it('says an assisted mass is assistance in both the target and the recorded set', async () => {
+    await render(
+      <CompletedWorkoutSetCorrectionScreen
+        exerciseId={exerciseId}
+        loadUseCases={assistedLoader()}
+        onDone={jest.fn()}
+        sessionId={sessionId}
+        setId={setId}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Currently recorded set 1: Assistance 600 kg × 8'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText('Planned target: 3 sets · 8 reps · Assistance 60 kg'),
+    ).toBeOnTheScreen();
+    // The entry surface below states the same meaning in its own label, and the
+    // two must not disagree.
+    expect(screen.getByText('Assistance (kg)')).toBeOnTheScreen();
   });
 
   it('saves a corrected result with the values it loaded', async () => {
