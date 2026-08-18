@@ -215,8 +215,18 @@ point of the sprint, not a regression:
 
 **No labelled card gained a control.** Both entry controls sit outside every
 `Card`: the completed one between the subheading and the summary card, the active
-one in the plain heading `View`. Sprint 34's guarantee — 56 card usages, 20
-labelled, none containing an interactive child — still holds and is asserted.
+one among the whole-workout actions above `Finish Workout`. Sprint 34's guarantee
+— 56 card usages, 20 labelled, none containing an interactive child — still holds
+and is asserted.
+
+The active control is deliberately not under the heading beside the name it
+changes. It was, and the first QA run proved that wrong: the extra row pushed the
+set form down far enough that the iOS number pad covered `Save Set`, so all four
+Sprint 35 scenarios failed while recording a set, before reaching anything about
+naming. Everything above the exercise cards is now byte-identical to what it was,
+so the most-used control on the most-used screen sits exactly where it did.
+Proximity to the name lost to the recording path, which is the same trade this
+sprint refused to make when it declined to ask for a name at start.
 
 ## Experience and accessibility
 

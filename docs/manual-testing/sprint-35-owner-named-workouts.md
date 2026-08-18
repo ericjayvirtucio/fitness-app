@@ -26,15 +26,16 @@ that shows it, before and after a rename.
 
 ## Naming an active workout
 
-| Check                                               | Expected                                                                                     |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Start an empty workout                              | The heading reads `Workout`.                                                                 |
-| `Rename This Workout` is present under the heading  | Present, outside every card, full touch target.                                              |
-| Open it                                             | Heading `Rename workout`, field `Workout name` pre-filled with `Workout`.                    |
-| The explanation                                     | States the change reaches personal records and that no recorded set, total, or time changes. |
-| Save a new name                                     | Returns to the active workout, which now shows the new name.                                 |
-| Every recorded set, its order, and the elapsed time | Unchanged.                                                                                   |
-| Finish the workout                                  | Completed history shows the chosen name, not `Workout`.                                      |
+| Check                                                           | Expected                                                                                     |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Start an empty workout                                          | The heading reads `Workout`.                                                                 |
+| `Rename This Workout` is present with the whole-workout actions | Present above `Finish Workout`, outside every card, full touch target.                       |
+| The set form with the number pad open                           | `Save Set` is reachable without dismissing the keyboard, exactly as before this sprint.      |
+| Open it                                                         | Heading `Rename workout`, field `Workout name` pre-filled with `Workout`.                    |
+| The explanation                                                 | States the change reaches personal records and that no recorded set, total, or time changes. |
+| Save a new name                                                 | Returns to the active workout, which now shows the new name.                                 |
+| Every recorded set, its order, and the elapsed time             | Unchanged.                                                                                   |
+| Finish the workout                                              | Completed history shows the chosen name, not `Workout`.                                      |
 
 ## Naming a completed workout
 

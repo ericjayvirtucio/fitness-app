@@ -609,13 +609,21 @@ the workout's current name — the very thing a renaming scenario is about to
 change. `flows/workout/rename-workout.yaml` takes the identifier as a parameter
 for this reason.
 
-**Adding the naming control made two screens taller.** The active workout screen
-carries it under the heading and the completed detail carries it under the date
-line, so every control below each of them sits one row lower than it did. Four
-completion flows and one Sprint 27 scenario that tapped "Finish Workout" where it
-used to sit now scroll to it first, which is a no-op when it is already visible.
-This is the same trap a taller exercise picker set earlier: a flow that worked
-against a shorter screen is not evidence that it works against a taller one.
+**Adding the naming control made two screens taller, and where it was added
+mattered more than that it was.** The completed detail carries it under the date
+line; the active workout carries it among the whole-workout actions above "Finish
+Workout". It was originally under the active workout's heading, and Sprint 35's
+first QA run failed all four scenarios because of it: the extra row pushed the set
+form down until the iOS number pad covered "Save Set", so every scenario died on
+`Set 1: 12 reps` having never reached a naming assertion. The screenshot showed
+the rename had worked perfectly and the save control was simply behind the
+keyboard. **A control added above a keyboard-driven form can hide a control below
+it without any selector being wrong.** Four completion flows and one Sprint 27
+scenario still scroll to "Finish Workout" before tapping it, because the naming
+control now sits directly above it; that scroll is a no-op when it is already
+visible. This is the same trap a taller exercise picker set earlier: a flow that
+worked against a shorter screen is not evidence that it works against a taller
+one.
 
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the
