@@ -89,6 +89,42 @@ describe('workout history formatting', () => {
     ).toBe('5 kilometers');
   });
 
+  it('writes and speaks assistance in both unit systems', () => {
+    const assisted = record({
+      canonicalValue: 22_500,
+      category: 'least-assistance',
+      loggingMode: 'assistance-and-repetitions',
+    });
+
+    expect(formatPersonalRecordValue(assisted, 'metric')).toBe('22.5 kg');
+    expect(formatPersonalRecordValue(assisted, 'imperial')).toBe('49.6 lb');
+    expect(formatPersonalRecordSpokenValue(assisted, 'metric')).toBe(
+      '22.5 kilograms',
+    );
+    expect(formatPersonalRecordSpokenValue(assisted, 'imperial')).toBe(
+      '49.6 pounds',
+    );
+  });
+
+  it('claims the assistance a record needed and nothing about repetitions', () => {
+    const description = describePersonalRecord(
+      record({
+        canonicalValue: 22_500,
+        category: 'least-assistance',
+        loggingMode: 'assistance-and-repetitions',
+      }),
+      'metric',
+      false,
+    );
+
+    expect(description).toContain('Least recorded assistance in a set');
+    expect(description).toContain('22.5 kilograms');
+    expect(description).toContain('in Push Day');
+    expect(description).toContain('set 3');
+    expect(description).not.toMatch(/repetition/i);
+    expect(description).not.toMatch(/best|strongest|easier|progress|score/i);
+  });
+
   it('describes a record with its evidence and no unsupported claim', () => {
     const description = describePersonalRecord(record(), 'metric', false);
 

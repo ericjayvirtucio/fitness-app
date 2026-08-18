@@ -59,6 +59,19 @@ const heaviestLoad: ExercisePersonalRecord = {
   },
 };
 
+const leastAssistance: ExercisePersonalRecord = {
+  canonicalValue: 22_500,
+  category: 'least-assistance',
+  loggingMode: 'assistance-and-repetitions',
+  occurrence: {
+    exerciseNameSnapshot: 'Assisted Pull-up',
+    sessionId: sessionId(),
+    sessionNameSnapshot: 'Pull Day',
+    setPosition: 0,
+    startedLocalCalendarDate: '2026-08-08',
+  },
+};
+
 function useCasesFor(
   options: Readonly<{
     onOpenRecords?: () => Promise<ExercisePersonalRecords | null>;
@@ -236,7 +249,102 @@ describe('ExercisePerformanceHistoryScreen', () => {
     expect(screen.getByText('Recorded as Bench Press')).toBeOnTheScreen();
   });
 
-  it('explains an unsupported way of recording instead of showing a zero', async () => {
+  it('records the least assistance instead of refusing to claim anything', async () => {
+    const onOpenSession = jest.fn();
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor({
+          records: {
+            latestExerciseNameSnapshot: 'Assisted Pull-up',
+            records: [leastAssistance],
+            unsupportedLoggingModes: [],
+          },
+        })}
+        onClose={jest.fn()}
+        onOpenSession={onOpenSession}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Least recorded assistance in a set'),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('22.5 kg')).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'Personal records are not available for assisted work, because less assistance and more repetitions cannot be compared as one value.',
+      ),
+    ).not.toBeOnTheScreen();
+    await fireEvent.press(
+      screen.getByLabelText(
+        'Least recorded assistance in a set, 22.5 kilograms, first recorded on August 8, 2026, in Pull Day, set 1',
+      ),
+    );
+    expect(onOpenSession).toHaveBeenCalledWith(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
+  });
+
+  it('speaks the assistance a record claims in the preferred units', async () => {
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor({
+          records: {
+            latestExerciseNameSnapshot: 'Assisted Pull-up',
+            records: [leastAssistance],
+            unsupportedLoggingModes: [],
+          },
+          unitSystem: 'imperial',
+        })}
+        onClose={jest.fn()}
+        onOpenSession={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('49.6 lb')).toBeOnTheScreen());
+    expect(
+      screen.getByLabelText(
+        'Least recorded assistance in a set, 49.6 pounds, first recorded on August 8, 2026, in Pull Day, set 1',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows no assisted record for an exercise that recorded none', async () => {
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor({
+          records: {
+            latestExerciseNameSnapshot: 'Bench Press',
+            records: [heaviestLoad],
+            unsupportedLoggingModes: [],
+          },
+        })}
+        onClose={jest.fn()}
+        onOpenSession={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Heaviest recorded load in a set'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByText('Least recorded assistance in a set'),
+    ).not.toBeOnTheScreen();
+  });
+
+  /**
+   * Every logging mode the domain defines now has a descriptor, so this state is
+   * only reachable through a read model that reports a mode no descriptor
+   * describes. It is rendered from one here so the sentence stays exercised
+   * rather than becoming untested code.
+   */
+  it('explains an undescribed way of recording instead of showing a zero', async () => {
     await render(
       <ExercisePerformanceHistoryScreen
         exerciseDefinitionId={exerciseId}
@@ -255,7 +363,7 @@ describe('ExercisePerformanceHistoryScreen', () => {
     await waitFor(() =>
       expect(
         screen.getByText(
-          'Personal records are not available for assisted work, because less assistance and more repetitions cannot be compared as one value.',
+          'Personal records are not available for this way of recording yet.',
         ),
       ).toBeOnTheScreen(),
     );

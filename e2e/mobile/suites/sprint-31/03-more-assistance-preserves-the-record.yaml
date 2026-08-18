@@ -1,0 +1,22 @@
+appId: com.fitnessapp.dev
+name: More assistance preserves the record
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '15'
+      REPETITIONS: '6'
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '25'
+      REPETITIONS: '20'
+- runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
+# Twenty repetitions is more work by any everyday reading and does not touch the
+# record, because this category claims assistance and refuses to claim anything
+# about repetitions.
+- assertVisible: 'Least recorded assistance in a set, 15 kilograms, .*'
+- assertNotVisible: 'Least recorded assistance in a set, 25 kilograms, .*'

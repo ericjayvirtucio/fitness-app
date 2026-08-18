@@ -1,0 +1,28 @@
+appId: com.fitnessapp.dev
+name: Equalled assistance stays credited to the earlier session
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+# The same assistance again, with more repetitions, so the two occurrences tie
+# on the compared value and can still be told apart by the set each recorded.
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
+- assertVisible: 'Least recorded assistance in a set, 20 kilograms, .*'
+- tapOn:
+    id: personal-record-card
+# Every synthetic workout is named "Workout", so the credited occurrence is
+# proved through the set the opened workout actually holds. The completed detail
+# shows one exercise with one set, so the negative assertion is made from the
+# viewport where the other set would render if this were the later workout.
+- assertVisible: 'Performed set 1: 20 kg × 8'
+- assertNotVisible: 'Performed set 1: 20 kg × 12'

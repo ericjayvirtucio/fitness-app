@@ -87,6 +87,7 @@ export function WorkoutSetForm({
                 : `Weight (${unitSystem === 'metric' ? 'kg' : 'lb'})`
           }
           onChangeText={setResistance}
+          testID="workout-set-resistance-input"
           value={resistance}
         />
       ) : null}

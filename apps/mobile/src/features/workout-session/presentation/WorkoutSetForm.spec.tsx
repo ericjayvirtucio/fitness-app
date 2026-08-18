@@ -50,4 +50,38 @@ describe('WorkoutSetForm', () => {
     ).toBeOnTheScreen();
     expect(screen.getByLabelText('Assistance (kg)')).toHaveProp('value', 'bad');
   });
+
+  /**
+   * The field's visible label and its accessible name are the same words, so a
+   * text selector cannot say which of the two an end-to-end step meant. The
+   * repetitions field already carries an identifier for the same reason.
+   */
+  it('identifies the resistance field however the mode labels it', async () => {
+    const { rerender } = await render(
+      <WorkoutSetForm
+        loggingMode="assistance-and-repetitions"
+        onCancel={jest.fn()}
+        onSave={jest.fn()}
+        unitSystem="metric"
+      />,
+    );
+    expect(screen.getByTestId('workout-set-resistance-input')).toHaveProp(
+      'accessibilityLabel',
+      'Assistance (kg)',
+    );
+
+    await rerender(
+      <WorkoutSetForm
+        loggingMode="external-load-and-repetitions"
+        onCancel={jest.fn()}
+        onSave={jest.fn()}
+        unitSystem="imperial"
+      />,
+    );
+
+    expect(screen.getByTestId('workout-set-resistance-input')).toHaveProp(
+      'accessibilityLabel',
+      'Weight (lb)',
+    );
+  });
 });
