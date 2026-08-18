@@ -13,6 +13,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   SelectionField,
   TextField,
   spacing,
@@ -34,6 +35,33 @@ const goalLabels: Readonly<Record<GoalType, string>> = {
   'lose-weight': 'Lose weight',
   'maintain-weight': 'Maintain weight',
 };
+
+const targetCaveat =
+  'Based on estimated maintenance and your selected adjustment. Results are not guaranteed.';
+
+/**
+ * A labelled card is one accessibility element, so this card announced its title
+ * and not the target it exists to show. The rendered lines and the announced
+ * ones are the same strings, in the same order.
+ */
+function CalculatedTargetCard({ target }: Readonly<{ target: Energy }>) {
+  const lines = ['Calculated target', formatDailyEnergy(target), targetCaveat];
+  return (
+    <Card
+      accessibilityLabel={describeCardContents(
+        'Calculated daily calorie target',
+        lines,
+      )}
+      variant="outlined"
+    >
+      <AppText color="secondary" variant="label">
+        {lines[0]}
+      </AppText>
+      <AppText variant="heading">{lines[1]}</AppText>
+      <AppText color="secondary">{lines[2]}</AppText>
+    </Card>
+  );
+}
 
 export function GoalConfigurationForm({
   errors,
@@ -98,24 +126,7 @@ export function GoalConfigurationForm({
         />
       ) : null}
       {isOk(previewTarget) ? (
-        <Card
-          accessibilityLabel="Calculated daily calorie target"
-          variant="outlined"
-        >
-          <AppText color="secondary" variant="label">
-            Calculated target
-          </AppText>
-          <AppText
-            accessibilityLabel={`Daily calorie target ${formatDailyEnergy(previewTarget.value)}`}
-            variant="heading"
-          >
-            {formatDailyEnergy(previewTarget.value)}
-          </AppText>
-          <AppText color="secondary">
-            Based on estimated maintenance and your selected adjustment. Results
-            are not guaranteed.
-          </AppText>
-        </Card>
+        <CalculatedTargetCard target={previewTarget.value} />
       ) : goalType ? (
         <AppText accessibilityLiveRegion="polite" color="secondary">
           {previewTarget.error.message}
