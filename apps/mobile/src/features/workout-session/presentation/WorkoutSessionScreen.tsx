@@ -29,9 +29,11 @@ type Editor = Readonly<{ exerciseId: string; set?: WorkoutSet }>;
 export function WorkoutSessionScreen({
   loadUseCases = createWorkoutSessionUseCases,
   onClose,
+  onRename,
 }: Readonly<{
   loadUseCases?: () => Promise<UseCases>;
   onClose: () => void;
+  onRename?: (sessionId: string) => void;
 }>) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [session, setSession] = useState<WorkoutSession | null>();
@@ -116,6 +118,15 @@ export function WorkoutSessionScreen({
         <AppText color="secondary">
           Confirmed sets save immediately on this device.
         </AppText>
+        {onRename ? (
+          <AppButton
+            accessibilityLabel={`Rename this workout, ${session.name}`}
+            label="Rename This Workout"
+            onPress={() => onRename(session.id.value)}
+            testID="rename-active-workout"
+            variant="outline"
+          />
+        ) : null}
       </View>
       {error ? (
         <AppText accessibilityLiveRegion="polite" color="danger">

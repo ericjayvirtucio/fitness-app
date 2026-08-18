@@ -978,4 +978,56 @@ describe('CompletedWorkoutScreen', () => {
       screen.queryByTestId('add-completed-workout-exercise'),
     ).not.toBeOnTheScreen();
   });
+
+  it('offers naming a completed workout by the name and date it shows', async () => {
+    const onRename = jest.fn();
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loader(completedSession(oneSet()))}
+        onClose={jest.fn()}
+        onRename={onRename}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Rename this workout, Workout, August 8, 2026'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('rename-completed-workout'));
+    expect(onRename).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the naming control outside every labelled card', async () => {
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loader(completedSession(oneSet()))}
+        onClose={jest.fn()}
+        onRename={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => screen.getByTestId('rename-completed-workout'));
+    expect(
+      screen.getByLabelText(
+        'Completed workout summary, 1 actual sets, 10 min 0 sec workout time',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('rename-completed-workout')).toBeOnTheScreen();
+  });
+
+  it('hides the naming control where no route offers one', async () => {
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loader(completedSession(oneSet()))}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => screen.getByText('Push-up'));
+    expect(screen.queryByTestId('rename-completed-workout')).toBeNull();
+  });
 });
