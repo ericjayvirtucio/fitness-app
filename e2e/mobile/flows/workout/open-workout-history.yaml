@@ -1,0 +1,23 @@
+appId: com.fitnessapp.dev
+---
+# Reaches Workout History the way the product does, and stops there. The
+# performed summary sits above the completed cards, so a scenario asserting what
+# a total covers needs the screen rather than a workout on it.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+# The heading, the period control, and the period's own label sit above the
+# performed summary, so the card can start below the fold and off-screen content
+# in a scroll view is absent from the hierarchy rather than merely invisible.
+# The card is reached by its own name because it carries an accessibilityLabel:
+# its lines, including "Performed summary", never reach the tree.
+- scrollUntilVisible:
+    element:
+      text: 'Workout progress summary,.*'
+    direction: DOWN
+    centerElement: true

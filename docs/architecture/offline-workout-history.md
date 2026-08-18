@@ -59,6 +59,20 @@ greater assistance does not represent greater performed load. Distance-duration
 results may derive pace from actual distance and duration; unlike dimensions are
 never combined into one score.
 
+Every other summarised dimension covers all recorded work of its own kind —
+repetitions counts assisted and bodyweight repetitions alike — so recorded load
+volume is the only total that excludes recorded work, and it is the only one that
+states its coverage. The application now says so rather than leaving the reason
+here: a period with eligible work reads
+`160 kg-reps recorded load volume from weighted sets`, and a period that recorded
+work with none of it eligible reads `No recorded load volume from weighted sets`.
+A period that recorded nothing states neither, because the completed workout count
+already does. The wording is unconditional, so no reader field reports whether
+ineligible work is present, and the same sentence is produced for a per-exercise
+row from the same function. See
+[Specification 0033](../../specs/0033-summary-total-coverage.md) and
+[ADR 0023](../decisions/0023-displayed-totals-state-their-coverage.md).
+
 A recorded set is worded from the captured logging mode wherever completed
 history displays one, so the completed workout detail and the correction screen
 state `Assistance 20 kg × 8` or `Added 20 kg × 8` where they once stated only

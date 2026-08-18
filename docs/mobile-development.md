@@ -353,7 +353,20 @@ is produced in the active session, in completed history, and while correcting a
 set. Set rows are therefore taller for those two modes, which moves the controls
 below them. See
 [Specification 0032](../specs/0032-recorded-result-meaning.md) and the
-[Sprint 32 manual checklist](manual-testing/sprint-32-recorded-result-meaning.md). See the
+[Sprint 32 manual checklist](manual-testing/sprint-32-recorded-result-meaning.md).
+
+A derived total states what it covers by the same reasoning. Recorded load volume
+sums external and added load alone, so both screens that display it say
+`160 kg-reps recorded load volume from weighted sets`, and the Workout History
+summary states `No recorded load volume from weighted sets` for a period that
+recorded work with none of it eligible. Every other total covers all recorded
+work of its dimension and is left unqualified. The summary card is one
+accessibility element, so its accessible name now carries every sentence it
+displays — without that, none of its numbers reached a screen reader, and the
+coverage sentence would not have either. See
+[Specification 0033](../specs/0033-summary-total-coverage.md),
+[ADR 0023](decisions/0023-displayed-totals-state-their-coverage.md), and the
+[Sprint 33 manual checklist](manual-testing/sprint-33-summary-total-coverage.md). See the
 [personal records architecture](architecture/workout-personal-records.md),
 [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
 [ADR 0022](decisions/0022-personal-record-ordering-direction.md),

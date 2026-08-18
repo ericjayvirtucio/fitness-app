@@ -29,6 +29,15 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Workout History
 - assertVisible: Workout History
+# The performed summary states its recorded load volume in both directions, so a
+# reps-only workout produces the sentence saying there is none where it once
+# produced no line at all. Workout History is taller than one viewport either
+# way, and that line is enough to push the first completed card below the fold.
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
 - assertVisible: 'Open Workout,.*1 actual sets.*'
 - tapOn:
     id: completed-workout-card
@@ -48,6 +57,11 @@ appId: com.fitnessapp.dev
       text: Open Workout History
     direction: DOWN
 - tapOn: Open Workout History
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
 - assertVisible: 'Open Workout,.*1 actual sets.*'
 - scrollUntilVisible:
     element:

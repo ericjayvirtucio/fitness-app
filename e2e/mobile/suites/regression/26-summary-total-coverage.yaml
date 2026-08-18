@@ -1,0 +1,27 @@
+appId: com.fitnessapp.dev
+name: Summary total coverage
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow: ../../flows/exercise/create-added-load-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- runFlow:
+    file: ../../flows/workout/complete-added-load-workout.yaml
+    env:
+      ADDED_WEIGHT: '20'
+      REPETITIONS: '8'
+- runFlow: ../../flows/workout/open-workout-history.yaml
+- assertVisible: 'Workout progress summary,.*16 repetitions, 160 kg-reps recorded load volume from weighted sets'
+# The sprint suite proves each coverage case from a clean installation, one
+# shape at a time. This proves the sentence is derived from stored history
+# rather than from anything the recording screens left behind, by reading it
+# again after a relaunch.
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-workout-history.yaml
+- assertVisible: 'Workout progress summary,.*16 repetitions, 160 kg-reps recorded load volume from weighted sets'

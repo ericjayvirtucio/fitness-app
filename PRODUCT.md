@@ -47,8 +47,8 @@ records for a performed exercise, each tied to the workout that proves it. A
 record states what the application recorded; it is never a claim about
 physiology, strength, or what someone should do next. Comparisons that cannot be
 made truthfully are declined rather than approximated, so unlike ways of
-recording an exercise are never combined and assisted work is explained instead
-of ranked.
+recording an exercise are never combined, and assisted work is ranked only
+against itself.
 
 Deriving records from history raised the cost of a mistyped entry, so completed
 workout history became correctable. A person can open a completed workout, fix a

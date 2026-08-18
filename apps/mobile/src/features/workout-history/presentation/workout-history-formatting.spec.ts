@@ -1,10 +1,13 @@
 import { DomainId } from '@fitness/domain';
 import type { ExercisePersonalRecord } from '../application/exercise-personal-records';
 import {
+  absentRecordedLoadVolumeMessage,
   describePersonalRecord,
   formatPersonalRecordSpokenValue,
   formatPersonalRecordValue,
   formatRecordedDistance,
+  formatRecordedLoadVolume,
+  formatRecordedLoadVolumeSummary,
   formatRecordedMass,
 } from './workout-history-formatting';
 
@@ -142,5 +145,41 @@ describe('workout history formatting', () => {
     expect(describePersonalRecord(record(), 'metric', true)).toContain(
       'recorded as Bench Press',
     );
+  });
+
+  it('states what a recorded load volume covers, in both unit systems', () => {
+    expect(formatRecordedLoadVolumeSummary(160_000, 'metric')).toBe(
+      '160 kg-reps recorded load volume from weighted sets',
+    );
+    expect(formatRecordedLoadVolumeSummary(453_592.37, 'imperial')).toBe(
+      '1,000 lb-reps recorded load volume from weighted sets',
+    );
+  });
+
+  it('states the absence in the same words, with no unit and no number', () => {
+    expect(absentRecordedLoadVolumeMessage).toBe(
+      'No recorded load volume from weighted sets',
+    );
+    expect(absentRecordedLoadVolumeMessage).not.toMatch(/0|kg|lb/);
+  });
+
+  it('keeps the bare value formatter unchanged for its existing callers', () => {
+    expect(formatRecordedLoadVolume(160_000, 'metric')).toBe('160 kg-reps');
+    expect(formatRecordedLoadVolume(453_592.37, 'imperial')).toBe(
+      '1,000 lb-reps',
+    );
+  });
+
+  it('claims coverage and nothing about the work it does not count', () => {
+    const sentence = formatRecordedLoadVolumeSummary(160_000, 'metric');
+    for (const forbidden of [
+      'assist',
+      'bodyweight',
+      'because',
+      'only',
+      'excluded',
+      'instead',
+    ])
+      expect(sentence.toLowerCase()).not.toContain(forbidden);
   });
 });

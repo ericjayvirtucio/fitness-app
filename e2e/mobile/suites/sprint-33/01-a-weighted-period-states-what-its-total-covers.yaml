@@ -1,0 +1,35 @@
+appId: com.fitnessapp.dev
+name: A weighted period states what its recorded load volume counts
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-added-load-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-added-load-workout.yaml
+    env:
+      ADDED_WEIGHT: '20'
+      REPETITIONS: '8'
+- runFlow: ../../flows/workout/open-workout-history.yaml
+# The summary card carries an accessibilityLabel, so its lines never reach the
+# accessibility tree and no sentence inside it can be asserted on its own. The
+# card's own name now carries every sentence it displays, which is both what a
+# screen reader announces and the only surface this claim can be proven through.
+- assertVisible: 'Workout progress summary,.*160 kg-reps recorded load volume from weighted sets'
+# The same coverage, worded identically on the other screen that states it. A
+# per-exercise row is a single logging mode, so its total is the whole of that
+# row and the sentence is the same one.
+- scrollUntilVisible:
+    element:
+      text: Open performance history for E2E Weighted Dip
+    direction: DOWN
+    centerElement: true
+- tapOn: Open performance history for E2E Weighted Dip
+# The performed session sits below the personal records this exercise now has,
+# and a record card is taller than the sentence it replaced, so the card is
+# scrolled to by the sentence being asserted rather than by the section above it.
+- scrollUntilVisible:
+    element:
+      text: 'Open Workout,.*160 kg-reps recorded load volume from weighted sets'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open Workout,.*160 kg-reps recorded load volume from weighted sets'
