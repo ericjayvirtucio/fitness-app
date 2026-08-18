@@ -163,10 +163,14 @@ export function HydrationDailyScreen({
         summary.targetVolume &&
         summary.remainingVolume &&
         summary.completionPercentage !== null ? (
-          <Card
-            accessibilityLabel={`Fluid target progress, ${formatHydrationVolume(summary.totalFluidVolume)} of ${formatHydrationVolume(summary.targetVolume)}, ${formatHydrationPercentage(summary.completionPercentage)}`}
-            variant="filled"
-          >
+          /*
+           * Deliberately unlabelled. A labelled card is one accessibility
+           * element, so a name here hid "Change daily target" from the
+           * accessibility tree entirely and left a person who had set a target
+           * with no way to change it. The lines below and the control announce
+           * themselves, which is what they say on screen anyway.
+           */
+          <Card variant="filled">
             <AppText variant="heading">Daily fluid target</AppText>
             <AppText>
               {formatHydrationPercentage(summary.completionPercentage)} complete
