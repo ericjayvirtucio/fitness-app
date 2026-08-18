@@ -11,3 +11,13 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Workout History
 - assertVisible: Workout History
+# The heading, the period control, and the period's own label sit above the
+# performed summary, so the card can start below the fold and off-screen content
+# in a scroll view is absent from the hierarchy rather than merely invisible.
+# The card is reached by its own name because it carries an accessibilityLabel:
+# its lines, including "Performed summary", never reach the tree.
+- scrollUntilVisible:
+    element:
+      text: 'Workout progress summary,.*'
+    direction: DOWN
+    centerElement: true

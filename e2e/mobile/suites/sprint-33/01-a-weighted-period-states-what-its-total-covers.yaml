@@ -20,11 +20,16 @@ name: A weighted period states what its recorded load volume counts
 # row and the sentence is the same one.
 - scrollUntilVisible:
     element:
-      text: Exercise progress
+      text: Open performance history for E2E Weighted Dip
     direction: DOWN
+    centerElement: true
 - tapOn: Open performance history for E2E Weighted Dip
+# The performed session sits below the personal records this exercise now has,
+# and a record card is taller than the sentence it replaced, so the card is
+# scrolled to by the sentence being asserted rather than by the section above it.
 - scrollUntilVisible:
     element:
-      text: Performed sessions
+      text: 'Open Workout,.*160 kg-reps recorded load volume from weighted sets'
     direction: DOWN
+    centerElement: true
 - assertVisible: 'Open Workout,.*160 kg-reps recorded load volume from weighted sets'
