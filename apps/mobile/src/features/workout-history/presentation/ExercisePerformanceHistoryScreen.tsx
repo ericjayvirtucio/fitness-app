@@ -31,7 +31,7 @@ import {
   formatCapturedDate,
   formatPersonalRecordValue,
   formatRecordedDistance,
-  formatRecordedLoadVolume,
+  formatRecordedLoadVolumeSummary,
   formatRecordedMass,
 } from './workout-history-formatting';
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
@@ -372,9 +372,22 @@ function formatPerformance(
     values.push(
       `${formatRecordedDistance(item.distanceMillimeters, unitSystem)} distance`,
     );
+  /**
+   * The same coverage sentence the period summary states, from the same
+   * function, because one coverage worded two ways is two claims.
+   *
+   * Its absent case stays absent here. A row is one performed exercise in one
+   * workout under one captured logging mode, so it can never mix eligible and
+   * ineligible work, and a row whose mode contributes nothing already states its
+   * own dimension above — "60 kg maximum assistance". The period summary states
+   * its absence because a period can mix modes and has nothing else to say.
+   */
   if (item.recordedLoadVolumeGramRepetitions !== null)
     values.push(
-      `${formatRecordedLoadVolume(item.recordedLoadVolumeGramRepetitions, unitSystem)} recorded load volume`,
+      formatRecordedLoadVolumeSummary(
+        item.recordedLoadVolumeGramRepetitions,
+        unitSystem,
+      ),
     );
   return values;
 }

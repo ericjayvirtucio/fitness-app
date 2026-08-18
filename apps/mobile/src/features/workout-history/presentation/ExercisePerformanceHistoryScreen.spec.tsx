@@ -75,6 +75,7 @@ const leastAssistance: ExercisePersonalRecord = {
 function useCasesFor(
   options: Readonly<{
     onOpenRecords?: () => Promise<ExercisePersonalRecords | null>;
+    performance?: Partial<typeof performanceItem>;
     records?: ExercisePersonalRecords;
     unitSystem?: UnitSystem;
   }> = {},
@@ -103,7 +104,10 @@ function useCasesFor(
       },
       listExercisePerformance: {
         execute: () =>
-          Promise.resolve({ items: [performanceItem], nextCursor: null }),
+          Promise.resolve({
+            items: [{ ...performanceItem, ...options.performance }],
+            nextCursor: null,
+          }),
       },
     } as never);
 }
@@ -124,7 +128,7 @@ describe('ExercisePerformanceHistoryScreen', () => {
     );
     expect(
       screen.getByText(
-        '2 actual sets · 16 repetitions · 60 kg maximum resistance · 960 kg-reps recorded load volume',
+        '2 actual sets · 16 repetitions · 60 kg maximum resistance · 960 kg-reps recorded load volume from weighted sets',
       ),
     ).toBeOnTheScreen();
   });
@@ -490,5 +494,59 @@ describe('ExercisePerformanceHistoryScreen', () => {
       ).toBeOnTheScreen(),
     );
     expect(screen.queryByText('Stale Bench Press')).not.toBeOnTheScreen();
+  });
+
+  it('states what a performed load volume covers', async () => {
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor({
+          performance: {
+            loggingModeSnapshot: 'bodyweight-plus-load-and-repetitions',
+          },
+        })}
+        onClose={jest.fn()}
+        onOpenSession={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '2 actual sets · 16 repetitions · 60 kg maximum resistance · 960 kg-reps recorded load volume from weighted sets',
+        ),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  /*
+   * A row is one exercise in one workout under one captured mode, so it cannot
+   * mix eligible and ineligible work. Its own dimension is already stated, and
+   * repeating the period summary's absent sentence on every assisted row would
+   * be noise on a line that already joins four values.
+   */
+  it('says nothing about load volume for a row that records none', async () => {
+    await render(
+      <ExercisePerformanceHistoryScreen
+        exerciseDefinitionId={exerciseId}
+        loadUseCases={useCasesFor({
+          performance: {
+            loggingModeSnapshot: 'assistance-and-repetitions',
+            recordedLoadVolumeGramRepetitions: null,
+          },
+        })}
+        onClose={jest.fn()}
+        onOpenSession={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '2 actual sets · 16 repetitions · 60 kg maximum assistance',
+        ),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.queryByText(/recorded load volume/)).not.toBeOnTheScreen();
   });
 });
