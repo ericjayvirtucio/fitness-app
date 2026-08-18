@@ -109,6 +109,23 @@ export class GetActiveWorkoutSessionUseCase {
   }
 }
 
+/**
+ * Loads one workout of either status.
+ *
+ * Naming is the only workflow that reaches an active workout and a completed
+ * one through the same screen, so it is the only caller that cannot ask for a
+ * status it already knows. Nothing derived is read: it is the repository's own
+ * `getById`, refusing an identifier that is not one before it looks.
+ */
+export class GetWorkoutSessionUseCase {
+  constructor(private readonly repository: WorkoutSessionRepository) {}
+  execute(sessionId: unknown): Promise<WorkoutSession | null> {
+    const id = DomainId.create(sessionId);
+    if (!id.isSuccess) return Promise.resolve(null);
+    return this.repository.getById(id.value);
+  }
+}
+
 export class WorkoutSessionMutationUseCases {
   constructor(
     private readonly transactionRunner: TransactionRunner<WorkoutSessionContext>,
