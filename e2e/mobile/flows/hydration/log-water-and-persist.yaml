@@ -22,7 +22,13 @@ appId: com.fitnessapp.dev
     start: 50%,70%
     end: 50%,20%
     duration: 400
-- assertVisible: 'Fluid target progress, 0 mL of 3 L, 0%'
+# The target card is deliberately unlabelled, so its lines and its control
+# reach the accessibility tree individually. Asserting the control is the
+# point: while the card carried a name it was one element and this button
+# could not be seen or tapped at all.
+- assertVisible: '0% complete'
+- assertVisible: '3 L remaining of 3 L'
+- assertVisible: Change daily target
 - scrollUntilVisible:
     element:
       text: Add fluid
@@ -46,4 +52,6 @@ appId: com.fitnessapp.dev
     start: 50%,70%
     end: 50%,20%
     duration: 400
-- assertVisible: 'Fluid target progress, 500 mL of 3 L, 17%'
+- assertVisible: '17% complete'
+- assertVisible: '2.5 L remaining of 3 L'
+- assertVisible: Change daily target

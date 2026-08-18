@@ -7,6 +7,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   EmptyState,
   LoadingIndicator,
   Screen,
@@ -243,7 +244,10 @@ function ProgressSummary({
   const sentences = summarySentences(summary, unitSystem);
   return (
     <Card
-      accessibilityLabel={['Workout progress summary', ...sentences].join(', ')}
+      accessibilityLabel={describeCardContents(
+        'Workout progress summary',
+        sentences,
+      )}
       variant="elevated"
     >
       <AppText variant="heading">Performed summary</AppText>

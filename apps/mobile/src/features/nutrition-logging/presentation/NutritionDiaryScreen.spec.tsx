@@ -1,4 +1,4 @@
-import { Energy, isOk } from '@fitness/domain';
+import { Energy, isOk, type DailyNutritionSummary } from '@fitness/domain';
 import { render, screen, waitFor } from '@testing-library/react-native';
 import { NutritionDiaryScreen } from './NutritionDiaryScreen';
 
@@ -13,6 +13,21 @@ jest.mock('expo-router', () => {
     },
   };
 });
+
+function loader(nutrients: DailyNutritionSummary['nutrients']) {
+  const energy = Energy.create(89, 'kilocalorie');
+  if (!isOk(energy)) throw new Error('Invalid fixture.');
+  return () =>
+    Promise.resolve({
+      getDailyNutrition: {
+        execute: () =>
+          Promise.resolve({
+            entries: [],
+            summary: { energy: energy.value, entryCount: 1, nutrients },
+          }),
+      },
+    });
+}
 
 describe('NutritionDiaryScreen', () => {
   it('shows an accessible empty daily diary', async () => {
@@ -53,5 +68,73 @@ describe('NutritionDiaryScreen', () => {
     expect(
       screen.getByRole('button', { name: 'Add food or beverage' }),
     ).toBeTruthy();
+  });
+
+  it('announces the daily totals it displays', async () => {
+    await render(
+      <NutritionDiaryScreen
+        loadUseCases={loader({
+          carbohydrateGrams: 22.8,
+          fatGrams: 0.3,
+          fiberGrams: 2.6,
+          proteinGrams: 1.1,
+          sodiumMilligrams: 1,
+          sugarGrams: 12.2,
+        })}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('89 kcal')).toBeTruthy());
+    expect(screen.getByText('1 entry')).toBeTruthy();
+    expect(screen.getByText('Protein: 1.1 g')).toBeTruthy();
+    expect(screen.getByText('Sodium: 1 mg')).toBeTruthy();
+    expect(
+      screen.getByLabelText(
+        'Daily nutrition totals, 89 kcal, 1 entry, Protein: 1.1 g, Carbohydrate: 22.8 g, Fat: 0.3 g, Fiber: 2.6 g, Sugar: 12.2 g, Sodium: 1 mg',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('announces the shorter totals when a nutrient is unknown', async () => {
+    await render(
+      <NutritionDiaryScreen
+        loadUseCases={loader({
+          carbohydrateGrams: 22.8,
+          fatGrams: 0.3,
+          fiberGrams: null,
+          proteinGrams: 1.1,
+          sodiumMilligrams: 1,
+          sugarGrams: 12.2,
+        })}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Fiber: Incomplete')).toBeTruthy(),
+    );
+    expect(
+      screen.getByLabelText(
+        'Daily nutrition totals, 89 kcal, 1 entry, Protein: 1.1 g, Carbohydrate: 22.8 g, Fat: 0.3 g, Fiber: Incomplete, Sugar: 12.2 g, Sodium: 1 mg, Incomplete means at least one entry has unknown information for that nutrient.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('announces the error rather than stale totals', async () => {
+    await render(
+      <NutritionDiaryScreen
+        loadUseCases={() => Promise.reject(new Error('unavailable'))}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Nutrition diary error')).toBeTruthy(),
+    );
+    expect(screen.queryByText(/Daily nutrition totals/)).toBeNull();
   });
 });

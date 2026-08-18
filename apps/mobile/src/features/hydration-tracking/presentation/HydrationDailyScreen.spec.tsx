@@ -1,5 +1,10 @@
 import { Volume } from '@fitness/domain';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { HydrationDailyScreen } from './HydrationDailyScreen';
 
 jest.mock('expo-router', () => {
@@ -96,7 +101,43 @@ describe('HydrationDailyScreen', () => {
         'Daily fluid totals, total 4 L, plain water 4 L, other fluids 0 mL, 1 entry',
       ),
     ).toBeTruthy();
-    expect(screen.getByLabelText(/Fluid target progress.*133%/)).toBeTruthy();
+    expect(screen.getByText('Daily fluid target')).toBeTruthy();
     expect(screen.getByText(/Target reached/)).toBeTruthy();
+  });
+
+  it('reaches the change-target control the progress card renders', async () => {
+    const onSetTarget = jest.fn();
+    await render(
+      <HydrationDailyScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getDailyHydration: {
+              execute: () =>
+                Promise.resolve({
+                  entries: [],
+                  summary: {
+                    completionPercentage: 16.7,
+                    entryCount: 1,
+                    otherFluidVolume: volume(0),
+                    plainWaterVolume: volume(500),
+                    remainingVolume: volume(2_500),
+                    targetVolume: volume(3_000),
+                    totalFluidVolume: volume(500),
+                  },
+                }),
+            },
+          })
+        }
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+        onSetTarget={onSetTarget}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('17% complete')).toBeTruthy());
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Change daily target' }),
+    );
+    expect(onSetTarget).toHaveBeenCalledTimes(1);
   });
 });

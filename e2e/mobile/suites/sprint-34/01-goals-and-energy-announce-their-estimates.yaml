@@ -1,0 +1,41 @@
+appId: com.fitnessapp.dev
+name: Goals and energy announce the estimates and target they display
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/profile/create-profile.yaml
+- scrollUntilVisible:
+    element:
+      id: open-goals-energy
+    direction: DOWN
+- tapOn:
+    id: open-goals-energy
+- assertVisible: Goals and energy
+# The estimates card carries an accessibilityLabel, so its metrics never reach
+# the accessibility tree and none of them can be asserted on its own. Before
+# this change the card announced its title alone, so this claim — that the
+# screen shows a BMI, a screening category, and both energy estimates — could
+# not be stated end to end at all. The derived numbers themselves are wildcarded
+# because they follow from the profile fixture and are pinned by unit tests.
+# Off-screen content in a scroll view is absent from the hierarchy rather than
+# merely invisible, and this screen is longer than one viewport, so the card is
+# scrolled to rather than assumed to sit where the header leaves it.
+- scrollUntilVisible:
+    element:
+      text: 'Profile-derived energy estimates,.*'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Profile-derived energy estimates, BMI, .*, Screening category, .*, Estimated BMR, .* kcal/day, Estimated maintenance, .* kcal/day'
+# The target card appears only once a goal type is chosen, and maintaining
+# weight needs no adjustment field, so it is the shortest path to the preview.
+- scrollUntilVisible:
+    element:
+      text: Maintain weight
+    direction: DOWN
+- tapOn: Maintain weight
+- scrollUntilVisible:
+    element:
+      text: 'Calculated daily calorie target,.*'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Calculated daily calorie target, Calculated target, .* kcal/day, Based on estimated maintenance and your selected adjustment. Results are not guaranteed.'

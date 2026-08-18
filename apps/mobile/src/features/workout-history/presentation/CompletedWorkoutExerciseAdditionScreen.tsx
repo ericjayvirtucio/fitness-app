@@ -10,6 +10,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   LoadingIndicator,
   Screen,
   spacing,
@@ -161,7 +162,10 @@ export function CompletedWorkoutExerciseAdditionScreen({
       {selected ? (
         <>
           <Card
-            accessibilityLabel="What this addition changes"
+            accessibilityLabel={describeCardContents(
+              'What this addition changes',
+              [additionSaveExplanation],
+            )}
             variant="outlined"
           >
             <AppText>{additionSaveExplanation}</AppText>

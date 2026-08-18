@@ -78,6 +78,14 @@ groups the bounded local-date range and returns entry counts, energy, macro sums
 and known-value counts. The Progress application layer uses those counts to keep
 unknown optional nutrients distinct from zero and to average only logged days.
 
+The daily totals card is one accessibility element, so its accessible name carries
+the day's energy, entry count, six nutrient lines, and completeness note rather
+than only the title `Daily nutrition totals`. A nutrient the day cannot determine
+reads and announces `Incomplete`, so a shorter announcement claims nothing about
+what is unknown. See
+[Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+
 ## Failure, privacy, and limitations
 
 Validation errors are field-addressable and safe. Read, write, and delete failures

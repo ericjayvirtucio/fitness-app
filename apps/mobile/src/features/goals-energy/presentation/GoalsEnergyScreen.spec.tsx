@@ -90,12 +90,69 @@ describe('GoalsEnergyScreen', () => {
       />,
     );
     expect(await screen.findByText('Goals & energy')).toBeOnTheScreen();
-    expect(screen.getByLabelText(/BMI, 22\.8/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/Estimated BMR,/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/Estimated maintenance,/)).toBeOnTheScreen();
+    expect(screen.getByLabelText('BMI, 22.8')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Estimated BMR, 1,310 kcal/day'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Estimated maintenance, 2,096 kcal/day'),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(/screening classification, not a diagnosis/i),
     ).toBeOnTheScreen();
+  });
+
+  it('announces the estimate card contents it displays', async () => {
+    await render(
+      <GoalsEnergyScreen
+        loadUseCases={() => Promise.resolve(useCases(readyOutcome()))}
+        onBack={jest.fn()}
+        onEditProfile={jest.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Goals & energy')).toBeOnTheScreen();
+    expect(screen.getByText('Estimated BMR')).toBeOnTheScreen();
+    expect(screen.getByText('2,096 kcal/day')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        'Profile-derived energy estimates, BMI, 22.8, Screening category, Healthy weight, Estimated BMR, 1,310 kcal/day, Estimated maintenance, 2,096 kcal/day',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('announces the screening card alone when no energy estimate is available', async () => {
+    const ready = readyOutcome();
+    if (ready.status !== 'ready') throw new Error('Invalid fixture.');
+    await render(
+      <GoalsEnergyScreen
+        loadUseCases={() =>
+          Promise.resolve(
+            useCases({
+              bmi: ready.summary.bmi,
+              reason: DomainError.create(
+                'unsupported-option',
+                'The selected profile option is not supported by this energy equation.',
+                'biologicalSex',
+              ),
+              status: 'calculation-unavailable',
+            }),
+          )
+        }
+        onBack={jest.fn()}
+        onEditProfile={jest.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByText('Energy estimate unavailable'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        'BMI screening result, BMI, 22.8, Screening category, Healthy weight',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText(/Estimated BMR/)).not.toBeOnTheScreen();
   });
 
   it('selects and saves each supported goal type', async () => {

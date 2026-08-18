@@ -299,3 +299,15 @@ excluded.
 
 The repository owner approved the Stage 1 design and authorized staged
 implementation on `feat/completed-workout-correction` on 2026-08-13.
+
+## Amendment: the consequence and summary cards announce their contents
+
+The correction screen's consequence card and the completed detail's summary card
+each carry an `accessibilityLabel`, which makes each one accessibility element, so
+the paragraph stating what a correction changes and both summary totals reached no
+screen reader. Each accessible name now carries the strings its card renders, in
+render order. The identity phrase `What this correction changes` is unchanged on
+the branch that adds a missing set; the appended paragraph disambiguates it in the
+same utterance. No displayed value or sentence changed. See
+[Specification 0034](0034-announced-card-contents.md) and
+[ADR 0024](../docs/decisions/0024-labelled-containers-announce-their-contents.md).

@@ -8,6 +8,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   EmptyState,
   LoadingIndicator,
   Screen,
@@ -94,6 +95,35 @@ export function NutritionDiaryScreen({
   }
 
   const { entries, summary } = state.result;
+  /**
+   * Every total the card states, in the order it reads them. A labelled card is
+   * one accessibility element, so its own name is the only thing announced;
+   * composing the lines and the name from one list is what keeps a day's totals
+   * audible rather than hidden behind the card's title.
+   */
+  const energyLine = formatNutritionEnergy(summary.energy);
+  const entryCountLine = `${summary.entryCount} ${
+    summary.entryCount === 1 ? 'entry' : 'entries'
+  }`;
+  const nutrientLines = [
+    `Protein: ${formatNutrient(summary.nutrients.proteinGrams, 'g')}`,
+    `Carbohydrate: ${formatNutrient(summary.nutrients.carbohydrateGrams, 'g')}`,
+    `Fat: ${formatNutrient(summary.nutrients.fatGrams, 'g')}`,
+    `Fiber: ${formatNutrient(summary.nutrients.fiberGrams, 'g')}`,
+    `Sugar: ${formatNutrient(summary.nutrients.sugarGrams, 'g')}`,
+    `Sodium: ${formatNutrient(summary.nutrients.sodiumMilligrams, 'mg')}`,
+  ];
+  const incompleteExplanation = Object.values(summary.nutrients).some(
+    (value) => value === null,
+  )
+    ? 'Incomplete means at least one entry has unknown information for that nutrient.'
+    : undefined;
+  const totalsLines = [
+    energyLine,
+    entryCountLine,
+    ...nutrientLines,
+    ...(incompleteExplanation ? [incompleteExplanation] : []),
+  ];
   return (
     <Screen
       accessibilityLabel="Nutrition diary"
@@ -134,39 +164,22 @@ export function NutritionDiaryScreen({
         </View>
       </View>
 
-      <Card accessibilityLabel="Daily nutrition totals" variant="outlined">
-        <AppText variant="heading">
-          {formatNutritionEnergy(summary.energy)}
-        </AppText>
-        <AppText color="secondary">
-          {summary.entryCount} {summary.entryCount === 1 ? 'entry' : 'entries'}
-        </AppText>
+      <Card
+        accessibilityLabel={describeCardContents(
+          'Daily nutrition totals',
+          totalsLines,
+        )}
+        variant="outlined"
+      >
+        <AppText variant="heading">{energyLine}</AppText>
+        <AppText color="secondary">{entryCountLine}</AppText>
         <View style={{ gap: spacing.xs }}>
-          <AppText>
-            Protein: {formatNutrient(summary.nutrients.proteinGrams, 'g')}
-          </AppText>
-          <AppText>
-            Carbohydrate:{' '}
-            {formatNutrient(summary.nutrients.carbohydrateGrams, 'g')}
-          </AppText>
-          <AppText>
-            Fat: {formatNutrient(summary.nutrients.fatGrams, 'g')}
-          </AppText>
-          <AppText>
-            Fiber: {formatNutrient(summary.nutrients.fiberGrams, 'g')}
-          </AppText>
-          <AppText>
-            Sugar: {formatNutrient(summary.nutrients.sugarGrams, 'g')}
-          </AppText>
-          <AppText>
-            Sodium: {formatNutrient(summary.nutrients.sodiumMilligrams, 'mg')}
-          </AppText>
+          {nutrientLines.map((line) => (
+            <AppText key={line}>{line}</AppText>
+          ))}
         </View>
-        {Object.values(summary.nutrients).some((value) => value === null) ? (
-          <AppText color="secondary">
-            Incomplete means at least one entry has unknown information for that
-            nutrient.
-          </AppText>
+        {incompleteExplanation ? (
+          <AppText color="secondary">{incompleteExplanation}</AppText>
         ) : null}
       </Card>
 

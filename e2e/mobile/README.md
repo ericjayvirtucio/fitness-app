@@ -88,7 +88,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–31. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–34. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -370,6 +370,16 @@ hidden rerun.
 
 ### Traps this harness has already hit
 
+**A text selector matches the whole string, so a prefix needs its own wildcard.**
+`assertVisible: Choose your own tracking target` fails against an element reading
+`Choose your own tracking target. The app does not calculate or recommend a
+medical intake amount.`, because the selector is a regex matched against the
+element's entire text rather than searched inside it. Sprint 34 lost a run to
+exactly this: the screenshot showed the target screen correctly open, and the
+assertion was still false. Write `'Choose your own tracking target.*'`, the way
+`flows/nutrition/log-one-time-entry.yaml` already writes `'.*E2E Banana.*'`. Read
+the screenshot before concluding that a navigation step did not happen.
+
 **Never give a parameterised flow an `env:` default.** A flow's own `env` block
 is applied after the caller's `runFlow` env and overrides it, so the default
 silently replaces every value a suite passes in and the flow's own assertions
@@ -395,7 +405,32 @@ match the sentence inside it:
 ```
 
 The individual lines remain unassertable, and a negative assertion must be made
-against the card name too, from the viewport where the card renders. Workout
+against the card name too, from the viewport where the card renders.
+
+Since Sprint 34 the same is true of six more cards, so a name assertion is now the
+only way to prove that the completed workout detail shows a set count and a
+workout time, that the correction and addition screens state what they change,
+that the nutrition diary shows a day's totals, that Goals & energy shows a BMI and
+its energy estimates, and that the goal form shows a calculated target. Each name
+is its identity phrase followed by every string the card renders, in render order,
+so match the identity phrase and the one value the claim is about, and wildcard
+values the fixture derives:
+
+```yaml
+- assertVisible: 'Profile-derived energy estimates, BMI, .*, Estimated maintenance, .* kcal/day'
+```
+
+**A card that contains a control must not carry an `accessibilityLabel`, and one
+that does is a product defect rather than a selector problem.** The hydration
+target progress card carried a composed name and a `Change daily target` button,
+so the button was not in the accessibility tree: no flow could tap it, and none
+ever did. The evidence was visible in this directory long before anyone read it —
+its sibling `Set daily target`, in the unlabelled card beside it, is tapped by
+`flows/hydration/log-water-and-persist.yaml`. If a control on screen cannot be
+found by name, check whether an ancestor card is labelled before rewriting the
+selector. That card is unlabelled now, so `flows/hydration/log-water-and-persist.yaml`
+asserts its visible progress lines and its control rather than the name that used
+to stand in for them. Workout
 counts are still worth proving on the Progress tab, whose values are plain text,
 and a specific workout through its own history card label or its completed
 detail.

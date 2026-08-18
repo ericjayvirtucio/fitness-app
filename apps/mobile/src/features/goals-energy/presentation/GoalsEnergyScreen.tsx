@@ -1,4 +1,4 @@
-import { isErr, type GoalConfiguration } from '@fitness/domain';
+import { isErr, type BmiResult, type GoalConfiguration } from '@fitness/domain';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';
@@ -7,13 +7,17 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   Divider,
   LoadingIndicator,
   Screen,
   SectionHeader,
   spacing,
 } from '../../../design-system';
-import type { EnergySummaryOutcome } from '../application/energy-summary';
+import type {
+  EnergySummary,
+  EnergySummaryOutcome,
+} from '../application/energy-summary';
 import type { SaveGoalInput } from '../application/save-goal-use-case';
 import { GoalConfigurationForm } from './GoalConfigurationForm';
 import {
@@ -46,11 +50,23 @@ type GoalsEnergyScreenProps = Readonly<{
   onEditProfile: () => void;
 }>;
 
-function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
+type MetricLine = Readonly<{ label: string; value: string }>;
+
+/**
+ * The one sentence a metric is read and announced by. A labelled card is one
+ * accessibility element, so a metric nested inside one never reaches the
+ * accessibility tree on its own; composing the card's name from the same list
+ * the metrics are rendered from is what keeps these numbers audible.
+ */
+function describeMetric({ label, value }: MetricLine): string {
+  return `${label}, ${value}`;
+}
+
+function Metric({ label, value }: MetricLine) {
   return (
     <View
       accessible
-      accessibilityLabel={`${label}, ${value}`}
+      accessibilityLabel={describeMetric({ label, value })}
       style={{ gap: spacing.xs }}
     >
       <AppText color="secondary" variant="label">
@@ -58,6 +74,62 @@ function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
       </AppText>
       <AppText variant="heading">{value}</AppText>
     </View>
+  );
+}
+
+function BmiScreeningCard({ bmi }: Readonly<{ bmi: BmiResult }>) {
+  const metrics: readonly MetricLine[] = [
+    { label: 'BMI', value: formatBmi(bmi.value) },
+    { label: 'Screening category', value: formatBmiCategory(bmi.category) },
+  ];
+  return (
+    <Card
+      accessibilityLabel={describeCardContents(
+        'BMI screening result',
+        metrics.map(describeMetric),
+      )}
+      variant="outlined"
+    >
+      {metrics.map((metric) => (
+        <Metric key={metric.label} {...metric} />
+      ))}
+    </Card>
+  );
+}
+
+function EnergyEstimatesCard({
+  summary,
+}: Readonly<{ summary: EnergySummary }>) {
+  const screening: readonly MetricLine[] = [
+    { label: 'BMI', value: formatBmi(summary.bmi.value) },
+    {
+      label: 'Screening category',
+      value: formatBmiCategory(summary.bmi.category),
+    },
+  ];
+  const estimates: readonly MetricLine[] = [
+    { label: 'Estimated BMR', value: formatDailyEnergy(summary.restingEnergy) },
+    {
+      label: 'Estimated maintenance',
+      value: formatDailyEnergy(summary.maintenanceEnergy),
+    },
+  ];
+  return (
+    <Card
+      accessibilityLabel={describeCardContents(
+        'Profile-derived energy estimates',
+        [...screening, ...estimates].map(describeMetric),
+      )}
+      variant="outlined"
+    >
+      {screening.map((metric) => (
+        <Metric key={metric.label} {...metric} />
+      ))}
+      <Divider />
+      {estimates.map((metric) => (
+        <Metric key={metric.label} {...metric} />
+      ))}
+    </Card>
   );
 }
 
@@ -163,13 +235,7 @@ export function GoalsEnergyScreen({
           Goals & energy
         </AppText>
         {state.outcome.bmi ? (
-          <Card accessibilityLabel="BMI screening result" variant="outlined">
-            <Metric label="BMI" value={formatBmi(state.outcome.bmi.value)} />
-            <Metric
-              label="Screening category"
-              value={formatBmiCategory(state.outcome.bmi.category)}
-            />
-          </Card>
+          <BmiScreeningCard bmi={state.outcome.bmi} />
         ) : null}
         <Card variant="filled">
           <AppText variant="heading">Energy estimate unavailable</AppText>
@@ -208,25 +274,7 @@ export function GoalsEnergyScreen({
       </View>
       <View style={{ gap: spacing.md }}>
         <SectionHeader title="Your estimates" />
-        <Card
-          accessibilityLabel="Profile-derived energy estimates"
-          variant="outlined"
-        >
-          <Metric label="BMI" value={formatBmi(summary.bmi.value)} />
-          <Metric
-            label="Screening category"
-            value={formatBmiCategory(summary.bmi.category)}
-          />
-          <Divider />
-          <Metric
-            label="Estimated BMR"
-            value={formatDailyEnergy(summary.restingEnergy)}
-          />
-          <Metric
-            label="Estimated maintenance"
-            value={formatDailyEnergy(summary.maintenanceEnergy)}
-          />
-        </Card>
+        <EnergyEstimatesCard summary={summary} />
         <AppText color="secondary">
           BMI is a screening classification, not a diagnosis. It does not
           distinguish body fat from muscle or bone.

@@ -5,7 +5,11 @@ export {
   type AppIconSize,
 } from './components/AppIcon';
 export { AppText, type TextVariant } from './components/AppText';
-export { Card, type CardVariant } from './components/Card';
+export {
+  Card,
+  describeCardContents,
+  type CardVariant,
+} from './components/Card';
 export { Divider } from './components/Divider';
 export { EmptyState } from './components/EmptyState';
 export { LoadingIndicator } from './components/LoadingIndicator';
