@@ -166,6 +166,7 @@ export function CompletedWorkoutSetCorrectionScreen({
           {formatPlannedWorkoutResult(
             exercise.plannedPrescriptionSnapshot,
             unitSystem,
+            exercise.loggingModeSnapshot,
           )}
         </AppText>
       ) : null}
@@ -173,7 +174,11 @@ export function CompletedWorkoutSetCorrectionScreen({
       {set ? (
         <AppText>
           Currently recorded set {set.position + 1}:{' '}
-          {formatWorkoutResult(set.result, unitSystem)}
+          {formatWorkoutResult(
+            set.result,
+            unitSystem,
+            exercise.loggingModeSnapshot,
+          )}
         </AppText>
       ) : null}
 
