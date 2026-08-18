@@ -13,9 +13,22 @@ appId: com.fitnessapp.dev
 - tapOn: Start Empty Workout
 - assertVisible: Workout
 - tapOn: Add Exercise
+# The picker lists recently performed exercises first as soon as one completed
+# workout exists, and falls back to the whole catalog only before that. This
+# flow is composed both ways — alone in the Sprint 32 suite, and after an
+# assisted workout in regression — and an exercise that has never been performed
+# is absent from the recents list, so it is searched for rather than scrolled to.
+- tapOn:
+    id: exercise-picker-search
+- inputText: E2E Weighted Dip
+# The text keyboard covers the results, and scrolling with it open drags across
+# the keys. A short drag dismisses it, because the screen sets
+# keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
 # The picker carries a filter control between its search field and its cards, so
-# the first card sits lower than an unfiltered list would suggest. Scroll to the
-# card rather than tapping where it used to sit.
+# the first card sits lower than an unfiltered list would suggest.
 - scrollUntilVisible:
     element:
       text: Add E2E Weighted Dip
