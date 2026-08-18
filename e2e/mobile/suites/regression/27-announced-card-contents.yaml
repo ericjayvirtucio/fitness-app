@@ -34,4 +34,9 @@ name: Announced card contents
     direction: DOWN
 - tapOn:
     id: open-goals-energy
+- scrollUntilVisible:
+    element:
+      text: 'Profile-derived energy estimates,.*'
+    direction: DOWN
+    centerElement: true
 - assertVisible: 'Profile-derived energy estimates, BMI, .*, Estimated maintenance, .* kcal/day'
