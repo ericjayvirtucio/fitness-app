@@ -424,6 +424,16 @@ them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
 
+**What a workout recorded changes how tall Workout History is.** The performed
+summary adds a "recorded load volume" line only for external and added load;
+assisted and bodyweight work never produce one, because assistance is excluded
+from load volume by design. That single extra line pushed "Recent workouts" and
+the first `completed-workout-card` below the fold, and Sprint 32 lost a scenario
+to it after the same shared flow had passed twice in the same suite against
+assisted data. `flows/workout/open-completed-workout.yaml` now scrolls to the
+card. Height that depends on the fixture is the same trap as height that depends
+on the build — vary the data, not just the screen.
+
 **A drag cannot dismiss the keyboard over a list with nothing left to scroll.**
 `keyboardDismissMode="on-drag"` fires on a scroll drag, so the short swipe every
 entry flow uses works only while the content below the field can still move.
