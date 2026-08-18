@@ -86,9 +86,17 @@ action. It is added at the end, every exercise already in the workout keeps its
 identity, order, and captured detail, and the workout's own start and completion
 times never move. The application does not claim to know the work happened — the
 interface asks the person to record what they performed, and records their claim.
-With addition, the correction lifecycle is complete: a completed workout's
-results, its exercises, and the workout itself can each be corrected, reduced,
-extended, or deleted by their owner.
+With addition, a completed workout's results, its exercises, and the workout
+itself can each be corrected, reduced, extended, or deleted by their owner.
+
+That left one thing about a workout its owner still could not touch: what it was
+called. Every workout started empty was named `Workout`, so history listed rows
+that differed only by date and a personal record announced its evidence as
+`in Workout`, a claim that names nothing. A workout of either status can now be
+renamed by the person who performed it, and every surface that shows a workout's
+name shows the chosen one — including the evidence beneath a personal record. A
+name is a label its owner chooses, not a fact the workout observed, so renaming
+is not correction and changes no recorded result, total, time, record, or tie.
 
 Every one of those capabilities assumed the person already had exercises to
 train with, and a new installation has none. The Exercise Library's first screen
@@ -125,6 +133,7 @@ SQLite is the planned local persistence technology; cloud synchronization comes 
 - **Observability:** future services expose actionable, privacy-safe diagnostics without logging sensitive data.
 - **Portability:** users can export their information in documented formats, restore it offline into an installation that holds no information yet, replace everything stored on the device with a validated export in one all-or-nothing operation, and delete everything stored on the device in one deliberate, verified action, and
   correct a recorded set inside a completed workout, remove one exercise from it,
-  add one exercise that was performed but never logged, or delete one completed
-  workout, instead of losing everything to fix one mistake.
+  add one exercise that was performed but never logged, rename the workout they
+  performed, or delete one completed workout, instead of losing everything to fix
+  one mistake.
 - **Scalability:** architecture evolves from demonstrated constraints rather than premature distribution.
