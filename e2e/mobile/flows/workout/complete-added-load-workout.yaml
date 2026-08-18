@@ -21,12 +21,16 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: exercise-picker-search
 - inputText: E2E Weighted Dip
-# The text keyboard covers the results, and scrolling with it open drags across
-# the keys. A short drag dismisses it, because the screen sets
-# keyboardDismissMode="on-drag".
-- swipe:
-    start: 50%, 40%
-    end: 50%, 35%
+# Dismissed with the return key rather than with the short drag other flows use.
+# `keyboardDismissMode="on-drag"` fires on a scroll drag, and a picker filtered
+# down to one card has nothing left to scroll, so the drag is swallowed and the
+# keyboard stays up. It then covers the only result: Maestro's hierarchy has no
+# notion of the keyboard, so the card reads as fully visible, the tap aimed at it
+# lands on the QuickType row instead, and the suggestion is appended to the
+# search field that still has focus — "E2E Weighted Dip" became
+# "E2E Weighted Dipping", the filter matched nothing, and the exercise was never
+# added.
+- pressKey: Enter
 # The picker carries a filter control between its search field and its cards, so
 # the first card sits lower than an unfiltered list would suggest.
 - scrollUntilVisible:

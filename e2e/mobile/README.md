@@ -424,6 +424,20 @@ them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
 
+**A drag cannot dismiss the keyboard over a list with nothing left to scroll.**
+`keyboardDismissMode="on-drag"` fires on a scroll drag, so the short swipe every
+entry flow uses works only while the content below the field can still move.
+Searching the exercise picker filters it to one card, which leaves nothing to
+scroll, so the swipe is swallowed and the keyboard stays up over the only
+result. Maestro's hierarchy does not model the keyboard: `scrollUntilVisible`
+reports the covered card 100% visible and `tapOn` reports COMPLETED, while the
+tap actually lands on the QuickType suggestion row and appends a word to the
+field that still has focus. Sprint 32 lost a scenario to this — "E2E Weighted
+Dip" became "E2E Weighted Dipping" and the exercise was never added. Dismiss a
+text keyboard with `pressKey: Enter` after searching, rather than with the drag
+that works on longer screens. The number-pad form of this trap is separate and
+still has no dismiss action.
+
 **Qualifying a recorded set makes every set row taller.** Sprint 32 changed
 `Set 1: 20 kg × 8` to `Set 1: Assistance 20 kg × 8` for assisted work and
 `Set 1: Added 20 kg × 8` for added load. The set row wraps rather than truncates,
