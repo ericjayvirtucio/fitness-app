@@ -9,6 +9,7 @@ import type {
   ExercisePersonalRecord,
   ExercisePersonalRecords,
 } from '../application/exercise-personal-records';
+import type { ExercisePerformanceItem } from '../application/workout-history-models';
 import { ExercisePerformanceHistoryScreen } from './ExercisePerformanceHistoryScreen';
 
 jest.mock('expo-router', () => ({
@@ -31,7 +32,7 @@ function sessionId() {
   return result.value;
 }
 
-const performanceItem = {
+const performanceItem: ExercisePerformanceItem = {
   actualSetCount: 2,
   distanceMillimeters: null,
   durationSeconds: null,
@@ -75,7 +76,7 @@ const leastAssistance: ExercisePersonalRecord = {
 function useCasesFor(
   options: Readonly<{
     onOpenRecords?: () => Promise<ExercisePersonalRecords | null>;
-    performance?: Partial<typeof performanceItem>;
+    performance?: Partial<ExercisePerformanceItem>;
     records?: ExercisePersonalRecords;
     unitSystem?: UnitSystem;
   }> = {},

@@ -2,7 +2,7 @@ import type {
   DatabaseConnection,
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
-import { DomainId } from '@fitness/domain';
+import { DomainId, exerciseLoggingModes } from '@fitness/domain';
 import {
   SyntheticWorkoutHistory,
   syntheticExerciseIds,
@@ -325,5 +325,157 @@ describe('WorkoutHistorySqliteRepository performed exercises', () => {
     ).listPerformedExercises(10);
 
     expect(performed.map((item) => item.exerciseNameSnapshot)).toEqual(['Run']);
+  });
+});
+
+/**
+ * Which logging modes contribute to recorded load volume is a claim two screens
+ * now state in words, so it is proven against the domain's own vocabulary on a
+ * real engine rather than against a recorded statement. A ninth logging mode
+ * fails here until somebody decides whether it counts as weighted work.
+ */
+describe('WorkoutHistorySqliteRepository recorded load volume eligibility', () => {
+  const eligibleLoggingModes = [
+    'external-load-and-repetitions',
+    'bodyweight-plus-load-and-repetitions',
+  ];
+
+  const setFor = Object.freeze({
+    'assistance-and-repetitions': { repetitions: 8, resistanceGrams: 20_000 },
+    'bodyweight-and-repetitions': { repetitions: 8 },
+    'bodyweight-plus-load-and-repetitions': {
+      repetitions: 8,
+      resistanceGrams: 20_000,
+    },
+    distance: { distanceMillimeters: 5_000_000 },
+    'distance-and-duration': {
+      distanceMillimeters: 5_000_000,
+      durationSeconds: 900,
+    },
+    duration: { durationSeconds: 90 },
+    'external-load-and-repetitions': {
+      repetitions: 8,
+      resistanceGrams: 20_000,
+    },
+    repetitions: { repetitions: 8 },
+  });
+
+  const wholeOfTime = {
+    endLocalCalendarDate: '2026-12-31',
+    startLocalCalendarDate: '2026-01-01',
+  };
+
+  let history: SyntheticWorkoutHistory;
+
+  beforeEach(async () => {
+    history = await SyntheticWorkoutHistory.create();
+  });
+
+  afterEach(() => {
+    history.close();
+  });
+
+  it.each(exerciseLoggingModes)(
+    'sums %s only when it records weighted work',
+    async (loggingMode) => {
+      await history.store({
+        dayIndex: 0,
+        exercises: [{ loggingMode, sets: [setFor[loggingMode]] }],
+      });
+
+      const summary = await new WorkoutHistorySqliteRepository(
+        history.database,
+      ).summarizeCompletedRange(wholeOfTime);
+
+      expect(summary.recordedLoadVolumeGramRepetitions).toBe(
+        eligibleLoggingModes.includes(loggingMode) ? 160_000 : null,
+      );
+      expect(summary.actualSetCount).toBe(1);
+    },
+  );
+
+  it('tells a period holding only ineligible work from a period holding none', async () => {
+    await history.store({
+      dayIndex: 0,
+      exercises: [
+        {
+          loggingMode: 'assistance-and-repetitions',
+          sets: [setFor['assistance-and-repetitions']],
+        },
+      ],
+    });
+    const repository = new WorkoutHistorySqliteRepository(history.database);
+
+    const ineligible = await repository.summarizeCompletedRange(wholeOfTime);
+    const empty = await repository.summarizeCompletedRange({
+      endLocalCalendarDate: '2025-12-31',
+      startLocalCalendarDate: '2025-01-01',
+    });
+
+    expect(ineligible.recordedLoadVolumeGramRepetitions).toBeNull();
+    expect(ineligible.actualSetCount).toBe(1);
+    expect(empty.recordedLoadVolumeGramRepetitions).toBeNull();
+    expect(empty.actualSetCount).toBe(0);
+    expect(empty.completedWorkoutCount).toBe(0);
+  });
+
+  it('leaves the eligible total unchanged when a period also holds ineligible work', async () => {
+    const repository = new WorkoutHistorySqliteRepository(history.database);
+    await history.store({
+      dayIndex: 0,
+      exercises: [
+        {
+          loggingMode: 'external-load-and-repetitions',
+          sets: [setFor['external-load-and-repetitions']],
+        },
+      ],
+    });
+    const weightedOnly = await repository.summarizeCompletedRange(wholeOfTime);
+
+    await history.store({
+      dayIndex: 1,
+      exercises: [
+        {
+          loggingMode: 'assistance-and-repetitions',
+          sets: [setFor['assistance-and-repetitions']],
+        },
+        {
+          loggingMode: 'bodyweight-and-repetitions',
+          sets: [setFor['bodyweight-and-repetitions']],
+        },
+      ],
+    });
+    const mixed = await repository.summarizeCompletedRange(wholeOfTime);
+
+    expect(mixed.recordedLoadVolumeGramRepetitions).toBe(
+      weightedOnly.recordedLoadVolumeGramRepetitions,
+    );
+    expect(mixed.actualSetCount).toBe(3);
+    expect(mixed.repetitions).toBe(24);
+  });
+
+  it('excludes an ineligible mode from a per-exercise total the same way', async () => {
+    await history.store({
+      dayIndex: 0,
+      exercises: [
+        {
+          loggingMode: 'assistance-and-repetitions',
+          name: 'Assisted Pull-up',
+          sets: [setFor['assistance-and-repetitions']],
+        },
+      ],
+    });
+    const definitionId = DomainId.create(syntheticExerciseIds.pushUp);
+    if (!definitionId.isSuccess) throw new Error('Invalid fixture');
+
+    const page = await new WorkoutHistorySqliteRepository(
+      history.database,
+    ).listExercisePerformancePage(definitionId.value, {});
+
+    expect(page.items[0]).toMatchObject({
+      loggingModeSnapshot: 'assistance-and-repetitions',
+      maximumResistanceGrams: 20_000,
+      recordedLoadVolumeGramRepetitions: null,
+    });
   });
 });
