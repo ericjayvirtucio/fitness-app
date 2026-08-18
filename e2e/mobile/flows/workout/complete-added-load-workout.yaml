@@ -1,0 +1,52 @@
+appId: com.fitnessapp.dev
+---
+# Completes one workout with a single recorded added-load set, through the same
+# public screens a person uses. It mirrors `complete-assisted-workout.yaml`
+# exactly, because the two exist to be compared: the same mass under a different
+# logging mode must produce a different sentence.
+#
+# ADDED_WEIGHT and REPETITIONS are deliberately required rather than defaulted. A
+# flow's own `env` block is applied after the caller's `runFlow` env and
+# overrides it, so a default silently replaces every value a suite passes in.
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+# The picker carries a filter control between its search field and its cards, so
+# the first card sits lower than an unfiltered list would suggest. Scroll to the
+# card rather than tapping where it used to sit.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Weighted Dip
+    direction: DOWN
+    centerElement: true
+- tapOn: Add E2E Weighted Dip
+- tapOn: Add Set for E2E Weighted Dip
+# Filled bottom-up, and that is not a style choice. The mass field sits above
+# repetitions, so filling top-down leaves the number pad covering the
+# repetitions field: the tap meant for it lands on a key instead, and the digit
+# is appended to the mass field that still has focus. Reaching the higher field
+# second means the pad is never between a tap and its target.
+#
+# Both fields are reached by identifier rather than by text, because the mass
+# field's visible label and its accessible name are the same string.
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: ${REPETITIONS}
+- tapOn:
+    id: workout-set-resistance-input
+- inputText: ${ADDED_WEIGHT}
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content area
+# does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- tapOn: Save Set
+- assertVisible: 'Set 1: Added ${ADDED_WEIGHT} kg × ${REPETITIONS}'
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0

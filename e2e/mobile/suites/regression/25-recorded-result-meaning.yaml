@@ -1,0 +1,26 @@
+appId: com.fitnessapp.dev
+name: Recorded result meaning
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow: ../../flows/exercise/create-added-load-exercise.yaml
+# The same mass under two logging modes, each asserted in the active session by
+# the flow that records it. Sprint 32's own suite proves one mode at a time;
+# this scenario is the one that proves the two are not the same sentence.
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- runFlow:
+    file: ../../flows/workout/complete-added-load-workout.yaml
+    env:
+      ADDED_WEIGHT: '20'
+      REPETITIONS: '8'
+# The most recent completed workout is the added-load one, and it holds a single
+# exercise with a single set, so the negative assertion is made from the viewport
+# where the assisted sentence would render if the two collapsed.
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: Added 20 kg × 8'
+- assertNotVisible: 'Performed set 1: Assistance 20 kg × 8'

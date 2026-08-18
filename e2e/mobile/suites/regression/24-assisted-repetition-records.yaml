@@ -18,4 +18,4 @@ name: Assisted repetition records
 - assertVisible: 'Least recorded assistance in a set, 15 kilograms, .*'
 - tapOn:
     id: personal-record-card
-- assertVisible: 'Performed set 1: 15 kg × 6'
+- assertVisible: 'Performed set 1: Assistance 15 kg × 6'

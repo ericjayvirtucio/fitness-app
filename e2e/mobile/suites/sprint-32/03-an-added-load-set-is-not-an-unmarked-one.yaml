@@ -1,0 +1,17 @@
+appId: com.fitnessapp.dev
+name: An added-load set says added rather than reading as weight lifted
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-added-load-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-added-load-workout.yaml
+    env:
+      ADDED_WEIGHT: '20'
+      REPETITIONS: '8'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: 'Performed set 1: Added 20 kg × 8'
+# The completed detail holds one exercise with one set, so this negative
+# assertion is made from the viewport where the unmarked sentence would render
+# if the qualifier had been dropped.
+- assertNotVisible: 'Performed set 1: 20 kg × 8'

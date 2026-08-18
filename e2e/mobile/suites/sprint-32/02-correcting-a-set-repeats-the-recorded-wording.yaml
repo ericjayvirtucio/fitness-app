@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: Correcting a set repeats the wording the completed workout showed
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-assisted-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-assisted-workout.yaml
+    env:
+      ASSISTANCE: '20'
+      REPETITIONS: '8'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+# The correction control is read by its accessible label, not by its visible
+# text, and a set row that now carries a qualifier is taller than it was, so the
+# control below it is scrolled to rather than tapped where it sat.
+- scrollUntilVisible:
+    element:
+      text: Correct recorded set 1 for E2E Assisted Pull-up
+    direction: DOWN
+    centerElement: true
+- tapOn: Correct recorded set 1 for E2E Assisted Pull-up
+- assertVisible: Correct recorded set
+# The screen where somebody decides what a number should become is the screen
+# where an unqualified mass is most expensive to misread.
+- assertVisible: 'Currently recorded set 1: Assistance 20 kg × 8'
+# The entry surface below states the same meaning in its own label. Maestro
+# reads a text selector as a regular expression, so the label's parentheses are
+# escaped rather than left to match as a group.
+- assertVisible: 'Assistance \(kg\)'

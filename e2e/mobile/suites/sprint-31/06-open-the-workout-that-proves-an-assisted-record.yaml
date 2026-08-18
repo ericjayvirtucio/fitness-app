@@ -12,6 +12,6 @@ name: An assisted record opens the completed workout that proves it
 - runFlow: ../../flows/workout/open-assisted-exercise-personal-records.yaml
 - tapOn:
     id: personal-record-card
-- assertVisible: 'Performed set 1: 20 kg × 8'
+- assertVisible: 'Performed set 1: Assistance 20 kg × 8'
 # A completed workout, not the active session the set was recorded in.
 - assertNotVisible: Finish Workout

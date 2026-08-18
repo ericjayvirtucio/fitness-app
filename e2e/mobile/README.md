@@ -303,6 +303,19 @@ form renders.
 It fills **repetitions first and assistance second**, which is the set form's
 bottom-up order and not a preference — see the trap below.
 
+Sprint 32 added the added-load pair, `flows/exercise/create-added-load-exercise.yaml`
+and `flows/workout/complete-added-load-workout.yaml`, which mirror the assisted
+pair step for step. They exist to be compared with it: the same twenty kilograms
+under a different logging mode must produce a different sentence, and a mirrored
+flow makes the mode the only difference between the two runs. The added-load
+definition is authored on "Bodyweight" equipment because the domain restricts
+"Added weight + reps" to it, exactly as it restricts "Assistance + reps" to
+machine, resistance band, or other.
+
+Both flows assert the active session's own sentence before finishing, so a
+scenario that also opens completed history proves the same wording twice without
+a second recording.
+
 Records are reached by name, and the assisted exercise has its own entry flow,
 `flows/workout/open-assisted-exercise-personal-records.yaml`. A second flow
 rather than a parameter on the existing one: that flow is composed by eleven
@@ -410,6 +423,17 @@ shared workout flows tapped `Add E2E Push-up` where it used to sit, and between
 them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
+
+**Qualifying a recorded set makes every set row taller.** Sprint 32 changed
+`Set 1: 20 kg × 8` to `Set 1: Assistance 20 kg × 8` for assisted work and
+`Set 1: Added 20 kg × 8` for added load. The set row wraps rather than truncates,
+so the longer sentence can take a second line and push the Edit, Delete, and
+Correct controls beside and below it further down — on three screens that already
+list many sets. This is the changed-height class in the direction that has broken
+runs before, and it is why every Sprint 32 scenario scrolls to a control below a
+set row rather than tapping where it sat. Only the two marked modes grow;
+`external-load-and-repetitions` is deliberately unchanged, which is what keeps
+every pre-existing weighted assertion valid.
 
 **A record card replaces the sentence that stood in for it, and the screen grows.**
 Sprint 31 gave assisted work a personal record, so an exercise that used to show
