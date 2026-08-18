@@ -1,0 +1,13 @@
+appId: com.fitnessapp.dev
+---
+# Reaches Workout History the way the product does, and stops there. The
+# performed summary sits above the completed cards, so a scenario asserting what
+# a total covers needs the screen rather than a workout on it.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History

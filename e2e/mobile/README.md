@@ -382,12 +382,23 @@ accessibility tree Maestro reads. The text is on screen and the assertion is
 still false. Assert the card's own label, or assert content that lives outside
 it.
 
-The Workout History summary is the trap's sharpest edge: every derived number it
+The Workout History summary was the trap's sharpest edge: every derived number it
 shows — completed workouts, actual sets, performed exercises, workout time,
-repetitions, volume — is inside `Workout progress summary` and is therefore
-unassertable. Assert workout counts on the Progress tab, whose values are plain
-text, and prove a specific workout through its own history card label or through
-its completed detail.
+repetitions, volume — sits inside `Workout progress summary`, so none of those
+lines can be asserted on its own. Since Sprint 33 the card's own name carries
+every sentence it displays, because a card that announces only its title
+announces none of its numbers to a screen reader either. Assert the card name and
+match the sentence inside it:
+
+```yaml
+- assertVisible: 'Workout progress summary,.*160 kg-reps recorded load volume from weighted sets'
+```
+
+The individual lines remain unassertable, and a negative assertion must be made
+against the card name too, from the viewport where the card renders. Workout
+counts are still worth proving on the Progress tab, whose values are plain text,
+and a specific workout through its own history card label or its completed
+detail.
 
 **Workout History is taller than one viewport.** The summary card and the period
 controls push "Recent workouts", the completed cards, and the empty state below
@@ -424,15 +435,27 @@ them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
 
-**What a workout recorded changes how tall Workout History is.** The performed
-summary adds a "recorded load volume" line only for external and added load;
-assisted and bodyweight work never produce one, because assistance is excluded
-from load volume by design. That single extra line pushed "Recent workouts" and
-the first `completed-workout-card` below the fold, and Sprint 32 lost a scenario
-to it after the same shared flow had passed twice in the same suite against
-assisted data. `flows/workout/open-completed-workout.yaml` now scrolls to the
-card. Height that depends on the fixture is the same trap as height that depends
-on the build — vary the data, not just the screen.
+**What a workout recorded changed how tall Workout History is.** The performed
+summary used to add a "recorded load volume" line only for external and added
+load; assisted and bodyweight work never produced one, because assistance is
+excluded from load volume by design. That single extra line pushed "Recent
+workouts" and the first `completed-workout-card` below the fold, and Sprint 32
+lost a scenario to it after the same shared flow had passed twice in the same
+suite against assisted data. Height that depends on the fixture is the same trap
+as height that depends on the build — vary the data, not just the screen.
+
+Sprint 33 closed this particular instance by stating the dimension in both
+directions: a period that recorded any set now renders either the covered total
+or `No recorded load volume from weighted sets`, so this line no longer changes
+the screen's height with the data. Closing it cost height in the other
+direction — every reps-only, assisted, bodyweight, duration, and distance
+fixture gained a line it never had — which is why
+`flows/workout/complete-and-review-history.yaml` now scrolls to the completed
+card it used to tap where it sat. `flows/workout/open-completed-workout.yaml`
+already scrolled and was safe in both directions. The remaining lines still
+appear conditionally: repetitions, performed duration, and performed distance
+each render only when the period recorded that dimension, so the card's height
+still varies with the fixture and anything below it still needs scrolling to.
 
 **A drag cannot dismiss the keyboard over a list with nothing left to scroll.**
 `keyboardDismissMode="on-drag"` fires on a scroll drag, so the short swipe every

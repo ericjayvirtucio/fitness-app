@@ -11,12 +11,13 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Workout History
 - assertVisible: Workout History
-# Workout History is taller than one viewport, and how much taller depends on
-# what was recorded: a workout carrying external or added load adds a "recorded
-# load volume" line to the performed summary, which assisted and bodyweight work
-# never produce. That one extra line is enough to push "Recent workouts" and the
-# first card below the fold, so the card is scrolled to rather than tapped where
-# a shorter summary leaves it. Scrolling is a no-op when it is already visible.
+# Workout History is taller than one viewport. The performed summary now states
+# its recorded load volume in both directions — the covered total, or the
+# sentence saying there is none — so the summary is one line tall for this
+# dimension whatever was recorded, and no longer changes height with the
+# fixture. It is still tall enough to push "Recent workouts" and the first card
+# below the fold, so the card is scrolled to rather than tapped where it sits.
+# Scrolling is a no-op when it is already visible.
 - scrollUntilVisible:
     element:
       id: completed-workout-card

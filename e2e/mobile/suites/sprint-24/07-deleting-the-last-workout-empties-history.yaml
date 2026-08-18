@@ -14,9 +14,10 @@ name: Deleting the last completed workout leaves an empty history
     env:
       WORKOUT_NAME: Workout
 # The empty state sits below the summary and the period controls, so it is off
-# screen until history is scrolled. The summary's own "0 completed workouts" is
-# not assertable: that card carries an accessibilityLabel, so its numbers never
-# reach the accessibility tree Maestro reads. Progress states the count instead.
+# screen until history is scrolled. The summary's own "0 completed workouts"
+# line is not assertable: that card carries an accessibilityLabel, so its lines
+# never reach the accessibility tree Maestro reads, and only the card's own name
+# can be matched. Progress states the count as plain text instead.
 - scrollUntilVisible:
     element:
       text: No completed workouts yet
