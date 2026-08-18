@@ -11,7 +11,13 @@ appId: com.fitnessapp.dev
 - assertVisible: Resume Workout
 - tapOn: Resume Workout
 - tapOn: Discard Workout
+# The alert's own option, which Maestro enumerates before the screen behind it —
+# the same index every other confirmation in this suite uses. This was `index: 1`
+# and therefore always resolved to the screen's own button; it only ever passed
+# because that button's coordinates happened to sit under the alert's confirm
+# button. Once the naming control moved the button lower, the same tap landed on
+# the backdrop, the workout survived, and the coincidence was over.
 - tapOn:
     text: Discard Workout
-    index: 1
+    index: 0
 - assertVisible: Start Empty Workout

@@ -625,6 +625,17 @@ visible. This is the same trap a taller exercise picker set earlier: a flow that
 worked against a shorter screen is not evidence that it works against a taller
 one.
 
+**An alert's confirm option is `index: 0`, not `index: 1`.** Maestro enumerates
+the alert before the screen behind it, so when a confirmation repeats the words
+of the control that opened it, the alert's own option comes first. Every
+confirmation here uses `index: 0`; `flows/workout/empty-session-lifecycle.yaml`
+used `index: 1` and so had always been tapping the screen's own "Discard Workout"
+button, passing only because that button's coordinates happened to fall under the
+alert's confirm button. Sprint 35 moved the button roughly one row lower, the same
+tap landed on the backdrop instead, and the workout survived the discard. **A
+positional selector that happens to overlap the right target is not a working
+selector; it is a coincidence waiting for a layout change.**
+
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the
 button by its exact text and let Maestro's full-match semantics separate them,
