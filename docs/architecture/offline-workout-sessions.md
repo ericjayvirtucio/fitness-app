@@ -53,6 +53,15 @@ and assistance record positive canonical `Mass` plus repetitions; the snapshotte
 mode preserves their meaning. Duration and distance reuse canonical `Duration`
 seconds and `Length` millimeters. Bodyweight sets do not infer profile mass.
 
+Because those three modes share one result variant, the captured mode is also
+what every screen words the result from. `formatWorkoutResult` and
+`formatPlannedWorkoutResult` take it as a required parameter and mark the two
+modes whose mass is not the mass lifted: `Assistance 20 kg × 8` and
+`Added 20 kg × 8`, against the unmarked `20 kg × 8`. The qualifier leads, so a
+row truncated at the largest accessible text size keeps its meaning. The
+vocabulary is the entry surfaces' own, and no meaning is written to the set row.
+See [Specification 0032](../../specs/0032-recorded-result-meaning.md).
+
 Exercises and sets use zero-based contiguous positions and display one-based
 numbers. Adds append; deletes compact later positions transactionally; edits keep
 identity and position. Quick-entry values remain UI drafts until Save succeeds.
