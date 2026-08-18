@@ -46,6 +46,33 @@ export function formatRecordedLoadVolume(
   return `${formatNumber(massIn(gramRepetitions, unitSystem))} ${unitSystem === 'metric' ? 'kg-reps' : 'lb-reps'}`;
 }
 
+/**
+ * Recorded load volume sums external load and added bodyweight load and nothing
+ * else, so the sentence carrying it states what it covers rather than leaving a
+ * reader to remember how each exercise was configured.
+ *
+ * The qualifier is unconditional because it is true whether or not the period
+ * also holds assisted, bodyweight, duration, or distance work. Saying "this does
+ * not count your assisted sets" would be truthful only when such sets exist, and
+ * knowing that would need something the reader does not report. It states no
+ * reason, names no excluded mode, and compares nothing. See ADR 0023.
+ */
+export function formatRecordedLoadVolumeSummary(
+  gramRepetitions: number,
+  unitSystem: UnitSystem,
+): string {
+  return `${formatRecordedLoadVolume(gramRepetitions, unitSystem)} recorded load volume from weighted sets`;
+}
+
+/**
+ * The same sentence with the number removed, for a period that recorded work but
+ * none that contributes. It is deliberately not `0 kg-reps`: an absent dimension
+ * has never been rendered as zero, and zero would be a false claim about the
+ * work that was recorded.
+ */
+export const absentRecordedLoadVolumeMessage =
+  'No recorded load volume from weighted sets';
+
 export function formatPersonalRecordValue(
   record: ExercisePersonalRecord,
   unitSystem: UnitSystem,

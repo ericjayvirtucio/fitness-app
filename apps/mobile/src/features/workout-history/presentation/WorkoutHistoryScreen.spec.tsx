@@ -79,7 +79,7 @@ describe('WorkoutHistoryScreen', () => {
     );
     expect(screen.getByText('1 completed workouts')).toBeOnTheScreen();
     expect(
-      screen.getByText('240 kg-reps recorded load volume'),
+      screen.getByText('240 kg-reps recorded load volume from weighted sets'),
     ).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('completed-workout-card'));
     expect(onOpenSession).toHaveBeenCalledWith(
@@ -210,5 +210,146 @@ describe('WorkoutHistoryScreen', () => {
     );
     expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen();
     expect(screen.getByText('0 completed workouts')).toBeOnTheScreen();
+  });
+
+  describe('summary total coverage', () => {
+    function renderSummary(
+      summary: Partial<{
+        actualSetCount: number;
+        distanceMillimeters: number | null;
+        durationSeconds: number | null;
+        recordedLoadVolumeGramRepetitions: number | null;
+        repetitions: number | null;
+      }>,
+      preferredUnitSystem: 'imperial' | 'metric' = 'metric',
+    ) {
+      return render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+              getProfile: {
+                execute: () => Promise.resolve({ preferredUnitSystem }),
+              },
+              getSummary: {
+                execute: () =>
+                  Promise.resolve({
+                    actualSetCount: 4,
+                    completedWorkoutCount: 2,
+                    distanceMillimeters: null,
+                    durationSeconds: null,
+                    elapsedWorkoutSeconds: 2_700,
+                    performedExerciseCount: 2,
+                    recordedLoadVolumeGramRepetitions: null,
+                    repetitions: 32,
+                    ...summary,
+                  }),
+              },
+              list: {
+                execute: () => Promise.resolve({ items: [], nextCursor: null }),
+              },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+    }
+
+    it('states what a covered total counts', async () => {
+      await renderSummary({ recordedLoadVolumeGramRepetitions: 160_000 });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            '160 kg-reps recorded load volume from weighted sets',
+          ),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('states the same coverage for a period that also recorded ineligible work', async () => {
+      // A mixed period is indistinguishable from an eligible-only one in the
+      // reader, which is why the wording is unconditional: the eligible total is
+      // unchanged and the sentence is true either way.
+      await renderSummary({
+        actualSetCount: 9,
+        recordedLoadVolumeGramRepetitions: 160_000,
+        repetitions: 62,
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            '160 kg-reps recorded load volume from weighted sets',
+          ),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('states the absence when work was recorded and none of it counts', async () => {
+      await renderSummary({ recordedLoadVolumeGramRepetitions: null });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('No recorded load volume from weighted sets'),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('says nothing about load volume when nothing was recorded', async () => {
+      await renderSummary({
+        actualSetCount: 0,
+        recordedLoadVolumeGramRepetitions: null,
+        repetitions: null,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByText('0 actual sets')).toBeOnTheScreen(),
+      );
+      expect(
+        screen.queryByText('No recorded load volume from weighted sets'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText(/recorded load volume/)).not.toBeOnTheScreen();
+    });
+
+    it('writes the covered total in the preferred unit system', async () => {
+      await renderSummary(
+        { recordedLoadVolumeGramRepetitions: 453_592.37 },
+        'imperial',
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            '1,000 lb-reps recorded load volume from weighted sets',
+          ),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('announces every sentence it displays, because the card is one element', async () => {
+      await renderSummary({ recordedLoadVolumeGramRepetitions: 160_000 });
+
+      await waitFor(() =>
+        expect(
+          screen.getByLabelText(
+            'Workout progress summary, 2 completed workouts, 4 actual sets, 2 performed exercises, 45 min 0 sec workout time, 32 repetitions, 160 kg-reps recorded load volume from weighted sets',
+          ),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('announces the absence in the same words it displays it', async () => {
+      await renderSummary({ recordedLoadVolumeGramRepetitions: null });
+
+      await waitFor(() =>
+        expect(
+          screen.getByLabelText(
+            'Workout progress summary, 2 completed workouts, 4 actual sets, 2 performed exercises, 45 min 0 sec workout time, 32 repetitions, No recorded load volume from weighted sets',
+          ),
+        ).toBeOnTheScreen(),
+      );
+    });
   });
 });

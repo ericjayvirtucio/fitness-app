@@ -27,9 +27,10 @@ import {
 } from './workout-history-period';
 import { deletionConfirmedMessage } from './completed-workout-deletion-messages';
 import {
+  absentRecordedLoadVolumeMessage,
   formatCapturedDate,
   formatRecordedDistance,
-  formatRecordedLoadVolume,
+  formatRecordedLoadVolumeSummary,
 } from './workout-history-formatting';
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
 
@@ -239,38 +240,66 @@ function ProgressSummary({
   summary,
   unitSystem,
 }: Readonly<{ summary: WorkoutProgressSummary; unitSystem: UnitSystem }>) {
-  const distance =
-    summary.distanceMillimeters === null
-      ? null
-      : formatRecordedDistance(summary.distanceMillimeters, unitSystem);
-  const volume =
-    summary.recordedLoadVolumeGramRepetitions === null
-      ? null
-      : formatRecordedLoadVolume(
-          summary.recordedLoadVolumeGramRepetitions,
-          unitSystem,
-        );
+  const sentences = summarySentences(summary, unitSystem);
   return (
-    <Card accessibilityLabel="Workout progress summary" variant="elevated">
+    <Card
+      accessibilityLabel={['Workout progress summary', ...sentences].join(', ')}
+      variant="elevated"
+    >
       <AppText variant="heading">Performed summary</AppText>
-      <AppText>{summary.completedWorkoutCount} completed workouts</AppText>
-      <AppText>{summary.actualSetCount} actual sets</AppText>
-      <AppText>{summary.performedExerciseCount} performed exercises</AppText>
-      <AppText>
-        {formatDuration(summary.elapsedWorkoutSeconds)} workout time
-      </AppText>
-      {summary.repetitions !== null ? (
-        <AppText>{summary.repetitions} repetitions</AppText>
-      ) : null}
-      {summary.durationSeconds !== null ? (
-        <AppText>
-          {formatDuration(summary.durationSeconds)} performed duration
-        </AppText>
-      ) : null}
-      {distance ? <AppText>{distance} performed distance</AppText> : null}
-      {volume ? <AppText>{volume} recorded load volume</AppText> : null}
+      {sentences.map((sentence) => (
+        <AppText key={sentence}>{sentence}</AppText>
+      ))}
     </Card>
   );
+}
+
+/**
+ * Every total the card states, in the order it reads them.
+ *
+ * A labelled card is one accessible element, so its children never reach the
+ * accessibility tree and its own name is the only thing announced. Composing the
+ * lines and the name from one list is what keeps the announced summary identical
+ * to the read one, rather than a name that describes numbers nobody hears.
+ *
+ * Every total here covers all recorded work of its own dimension except recorded
+ * load volume, which sums external and added load alone and therefore says so.
+ * It is stated in both directions — the covered sentence and the absent one — so
+ * a period that recorded work always accounts for the dimension, and so the
+ * card's height stops depending on what was recorded. Nothing is said at all
+ * when nothing was recorded, because the completed workout count already says
+ * that.
+ */
+function summarySentences(
+  summary: WorkoutProgressSummary,
+  unitSystem: UnitSystem,
+): readonly string[] {
+  const sentences = [
+    `${summary.completedWorkoutCount} completed workouts`,
+    `${summary.actualSetCount} actual sets`,
+    `${summary.performedExerciseCount} performed exercises`,
+    `${formatDuration(summary.elapsedWorkoutSeconds)} workout time`,
+  ];
+  if (summary.repetitions !== null)
+    sentences.push(`${summary.repetitions} repetitions`);
+  if (summary.durationSeconds !== null)
+    sentences.push(
+      `${formatDuration(summary.durationSeconds)} performed duration`,
+    );
+  if (summary.distanceMillimeters !== null)
+    sentences.push(
+      `${formatRecordedDistance(summary.distanceMillimeters, unitSystem)} performed distance`,
+    );
+  if (summary.recordedLoadVolumeGramRepetitions !== null)
+    sentences.push(
+      formatRecordedLoadVolumeSummary(
+        summary.recordedLoadVolumeGramRepetitions,
+        unitSystem,
+      ),
+    );
+  else if (summary.actualSetCount > 0)
+    sentences.push(absentRecordedLoadVolumeMessage);
+  return sentences;
 }
 
 function HistoryCard({
