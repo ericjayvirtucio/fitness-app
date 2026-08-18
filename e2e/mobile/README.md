@@ -584,10 +584,38 @@ deletion returns to have no tab bar, so a flow beginning with
 `tapOn: id: tab-workout` fails there. Relaunch the app between phases to return
 to a known root rather than guessing at back gestures.
 
-**Workout History cards are indistinguishable by label.** Every synthetic
-workout is named "Workout", so a scenario that must open an older one selects
-`completed-workout-card` by index after scrolling the list into view. Index 0 is
-the most recent workout.
+**Workout History cards are indistinguishable by label unless a scenario names
+them.** A synthetic workout is named "Workout" by default, so a scenario that
+must open an older one selects `completed-workout-card` by index after scrolling
+the list into view. Index 0 is the most recent workout.
+
+**Ten assertions match the default workout name, and depend on a default rather
+than on a guarantee.** Six match `Open Workout,.*` — four in
+`flows/workout/complete-and-review-history.yaml` and two in
+`suites/sprint-33/01-a-weighted-period-states-what-its-total-covers.yaml` — and
+four match `in Workout, set 1`, in `suites/sprint-22/02`, `suites/sprint-23/03`
+(twice), and `suites/sprint-31/01`. They were written when nothing could rename a
+workout. A workout of either status can now be renamed, so **a scenario that
+renames one must not compose those flows, and must assert the name it chose.**
+Use an `E2E`-prefixed name and check every selector that would then match it: a
+workout's name is interpolated into the history card's accessible label, the
+exercise performance card's label, a personal record's evidence sentence, the
+add-exercise and delete control labels, and the deletion alert's title.
+
+**The naming control is selected by identifier, not by the words it displays.**
+`rename-active-workout` and `rename-completed-workout` both display "Rename This
+Workout", but an `AppButton` is read by its accessible label, and theirs carry
+the workout's current name — the very thing a renaming scenario is about to
+change. `flows/workout/rename-workout.yaml` takes the identifier as a parameter
+for this reason.
+
+**Adding the naming control made two screens taller.** The active workout screen
+carries it under the heading and the completed detail carries it under the date
+line, so every control below each of them sits one row lower than it did. Four
+completion flows and one Sprint 27 scenario that tapped "Finish Workout" where it
+used to sit now scroll to it first, which is a no-op when it is already visible.
+This is the same trap a taller exercise picker set earlier: a flow that worked
+against a shorter screen is not evidence that it works against a taller one.
 
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the

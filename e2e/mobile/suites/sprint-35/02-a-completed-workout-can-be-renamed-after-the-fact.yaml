@@ -1,0 +1,57 @@
+appId: com.fitnessapp.dev
+name: A completed workout can be renamed after the fact
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-completed-workout.yaml
+- assertVisible: Workout
+- runFlow:
+    file: ../../flows/workout/rename-workout.yaml
+    env:
+      RENAME_CONTROL: rename-completed-workout
+      NEW_NAME: E2E Push Day
+- assertVisible:
+    id: completed-workout-screen
+- assertVisible: E2E Push Day
+# Every control on this screen that names the workout names the chosen one. Each
+# is an AppButton, so each is read by its accessible label rather than by the
+# words it displays.
+- scrollUntilVisible:
+    element:
+      text: 'Add an exercise to this workout, E2E Push Day,.*'
+    direction: DOWN
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      text: 'Delete this workout, E2E Push Day,.*'
+    direction: DOWN
+    centerElement: true
+# Nothing the workout recorded moved. The summary sits above the exercises, so
+# each is reached in the one direction its own scroll searches.
+- scrollUntilVisible:
+    element:
+      text: 'Completed workout summary, 1 actual sets, .* workout time'
+    direction: UP
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      text: 'Performed set 1: 12 reps'
+    direction: DOWN
+    centerElement: true
+# The completed detail has no tab bar, so a flow that starts from one cannot be
+# composed on top of it. Relaunch to a known root instead of guessing at a back
+# gesture.
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-workout-history.yaml
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open E2E Push Day,.*1 actual sets.*'
