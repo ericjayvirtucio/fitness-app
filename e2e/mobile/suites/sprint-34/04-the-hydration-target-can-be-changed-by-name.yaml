@@ -18,8 +18,10 @@ name: The hydration target can be reached and changed by its control name
 - tapOn: Change daily target
 # The screen's own sentence, not its heading: the card just left behind renders
 # "Daily fluid target" too, so asserting that would pass even if the tap never
-# navigated.
-- assertVisible: Choose your own tracking target
+# navigated. Maestro matches text as a whole-string regex, so a prefix of a
+# longer sentence needs its own trailing wildcard — without one this assertion
+# failed against a screen that was correctly open.
+- assertVisible: 'Choose your own tracking target.*'
 - tapOn: Liters (L)
 - tapOn:
     id: hydration-target-amount-input-touch-target

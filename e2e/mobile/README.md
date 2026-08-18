@@ -370,6 +370,16 @@ hidden rerun.
 
 ### Traps this harness has already hit
 
+**A text selector matches the whole string, so a prefix needs its own wildcard.**
+`assertVisible: Choose your own tracking target` fails against an element reading
+`Choose your own tracking target. The app does not calculate or recommend a
+medical intake amount.`, because the selector is a regex matched against the
+element's entire text rather than searched inside it. Sprint 34 lost a run to
+exactly this: the screenshot showed the target screen correctly open, and the
+assertion was still false. Write `'Choose your own tracking target.*'`, the way
+`flows/nutrition/log-one-time-entry.yaml` already writes `'.*E2E Banana.*'`. Read
+the screenshot before concluding that a navigation step did not happen.
+
 **Never give a parameterised flow an `env:` default.** A flow's own `env` block
 is applied after the caller's `runFlow` env and overrides it, so the default
 silently replaces every value a suite passes in and the flow's own assertions
