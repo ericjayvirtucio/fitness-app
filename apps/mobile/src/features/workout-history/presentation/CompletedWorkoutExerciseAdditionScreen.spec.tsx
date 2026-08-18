@@ -15,6 +15,7 @@ import {
   type Result,
 } from '@fitness/domain';
 import { ExerciseCatalogItem } from '../../exercise-catalog/application/exercise-catalog-item';
+import { additionSaveExplanation } from './completed-exercise-addition-messages';
 import { CompletedWorkoutExerciseAdditionScreen } from './CompletedWorkoutExerciseAdditionScreen';
 
 jest.mock('expo-router', () => ({
@@ -196,6 +197,11 @@ describe('CompletedWorkoutExerciseAdditionScreen', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByText(/never gains an exercise that recorded nothing/),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        `What this addition changes, ${additionSaveExplanation}`,
+      ),
     ).toBeOnTheScreen();
   });
 

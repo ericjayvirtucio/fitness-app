@@ -172,6 +172,27 @@ describe('CompletedWorkoutSetCorrectionScreen', () => {
     expect(screen.getByLabelText('Cancel Correction')).toBeOnTheScreen();
   });
 
+  it('announces what a correction changes, in the words it displays', async () => {
+    await render(
+      <CompletedWorkoutSetCorrectionScreen
+        exerciseId={exerciseId}
+        loadUseCases={loader()}
+        onDone={jest.fn()}
+        sessionId={sessionId}
+        setId={setId}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Correct recorded set')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText(
+        'What this correction changes, Correcting changes what this workout recorded. Personal records and progress may change. The workout stays completed, and its exercise and plan details are unchanged.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('says an assisted mass is assistance in both the target and the recorded set', async () => {
     await render(
       <CompletedWorkoutSetCorrectionScreen
@@ -321,6 +342,26 @@ describe('CompletedWorkoutSetCorrectionScreen', () => {
     expect(addSet).toHaveBeenCalledWith(
       expect.objectContaining({ exerciseId, sessionId }),
     );
+  });
+
+  it('announces what adding a missing set changes rather than a correction', async () => {
+    await render(
+      <CompletedWorkoutSetCorrectionScreen
+        exerciseId={exerciseId}
+        loadUseCases={loader()}
+        onDone={jest.fn()}
+        sessionId={sessionId}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Add missing set')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText(
+        'What this correction changes, Adding records a set this workout did not record. Personal records and progress may change. The workout stays completed, and its exercise and plan details are unchanged.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('states plainly when the recorded set is no longer part of the workout', async () => {

@@ -13,6 +13,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   LoadingIndicator,
   Screen,
   SectionHeader,
@@ -120,6 +121,18 @@ export function CompletedWorkoutScreen({
     0,
   );
   const isLastRecordedSet = actualSetCount === 1;
+  /**
+   * Every total the card states, in the order it reads them. A labelled card is
+   * one accessibility element, so its own name is the only thing announced;
+   * composing the lines and the name from one list is what keeps the announced
+   * summary identical to the read one.
+   */
+  const summaryLines = [
+    `${actualSetCount} actual sets`,
+    `${formatDuration(
+      (completedAt - session.startedAtEpochMilliseconds) / 1_000,
+    )} workout time`,
+  ];
 
   const refresh = async () => {
     if (!useCases) return;
@@ -217,14 +230,16 @@ export function CompletedWorkoutScreen({
       <AppText color="secondary">
         Completed workout · {session.startedLocalCalendarDate}
       </AppText>
-      <Card accessibilityLabel="Completed workout summary" variant="elevated">
-        <AppText>{actualSetCount} actual sets</AppText>
-        <AppText>
-          {formatDuration(
-            (completedAt - session.startedAtEpochMilliseconds) / 1_000,
-          )}{' '}
-          workout time
-        </AppText>
+      <Card
+        accessibilityLabel={describeCardContents(
+          'Completed workout summary',
+          summaryLines,
+        )}
+        variant="elevated"
+      >
+        {summaryLines.map((line) => (
+          <AppText key={line}>{line}</AppText>
+        ))}
       </Card>
       {session.exercises.map((exercise) => (
         <Card key={exercise.id.value} variant="outlined">

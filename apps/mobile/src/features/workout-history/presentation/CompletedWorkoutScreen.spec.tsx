@@ -222,6 +222,26 @@ describe('CompletedWorkoutScreen', () => {
     expect(screen.getByText('Performed set 1: 12 reps')).toBeOnTheScreen();
   });
 
+  it('announces the summary card contents it displays', async () => {
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loader(completedSession(twoSets()))}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('2 actual sets')).toBeOnTheScreen(),
+    );
+    expect(screen.getByText('10 min 0 sec workout time')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        'Completed workout summary, 2 actual sets, 10 min 0 sec workout time',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('offers correction entry points for each recorded set and exercise', async () => {
     const loadUseCases = loader(completedSession(twoSets()));
     const onAddSet = jest.fn();

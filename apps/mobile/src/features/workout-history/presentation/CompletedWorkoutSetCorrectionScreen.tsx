@@ -12,6 +12,7 @@ import {
   AppButton,
   AppText,
   Card,
+  describeCardContents,
   LoadingIndicator,
   Screen,
   spacing,
@@ -118,6 +119,16 @@ export function CompletedWorkoutSetCorrectionScreen({
 
   const { exercise, set, unitSystem, useCases } = loaded;
   const isEditing = set !== null;
+  /**
+   * A labelled card is one accessibility element, so the sentence stating what
+   * this screen changes reached nobody while the card announced only its title.
+   * The rendered paragraph and the announced one are now the same string.
+   */
+  const consequence = `${
+    isEditing
+      ? 'Correcting changes what this workout recorded.'
+      : 'Adding records a set this workout did not record.'
+  } Personal records and progress may change. The workout stays completed, and its exercise and plan details are unchanged.`;
 
   const save = async (result: WorkoutResult) => {
     const outcome: CompletedSetCorrectionOutcome = isEditing
@@ -148,16 +159,13 @@ export function CompletedWorkoutSetCorrectionScreen({
       </AppText>
 
       <Card
-        accessibilityLabel="What this correction changes"
+        accessibilityLabel={describeCardContents(
+          'What this correction changes',
+          [consequence],
+        )}
         variant="outlined"
       >
-        <AppText>
-          {isEditing
-            ? 'Correcting changes what this workout recorded.'
-            : 'Adding records a set this workout did not record.'}{' '}
-          Personal records and progress may change. The workout stays completed,
-          and its exercise and plan details are unchanged.
-        </AppText>
+        <AppText>{consequence}</AppText>
       </Card>
 
       {exercise.plannedPrescriptionSnapshot ? (
