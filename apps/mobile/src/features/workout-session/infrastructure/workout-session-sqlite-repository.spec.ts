@@ -408,4 +408,77 @@ describe('WorkoutSessionSqliteRepository', () => {
     expect(selected).toBeGreaterThanOrEqual(0);
     expect(selected).toBeLessThan(deleted);
   });
+
+  it('renames a matching workout with one guarded update and no child write', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [{ id: sessionId }];
+
+    const renamed = await new WorkoutSessionSqliteRepository(database).rename(
+      id(sessionId),
+      'Leg Day',
+      {
+        completedAtEpochMilliseconds: null,
+        startedAtEpochMilliseconds: 1_700_000_000_000,
+        status: 'active',
+      },
+    );
+
+    expect(renamed).toBe(true);
+    expect(database.runs).toHaveLength(1);
+    expect(database.runs[0]?.statement).toContain(
+      'UPDATE workout_session SET display_name = ?',
+    );
+    expect(database.runs[0]?.parameters).toEqual([
+      'Leg Day',
+      sessionId,
+      'active',
+      1_700_000_000_000,
+      null,
+    ]);
+    expect(
+      database.log.some((statement) => statement.includes('workout_set')),
+    ).toBe(false);
+    expect(
+      database.log.some((statement) =>
+        statement.includes('workout_session_exercise'),
+      ),
+    ).toBe(false);
+  });
+
+  it('repeats the lifecycle predicate on the statement that writes the name', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [{ id: sessionId }];
+
+    await new WorkoutSessionSqliteRepository(database).rename(
+      id(sessionId),
+      'Leg Day',
+      {
+        completedAtEpochMilliseconds: completedAt,
+        startedAtEpochMilliseconds: 1_700_000_000_000,
+        status: 'completed',
+      },
+    );
+
+    expect(database.runs[0]?.statement).toContain('status = ?');
+    expect(database.runs[0]?.statement).toContain('started_at_epoch_ms = ?');
+    expect(database.runs[0]?.statement).toContain('completed_at_epoch_ms IS ?');
+  });
+
+  it('writes nothing when no row holds the expected lifecycle', async () => {
+    const database = new FakeDatabase();
+    database.firstResults = [null];
+
+    const renamed = await new WorkoutSessionSqliteRepository(database).rename(
+      id(sessionId),
+      'Leg Day',
+      {
+        completedAtEpochMilliseconds: null,
+        startedAtEpochMilliseconds: 1_700_000_000_000,
+        status: 'active',
+      },
+    );
+
+    expect(renamed).toBe(false);
+    expect(database.runs).toHaveLength(0);
+  });
 });

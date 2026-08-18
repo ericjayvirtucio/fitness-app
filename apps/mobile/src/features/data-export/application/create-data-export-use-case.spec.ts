@@ -79,6 +79,7 @@ function createContext(
       getActive: () => Promise.resolve(null),
       getById: () => Promise.resolve(null),
       insert: () => Promise.resolve(),
+      rename: () => Promise.resolve(true),
       replace: () => Promise.resolve(),
     },
     ...overrides,

@@ -101,6 +101,9 @@ class Sessions implements WorkoutSessionRepository {
   insert() {
     return Promise.resolve();
   }
+  rename() {
+    return Promise.resolve(true);
+  }
   replace() {
     return Promise.resolve();
   }

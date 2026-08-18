@@ -116,6 +116,7 @@ export function buildRestoreTransactionContext(
       getActive: unsupported,
       getById: unsupported,
       insert: write('completedSession'),
+      rename: unsupported,
       replace: unsupported,
     },
   };
