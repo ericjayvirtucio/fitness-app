@@ -84,12 +84,17 @@ describe('ProgressScreen', () => {
     );
     expect(screen.getByLabelText('Latest recorded, 81.8 kg')).toBeOnTheScreen();
     expect(screen.getByLabelText('Recorded change, −1.2 kg')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Check-ins, 2')).toBeOnTheScreen();
+    // The caption carries no name of its own, so it announces the sentence it
+    // displays rather than restating the metrics above it.
     expect(
-      screen.getByLabelText(
-        'Body weight progress. First recorded weight 83.0 kilograms. Latest recorded weight 81.8 kilograms. Recorded change minus 1.2 kilograms. 2 check-ins. This describes recorded check-ins, not a measured trend.',
+      screen.getByText(
+        'This is the difference between your first and latest recorded check-ins, not a measured trend.',
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByText(/not a measured trend/)).toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText(/Body weight progress/),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows a single check-in without a recorded change', async () => {

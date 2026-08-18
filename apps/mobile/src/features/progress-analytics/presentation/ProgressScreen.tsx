@@ -19,12 +19,9 @@ import {
   spacing,
 } from '../../../design-system';
 import {
-  describeBodyWeight,
-  describeBodyWeightChange,
   formatBodyWeight,
   formatBodyWeightChange,
   getBodyWeightDisplayUnit,
-  type BodyWeightDisplayUnit,
 } from '../../body-measurement-history/presentation/body-weight-formatting';
 import type {
   ProgressDay,
@@ -309,34 +306,18 @@ function BodyWeightSummary({
         />
       )}
       <Metric label="Check-ins" value={String(value.entryCount)} />
-      <AppText
-        accessibilityLabel={describeSummary(value, unit)}
-        color="secondary"
-        variant="bodySmall"
-      >
+      {/*
+       * The caption announces the sentence it displays. Each metric above is its
+       * own accessibility element and has already been spoken, so a composed
+       * summary here repeated them in different words than the screen shows.
+       */}
+      <AppText color="secondary" variant="bodySmall">
         {value.changeGrams === null
           ? 'A recorded change needs at least two check-ins in this period.'
           : 'This is the difference between your first and latest recorded check-ins, not a measured trend.'}
       </AppText>
     </Card>
   );
-}
-
-function describeSummary(
-  value: NonNullable<ProgressSummary['bodyWeight']>,
-  unit: BodyWeightDisplayUnit,
-): string {
-  const parts = [
-    'Body weight progress',
-    `First recorded weight ${describeBodyWeight(value.firstGrams, unit)}`,
-    `Latest recorded weight ${describeBodyWeight(value.latestGrams, unit)}`,
-    value.changeGrams === null
-      ? 'Recorded change needs at least two check-ins'
-      : `Recorded change ${describeBodyWeightChange(value.changeGrams, unit)}`,
-    `${value.entryCount} check-ins`,
-    'This describes recorded check-ins, not a measured trend',
-  ];
-  return `${parts.join('. ')}.`;
 }
 
 function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
