@@ -1,0 +1,48 @@
+appId: com.fitnessapp.dev
+name: The hydration target can be reached and changed by its control name
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml
+# The whole point of this scenario. While the progress card carried an
+# accessibilityLabel it was one accessibility element, so "Change daily target"
+# never reached the accessibility tree: it could not be announced, tapped, or
+# asserted, and a person using a screen reader had no way back to the target
+# screen once a target existed. The card is unlabelled now, so the control is a
+# control again.
+- scrollUntilVisible:
+    element:
+      text: Change daily target
+    direction: DOWN
+    centerElement: true
+- tapOn: Change daily target
+# The screen's own sentence, not its heading: the card just left behind renders
+# "Daily fluid target" too, so asserting that would pass even if the tap never
+# navigated.
+- assertVisible: Choose your own tracking target
+- tapOn: Liters (L)
+- tapOn:
+    id: hydration-target-amount-input-touch-target
+- eraseText
+- inputText: '2'
+# The decimal pad covers the save control and a blind tap lands on a key,
+# appending that digit to the field that still has focus. A short drag dismisses
+# it, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save daily target
+    direction: DOWN
+- tapOn: Save daily target
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+    duration: 400
+- assertVisible: '25% complete'
+- assertVisible: '1.5 L remaining of 2 L'
