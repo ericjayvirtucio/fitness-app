@@ -59,6 +59,13 @@ greater assistance does not represent greater performed load. Distance-duration
 results may derive pace from actual distance and duration; unlike dimensions are
 never combined into one score.
 
+A recorded set is worded from the captured logging mode wherever completed
+history displays one, so the completed workout detail and the correction screen
+state `Assistance 20 kg × 8` or `Added 20 kg × 8` where they once stated only
+`20 kg × 8`. The formatter is shared with the active session rather than
+duplicated, so the same result reads identically in all three places. See
+[Specification 0032](../../specs/0032-recorded-result-meaning.md).
+
 Deterministic personal records now derive from the same completed history, in a
 separate reader documented in
 [Workout personal records architecture](workout-personal-records.md). Strength

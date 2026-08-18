@@ -1,12 +1,32 @@
 import type {
+  ExerciseLoggingMode,
   UnitSystem,
   WorkoutResult,
   WorkoutSession,
 } from '@fitness/domain';
 
+/**
+ * Three logging modes — external load, added bodyweight load, and assistance —
+ * share one `ResistanceRepetitionResult`, so a stored result cannot say what
+ * its own mass means. The captured logging mode is the only thing that can, and
+ * every screen that renders a result already holds it.
+ *
+ * The unmarked sentence means load lifted, because that is what a mass beside
+ * repetitions conventionally means. Only the two modes that deviate from it are
+ * marked, and the mark leads rather than trails: a set row truncates from the
+ * end at the largest accessible text size, so a trailing qualifier is the first
+ * thing lost, while a leading one survives with the meaning intact.
+ */
+function resistanceQualifier(loggingMode: ExerciseLoggingMode): string {
+  if (loggingMode === 'assistance-and-repetitions') return 'Assistance ';
+  if (loggingMode === 'bodyweight-plus-load-and-repetitions') return 'Added ';
+  return '';
+}
+
 export function formatWorkoutResult(
   result: WorkoutResult,
   unitSystem: UnitSystem,
+  loggingMode: ExerciseLoggingMode,
 ): string {
   const massUnit = unitSystem === 'metric' ? 'kilogram' : 'pound';
   const massLabel = unitSystem === 'metric' ? 'kg' : 'lb';
@@ -14,7 +34,7 @@ export function formatWorkoutResult(
   const distanceLabel = unitSystem === 'metric' ? 'km' : 'mi';
   if (result.kind === 'repetitions') return `${result.repetitions} reps`;
   if (result.kind === 'resistance-and-repetitions')
-    return `${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}`;
+    return `${resistanceQualifier(loggingMode)}${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}`;
   if (result.kind === 'duration')
     return formatDuration(result.duration.seconds);
   if (result.kind === 'distance')
@@ -25,13 +45,14 @@ export function formatWorkoutResult(
 export function formatPlannedWorkoutResult(
   planned: WorkoutSession['exercises'][number]['plannedPrescriptionSnapshot'],
   unitSystem: UnitSystem,
+  loggingMode: ExerciseLoggingMode,
 ): string {
   if (!planned) return '';
   const parts = [`${planned.sets} sets`];
   if ('repetitions' in planned) parts.push(`${planned.repetitions} reps`);
   if ('resistance' in planned && planned.resistance)
     parts.push(
-      `${planned.resistance.in(unitSystem === 'metric' ? 'kilogram' : 'pound')} ${unitSystem === 'metric' ? 'kg' : 'lb'}`,
+      `${resistanceQualifier(loggingMode)}${planned.resistance.in(unitSystem === 'metric' ? 'kilogram' : 'pound')} ${unitSystem === 'metric' ? 'kg' : 'lb'}`,
     );
   if ('duration' in planned)
     parts.push(formatDuration(planned.duration.seconds));

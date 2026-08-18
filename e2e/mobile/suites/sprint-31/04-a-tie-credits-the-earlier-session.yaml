@@ -24,5 +24,5 @@ name: Equalled assistance stays credited to the earlier session
 # proved through the set the opened workout actually holds. The completed detail
 # shows one exercise with one set, so the negative assertion is made from the
 # viewport where the other set would render if this were the later workout.
-- assertVisible: 'Performed set 1: 20 kg × 8'
-- assertNotVisible: 'Performed set 1: 20 kg × 12'
+- assertVisible: 'Performed set 1: Assistance 20 kg × 8'
+- assertNotVisible: 'Performed set 1: Assistance 20 kg × 12'

@@ -237,6 +237,7 @@ export function CompletedWorkoutScreen({
               {formatPlannedWorkoutResult(
                 exercise.plannedPrescriptionSnapshot,
                 unitSystem,
+                exercise.loggingModeSnapshot,
               )}
             </AppText>
           ) : null}
@@ -250,7 +251,11 @@ export function CompletedWorkoutScreen({
               <View key={set.id.value} style={styles.setRow}>
                 <AppText>
                   Performed set {set.position + 1}:{' '}
-                  {formatWorkoutResult(set.result, unitSystem)}
+                  {formatWorkoutResult(
+                    set.result,
+                    unitSystem,
+                    exercise.loggingModeSnapshot,
+                  )}
                 </AppText>
                 {onCorrectSet ? (
                   <AppButton

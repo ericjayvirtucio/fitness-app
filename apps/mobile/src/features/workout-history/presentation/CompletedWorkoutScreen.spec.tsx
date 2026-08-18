@@ -7,10 +7,13 @@ import {
 import { Alert } from 'react-native';
 import {
   DomainId,
+  Mass,
   RepetitionResult,
+  ResistanceRepetitionResult,
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet,
+  type ExerciseLoggingMode,
   type WorkoutResult,
 } from '@fitness/domain';
 import { CompletedWorkoutScreen } from './CompletedWorkoutScreen';
@@ -114,6 +117,35 @@ const twoExerciseSession = () =>
     performedExercise(1, 0, 'Push-up', oneSet(), 3),
     squat([recordedSet(6, 0, RepetitionResult.valid(20))]),
   ]);
+
+/**
+ * A resistance result carries no clue about what its mass means, so the exercise
+ * that holds it has to be built with the logging mode under test.
+ */
+function resistanceExercise(
+  index: number,
+  position: number,
+  name: string,
+  loggingMode: ExerciseLoggingMode,
+  setIndex: number,
+) {
+  const mass = Mass.create(20, 'kilogram');
+  if (!mass.isSuccess) throw new Error('Invalid fixture');
+  const exercise = WorkoutSessionExercise.create({
+    exerciseNameSnapshot: name,
+    id: requiredId(index),
+    loggingModeSnapshot: loggingMode,
+    plannedPrescriptionSnapshot: null,
+    position,
+    sets: [
+      recordedSet(setIndex, 0, ResistanceRepetitionResult.valid(mass.value, 8)),
+    ],
+    sourceExerciseDefinitionId: requiredId(3),
+    sourcePlannedExerciseId: null,
+  });
+  if (!exercise.isSuccess) throw new Error('Invalid fixture');
+  return exercise.value;
+}
 
 /** A workout already holding the most exercises one may hold. */
 function fullWorkoutExercises() {
@@ -857,6 +889,53 @@ describe('CompletedWorkoutScreen', () => {
         screen.getByText('Exercise added to this completed workout.'),
       ).toBeOnTheScreen(),
     );
+  });
+
+  it('says what a recorded mass means for each resistance logging mode', async () => {
+    const loadUseCases = loader(
+      sessionOf([
+        resistanceExercise(
+          1,
+          0,
+          'Assisted pull-up',
+          'assistance-and-repetitions',
+          2,
+        ),
+        resistanceExercise(
+          5,
+          1,
+          'Weighted dip',
+          'bodyweight-plus-load-and-repetitions',
+          6,
+        ),
+        resistanceExercise(
+          4,
+          2,
+          'Bench press',
+          'external-load-and-repetitions',
+          7,
+        ),
+      ]),
+    );
+    await render(
+      <CompletedWorkoutScreen
+        id={uuids[0] ?? ''}
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Performed set 1: Assistance 20 kg × 8'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText('Performed set 1: Added 20 kg × 8'),
+    ).toBeOnTheScreen();
+    // The unmarked sentence stays unmarked, because a mass beside repetitions
+    // already means the mass that was lifted.
+    expect(screen.getByText('Performed set 1: 20 kg × 8')).toBeOnTheScreen();
   });
 
   it('explains in words why a full workout cannot take another exercise', async () => {

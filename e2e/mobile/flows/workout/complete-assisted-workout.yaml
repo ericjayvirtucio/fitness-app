@@ -49,9 +49,11 @@ appId: com.fitnessapp.dev
     start: 50%, 40%
     end: 50%, 35%
 - tapOn: Save Set
-# The active session writes a resistance result as "<mass> × <repetitions>" for
-# every mode that stores one, so this is the same sentence a loaded set shows.
-- assertVisible: 'Set 1: ${ASSISTANCE} kg × ${REPETITIONS}'
+# The active session states what the mass means before it states the mass. Three
+# logging modes store a resistance result, and only assistance and added load are
+# marked, so this sentence is what proves the set was recorded as assistance
+# rather than as weight lifted.
+- assertVisible: 'Set 1: Assistance ${ASSISTANCE} kg × ${REPETITIONS}'
 - tapOn: Finish Workout
 - tapOn:
     text: Finish Workout

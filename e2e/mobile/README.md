@@ -303,6 +303,19 @@ form renders.
 It fills **repetitions first and assistance second**, which is the set form's
 bottom-up order and not a preference — see the trap below.
 
+Sprint 32 added the added-load pair, `flows/exercise/create-added-load-exercise.yaml`
+and `flows/workout/complete-added-load-workout.yaml`, which mirror the assisted
+pair step for step. They exist to be compared with it: the same twenty kilograms
+under a different logging mode must produce a different sentence, and a mirrored
+flow makes the mode the only difference between the two runs. The added-load
+definition is authored on "Bodyweight" equipment because the domain restricts
+"Added weight + reps" to it, exactly as it restricts "Assistance + reps" to
+machine, resistance band, or other.
+
+Both flows assert the active session's own sentence before finishing, so a
+scenario that also opens completed history proves the same wording twice without
+a second recording.
+
 Records are reached by name, and the assisted exercise has its own entry flow,
 `flows/workout/open-assisted-exercise-personal-records.yaml`. A second flow
 rather than a parameter on the existing one: that flow is composed by eleven
@@ -410,6 +423,41 @@ shared workout flows tapped `Add E2E Push-up` where it used to sit, and between
 them thirty-two suites compose one of those flows. Every one of them now scrolls
 to the card. Re-audit both directions whenever a section changes size, not only
 when it appears.
+
+**What a workout recorded changes how tall Workout History is.** The performed
+summary adds a "recorded load volume" line only for external and added load;
+assisted and bodyweight work never produce one, because assistance is excluded
+from load volume by design. That single extra line pushed "Recent workouts" and
+the first `completed-workout-card` below the fold, and Sprint 32 lost a scenario
+to it after the same shared flow had passed twice in the same suite against
+assisted data. `flows/workout/open-completed-workout.yaml` now scrolls to the
+card. Height that depends on the fixture is the same trap as height that depends
+on the build — vary the data, not just the screen.
+
+**A drag cannot dismiss the keyboard over a list with nothing left to scroll.**
+`keyboardDismissMode="on-drag"` fires on a scroll drag, so the short swipe every
+entry flow uses works only while the content below the field can still move.
+Searching the exercise picker filters it to one card, which leaves nothing to
+scroll, so the swipe is swallowed and the keyboard stays up over the only
+result. Maestro's hierarchy does not model the keyboard: `scrollUntilVisible`
+reports the covered card 100% visible and `tapOn` reports COMPLETED, while the
+tap actually lands on the QuickType suggestion row and appends a word to the
+field that still has focus. Sprint 32 lost a scenario to this — "E2E Weighted
+Dip" became "E2E Weighted Dipping" and the exercise was never added. Dismiss a
+text keyboard with `pressKey: Enter` after searching, rather than with the drag
+that works on longer screens. The number-pad form of this trap is separate and
+still has no dismiss action.
+
+**Qualifying a recorded set makes every set row taller.** Sprint 32 changed
+`Set 1: 20 kg × 8` to `Set 1: Assistance 20 kg × 8` for assisted work and
+`Set 1: Added 20 kg × 8` for added load. The set row wraps rather than truncates,
+so the longer sentence can take a second line and push the Edit, Delete, and
+Correct controls beside and below it further down — on three screens that already
+list many sets. This is the changed-height class in the direction that has broken
+runs before, and it is why every Sprint 32 scenario scrolls to a control below a
+set row rather than tapping where it sat. Only the two marked modes grow;
+`external-load-and-repetitions` is deliberately unchanged, which is what keeps
+every pre-existing weighted assertion valid.
 
 **A record card replaces the sentence that stood in for it, and the screen grows.**
 Sprint 31 gave assisted work a personal record, so an exercise that used to show

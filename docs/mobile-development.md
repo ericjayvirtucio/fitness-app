@@ -342,7 +342,18 @@ different logging mode with its own record group.
 The set form's resistance field carries `workout-set-resistance-input` whatever
 the mode labels it — "Weight", "Added weight", or "Assistance" — because its
 visible label and its accessible name are the same words, so a text selector
-cannot say which of the two an end-to-end step meant. See the
+cannot say which of the two an end-to-end step meant.
+
+Displayed results now use that same vocabulary. Three logging modes share one
+result variant, so `formatWorkoutResult` and `formatPlannedWorkoutResult` take
+the captured mode and mark the two whose mass is not the mass lifted:
+`Assistance 20 kg × 8` and `Added 20 kg × 8`, beside the unmarked `20 kg × 8`.
+The qualifier leads so a truncated row keeps its meaning, and the same sentence
+is produced in the active session, in completed history, and while correcting a
+set. Set rows are therefore taller for those two modes, which moves the controls
+below them. See
+[Specification 0032](../specs/0032-recorded-result-meaning.md) and the
+[Sprint 32 manual checklist](manual-testing/sprint-32-recorded-result-meaning.md). See the
 [personal records architecture](architecture/workout-personal-records.md),
 [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
 [ADR 0022](decisions/0022-personal-record-ordering-direction.md),

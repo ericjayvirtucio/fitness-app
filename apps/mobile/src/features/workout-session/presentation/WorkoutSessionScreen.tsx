@@ -152,6 +152,7 @@ export function WorkoutSessionScreen({
                 {formatPlannedWorkoutResult(
                   exercise.plannedPrescriptionSnapshot,
                   unitSystem,
+                  exercise.loggingModeSnapshot,
                 )}
               </AppText>
             ) : null}
@@ -162,7 +163,11 @@ export function WorkoutSessionScreen({
               <View key={set.id.value} style={styles.setRow}>
                 <AppText>
                   Set {set.position + 1}:{' '}
-                  {formatWorkoutResult(set.result, unitSystem)}
+                  {formatWorkoutResult(
+                    set.result,
+                    unitSystem,
+                    exercise.loggingModeSnapshot,
+                  )}
                 </AppText>
                 <AppButton
                   accessibilityLabel={`Edit set ${set.position + 1} for ${exercise.exerciseNameSnapshot}`}
