@@ -115,6 +115,10 @@ carries an active-workout control. Profile units affect formatting only.
 
 Screens support Dynamic Type, native headings and controls, descriptive history-card
 labels, explicit units, textual empty/error states, and privacy-safe stable test IDs.
+Every labelled card announces the contents it renders, not only its title, so the
+performed summary and the completed workout summary are audible rather than
+silent. See [Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
 Errors retain already loaded pages where possible and never expose SQL, identifiers,
 names, dates, or measurements.
 

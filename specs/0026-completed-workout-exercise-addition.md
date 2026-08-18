@@ -416,3 +416,11 @@ excluded.
 
 The repository owner approved the Stage 1 design and authorized staged
 implementation on `feat/completed-workout-exercise-addition` on 2026-08-15.
+
+## Amendment: the consequence card announces its contents
+
+The card stating what the addition changes carries an `accessibilityLabel`, which
+makes it one accessibility element, so its paragraph reached no screen reader. Its
+accessible name now carries the paragraph it renders. No displayed value or
+sentence changed. See [Specification 0034](0034-announced-card-contents.md) and
+[ADR 0024](../docs/decisions/0024-labelled-containers-announce-their-contents.md).

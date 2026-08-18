@@ -366,7 +366,22 @@ displays — without that, none of its numbers reached a screen reader, and the
 coverage sentence would not have either. See
 [Specification 0033](../specs/0033-summary-total-coverage.md),
 [ADR 0023](decisions/0023-displayed-totals-state-their-coverage.md), and the
-[Sprint 33 manual checklist](manual-testing/sprint-33-summary-total-coverage.md). See the
+[Sprint 33 manual checklist](manual-testing/sprint-33-summary-total-coverage.md).
+
+That card was the first instance of a class, not the whole of it. A labelled
+container's accessible name is now its identity phrase followed by every string it
+renders, in render order, composed through `describeCardContents` so there is one
+path rather than one per screen; a rendered heading that only restates the
+identity phrase is omitted. A container whose children include a control is not
+labelled at all, because no name recovers a control the name has hidden — the
+hydration target progress card carried one, and `Change daily target` never
+reached the accessibility tree while it did. `Card` is the only design-system
+component that couples a label to grouping: it sets
+`accessible={Boolean(accessibilityLabel)}`, while `Screen` and `SelectionField`
+pass a label through without it and hide nothing. See
+[Specification 0034](../specs/0034-announced-card-contents.md),
+[ADR 0024](decisions/0024-labelled-containers-announce-their-contents.md), and the
+[Sprint 34 manual checklist](manual-testing/sprint-34-announced-card-contents.md). See the
 [personal records architecture](architecture/workout-personal-records.md),
 [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
 [ADR 0022](decisions/0022-personal-record-ordering-direction.md),

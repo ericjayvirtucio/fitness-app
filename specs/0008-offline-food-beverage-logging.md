@@ -142,3 +142,13 @@ are excluded.
 
 The repository owner approved the Stage 1 design on 2026-08-02 and requested
 implementation in cohesive committed stages.
+
+## Amendment: the daily totals card announces its contents
+
+The daily totals card carries an `accessibilityLabel`, which makes it one
+accessibility element, so its energy, entry count, six nutrient lines, and
+completeness note reached no screen reader. Its accessible name now carries every
+string it renders, in render order, composed from the same list the card maps
+over. No displayed value or sentence changed. See
+[Specification 0034](0034-announced-card-contents.md) and
+[ADR 0024](../docs/decisions/0024-labelled-containers-announce-their-contents.md).

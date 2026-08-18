@@ -180,6 +180,14 @@ Units are spoken as words, validation errors are associated with their field and
 announced, nothing depends on color or an icon, and the vertical layout survives
 large Dynamic Type without horizontal scrolling.
 
+The consequence card is one accessibility element, so its accessible name carries
+the paragraph it displays rather than only the title `What this correction
+changes` — the sentence a person is asked to accept was otherwise unspoken. The
+summary card on the completed detail carries its actual set count and workout time
+by the same rule. See
+[Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+
 ## Privacy, security, and performance
 
 No network, telemetry, analytics, AI, permission, external service, or new

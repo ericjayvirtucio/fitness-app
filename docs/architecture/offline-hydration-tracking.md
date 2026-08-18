@@ -92,6 +92,15 @@ radio semantics, minimum touch targets, keyboard operation, live error feedback,
 descriptive cards, destructive confirmation, and textual target progress for
 assistive technology.
 
+The target progress card is deliberately unlabelled. A labelled `Card` is one
+accessibility element, and while this one carried a composed name its
+"Change daily target" control never reached the accessibility tree at all — a
+person using a screen reader had no route back to the target screen once a target
+existed. Its lines and its control announce themselves instead. The daily totals
+card keeps its name, because it holds no control. See
+[Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+
 Hydration records remain in the operating-system application sandbox. There is no
 networking, analytics, telemetry, or third-party processing. Encryption, export,
 backup, restore, reset, retention, reminders, analytics, personalized targets,

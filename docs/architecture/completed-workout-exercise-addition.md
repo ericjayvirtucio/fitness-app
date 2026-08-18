@@ -209,6 +209,11 @@ what will change before anything is saved, and saves explicitly: nothing is
 destroyed, so a destructive confirmation would be disproportionate and would
 devalue the three real ones on the neighbouring screen.
 
+That statement is one accessibility element, so its accessible name carries the
+paragraph it displays and not only the title `What this addition changes`. See
+[Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+
 After a successful addition the detail refreshes in place with the new exercise
 last, a polite announcement confirms what happened, and focus stays in the detail.
 A refusal keeps the screen and preserves the entered values. Addition is

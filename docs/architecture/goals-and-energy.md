@@ -83,6 +83,14 @@ sent over a network, or included in user-facing technical errors. Application
 SQLite encryption, export, recovery, deletion, history, and cloud reconciliation
 remain intentionally deferred.
 
+The screening card, the estimates card, and the goal form's calculated target card
+are each one accessibility element, so each accessible name carries every metric
+it renders — `label, value` for each, in written order — rather than only the
+card's title. Without it the BMI, its screening category, both energy estimates,
+and the calculated daily calorie target reached no screen reader at all. See
+[Specification 0034](../../specs/0034-announced-card-contents.md) and
+[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+
 ## Known limitations
 
 - Adult calculations are restricted to ages 20–78.
