@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import type { UnitSystem } from '@fitness/domain';
@@ -68,9 +68,17 @@ export function WorkoutHistoryScreen({
   const [ready, setReady] = useState<ReadyState>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
+  const requestSequence = useRef(0);
   const periodDetails = getWorkoutHistoryPeriodDetails(anchor, period);
 
+  /**
+   * Only the newest read may write what the screen shows. Moving through
+   * periods quickly starts one read per period, and a slower earlier one
+   * finishing last would leave one period's summary above another period's
+   * workouts — the disagreement the period-bounded list exists to prevent.
+   */
   const load = useCallback(() => {
+    const request = ++requestSequence.current;
     setIsLoading(true);
     setError(undefined);
     void loadUseCases()
@@ -82,6 +90,7 @@ export function WorkoutHistoryScreen({
           useCases.getProfile.execute(),
           useCases.listPerformedExercises.execute(),
         ]);
+        if (request !== requestSequence.current) return;
         setReady({
           page,
           performedExercises,
@@ -91,8 +100,13 @@ export function WorkoutHistoryScreen({
           useCases,
         });
       })
-      .catch(() => setError('Workout history could not be loaded.'))
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        if (request === requestSequence.current)
+          setError('Workout history could not be loaded.');
+      })
+      .finally(() => {
+        if (request === requestSequence.current) setIsLoading(false);
+      });
   }, [
     loadUseCases,
     periodDetails.range.endLocalCalendarDate,

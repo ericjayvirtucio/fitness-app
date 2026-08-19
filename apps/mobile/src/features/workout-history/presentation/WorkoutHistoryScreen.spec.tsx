@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -342,6 +343,62 @@ describe('WorkoutHistoryScreen', () => {
       expect(queries).toHaveLength(2);
       expect(queries[1]?.cursor).toEqual(cursor);
       expect(queries[1]?.range).toEqual(queries[0]?.range);
+    });
+
+    it('lets only the newest period read write what the screen shows', async () => {
+      const pending: ((name: string) => void)[] = [];
+      let callCount = 0;
+      const list = {
+        execute: () => {
+          callCount += 1;
+          if (callCount === 1)
+            return Promise.resolve({
+              items: [item('First', '550e8400-e29b-41d4-a716-446655440000')],
+              nextCursor: null,
+            });
+          return new Promise((resolve) => {
+            pending.push((name: string) =>
+              resolve({
+                items: [item(name, '550e8400-e29b-41d4-a716-446655440000')],
+                nextCursor: null,
+              }),
+            );
+          });
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+      await waitFor(() => expect(screen.getByText('First')).toBeOnTheScreen());
+
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+      await waitFor(() => expect(pending).toHaveLength(1));
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+      await waitFor(() => expect(pending).toHaveLength(2));
+
+      // The newer read answers first; the older one answers last and must lose.
+      await act(async () => {
+        pending[1]?.('Newest period');
+        pending[0]?.('Superseded period');
+        await Promise.resolve();
+      });
+
+      await waitFor(() =>
+        expect(screen.getByText('Newest period')).toBeOnTheScreen(),
+      );
+      expect(screen.queryByText('Superseded period')).not.toBeOnTheScreen();
     });
   });
 
