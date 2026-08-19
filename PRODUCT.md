@@ -98,6 +98,18 @@ name shows the chosen one — including the evidence beneath a personal record. 
 name is a label its owner chooses, not a fact the workout observed, so renaming
 is not correction and changes no recorded result, total, time, record, or tie.
 
+Naming made history's rows distinguishable, which made an older incoherence
+obvious: the screen offered a day, week, or month, computed its summary for the
+chosen one, and then listed workouts from any period at all. Somebody reading a
+July summary scrolled into August workouts beneath it, and a period holding
+nothing showed zeroes above unrelated cards. The selected period now governs the
+list as well as the summary, so the two describe the same span of time. A workout
+belongs to the period it started in, which is the period that already counted it,
+so one performed across midnight is never split between a list and a total. A
+period holding no workouts says so in its own words, rather than borrowing the
+sentence that means somebody has never trained at all. Nothing recorded changed:
+no result, set, time, total, record, tie, or evidence link.
+
 Every one of those capabilities assumed the person already had exercises to
 train with, and a new installation has none. The Exercise Library's first screen
 was an empty list and an invitation to author definitions by hand, choosing
