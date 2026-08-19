@@ -42,8 +42,15 @@ type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
  * selection, so a `Load More Workouts` press extends the period on screen even
  * if the selection has already moved on. The reload a selection change triggers
  * replaces the whole page moments later.
+ *
+ * `hasAnyCompletedWorkout` comes from one unbounded page of one workout,
+ * because an empty period and an empty history need different sentences and a
+ * bounded page cannot tell them apart. The performed exercises cannot answer it
+ * either: a completed workout that recorded no set is history without being a
+ * performed exercise.
  */
 type ReadyState = Readonly<{
+  hasAnyCompletedWorkout: boolean;
   page: WorkoutHistoryPage;
   performedExercises: readonly PerformedExerciseSummary[];
   range: WorkoutHistoryRange;
@@ -84,14 +91,17 @@ export function WorkoutHistoryScreen({
     void loadUseCases()
       .then(async (useCases) => {
         const range = periodDetails.range;
-        const [page, summary, profile, performedExercises] = await Promise.all([
-          useCases.list.execute({ range }),
-          useCases.getSummary.execute(range),
-          useCases.getProfile.execute(),
-          useCases.listPerformedExercises.execute(),
-        ]);
+        const [page, summary, profile, performedExercises, anyHistory] =
+          await Promise.all([
+            useCases.list.execute({ range }),
+            useCases.getSummary.execute(range),
+            useCases.getProfile.execute(),
+            useCases.listPerformedExercises.execute(),
+            useCases.list.execute({ limit: 1 }),
+          ]);
         if (request !== requestSequence.current) return;
         setReady({
+          hasAnyCompletedWorkout: anyHistory.items.length > 0,
           page,
           performedExercises,
           range,
@@ -217,9 +227,17 @@ export function WorkoutHistoryScreen({
       <SectionHeader title="Recent workouts" />
       {ready.page.items.length === 0 ? (
         <EmptyState
-          description="Finish a workout with at least one performed set to build your history."
+          description={
+            ready.hasAnyCompletedWorkout
+              ? 'Choose another period, or finish a workout to add one here.'
+              : 'Finish a workout with at least one performed set to build your history.'
+          }
           icon="time-outline"
-          title="No completed workouts yet"
+          title={
+            ready.hasAnyCompletedWorkout
+              ? 'No workouts in this period'
+              : 'No completed workouts yet'
+          }
         />
       ) : (
         ready.page.items.map((item) => (

@@ -245,6 +245,8 @@ describe('WorkoutHistoryScreen', () => {
       const summaryRanges: unknown[] = [];
       const list = {
         execute: (query: { range?: { startLocalCalendarDate: string } }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
           listRanges.push(query.range);
           return Promise.resolve({
             items: [
@@ -301,6 +303,8 @@ describe('WorkoutHistoryScreen', () => {
       };
       const list = {
         execute: (query: { cursor?: unknown; range?: unknown }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
           queries.push(query);
           return Promise.resolve(
             query.cursor === undefined
@@ -349,7 +353,9 @@ describe('WorkoutHistoryScreen', () => {
       const pending: ((name: string) => void)[] = [];
       let callCount = 0;
       const list = {
-        execute: () => {
+        execute: (query: { range?: unknown }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
           callCount += 1;
           if (callCount === 1)
             return Promise.resolve({
@@ -399,6 +405,79 @@ describe('WorkoutHistoryScreen', () => {
         expect(screen.getByText('Newest period')).toBeOnTheScreen(),
       );
       expect(screen.queryByText('Superseded period')).not.toBeOnTheScreen();
+    });
+
+    it('says a period is empty in its own words when history exists elsewhere', async () => {
+      const list = {
+        execute: (query: { range?: unknown }) =>
+          Promise.resolve(
+            query.range === undefined
+              ? {
+                  items: [
+                    item('Earlier', '550e8400-e29b-41d4-a716-446655440000'),
+                  ],
+                  nextCursor: null,
+                }
+              : { items: [], nextCursor: null },
+          ),
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('No workouts in this period'),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByText(
+          'Choose another period, or finish a workout to add one here.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText('No completed workouts yet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the never-completed words when no workout has ever been completed', async () => {
+      const list = {
+        execute: () => Promise.resolve({ items: [], nextCursor: null }),
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen(),
+      );
+      expect(
+        screen.queryByText('No workouts in this period'),
+      ).not.toBeOnTheScreen();
     });
   });
 
