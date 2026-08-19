@@ -15,6 +15,14 @@ appId: com.fitnessapp.dev
     direction: DOWN
 - tapOn: Open Workout History
 - assertVisible: Workout History
+# The period control sits below the heading and its subtitle, so it can start
+# below the fold on a short device. Scrolling to it is a no-op when it is
+# already visible, and off-screen content in a scroll view is absent from the
+# hierarchy rather than merely invisible.
+- scrollUntilVisible:
+    element:
+      id: workout-history-period-day
+    direction: DOWN
 - assertVisible: History period
 - tapOn:
     id: workout-history-period-day
