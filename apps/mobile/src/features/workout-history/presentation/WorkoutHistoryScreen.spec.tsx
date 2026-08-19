@@ -212,6 +212,139 @@ describe('WorkoutHistoryScreen', () => {
     expect(screen.getByText('0 completed workouts')).toBeOnTheScreen();
   });
 
+  describe('the selected period', () => {
+    const summary = {
+      actualSetCount: 1,
+      completedWorkoutCount: 1,
+      distanceMillimeters: null,
+      durationSeconds: null,
+      elapsedWorkoutSeconds: 600,
+      performedExerciseCount: 1,
+      recordedLoadVolumeGramRepetitions: null,
+      repetitions: 12,
+    };
+
+    function item(name: string, sessionId: string) {
+      return {
+        actualSetCount: 1,
+        completedAtEpochMilliseconds: 600_000,
+        elapsedSeconds: 600,
+        exerciseCount: 1,
+        nameSnapshot: name,
+        performedExerciseCount: 1,
+        sessionId: id(sessionId),
+        startedAtEpochMilliseconds: 0,
+        startedLocalCalendarDate: '2026-08-08',
+        startedUtcOffsetMinutes: 0,
+      };
+    }
+
+    it('reads the list and the summary for the same span, and moves both together', async () => {
+      const listRanges: unknown[] = [];
+      const summaryRanges: unknown[] = [];
+      const list = {
+        execute: (query: { range?: { startLocalCalendarDate: string } }) => {
+          listRanges.push(query.range);
+          return Promise.resolve({
+            items: [
+              item(
+                `Workout of ${query.range?.startLocalCalendarDate ?? 'nowhere'}`,
+                '550e8400-e29b-41d4-a716-446655440000',
+              ),
+            ],
+            nextCursor: null,
+          });
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: {
+                execute: (range: unknown) => {
+                  summaryRanges.push(range);
+                  return Promise.resolve(summary);
+                },
+              },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByTestId('completed-workout-card')).toBeOnTheScreen(),
+      );
+      expect(listRanges).toHaveLength(1);
+      expect(listRanges[0]).toEqual(summaryRanges[0]);
+      const first = listRanges[0];
+
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+
+      await waitFor(() => expect(listRanges).toHaveLength(2));
+      expect(listRanges[1]).not.toEqual(first);
+      expect(listRanges[1]).toEqual(summaryRanges[1]);
+    });
+
+    it('pages within the period the page on screen belongs to', async () => {
+      const queries: { cursor?: unknown; range?: unknown }[] = [];
+      const cursor = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        startedAtEpochMilliseconds: 0,
+        startedLocalCalendarDate: '2026-08-08',
+      };
+      const list = {
+        execute: (query: { cursor?: unknown; range?: unknown }) => {
+          queries.push(query);
+          return Promise.resolve(
+            query.cursor === undefined
+              ? {
+                  items: [
+                    item('First', '550e8400-e29b-41d4-a716-446655440000'),
+                  ],
+                  nextCursor: cursor,
+                }
+              : {
+                  items: [
+                    item('Second', '550e8400-e29b-41d4-a716-446655440001'),
+                  ],
+                  nextCursor: null,
+                },
+          );
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() => expect(screen.getByText('First')).toBeOnTheScreen());
+      await fireEvent.press(screen.getByLabelText('Load More Workouts'));
+
+      await waitFor(() => expect(screen.getByText('Second')).toBeOnTheScreen());
+      expect(screen.getByText('First')).toBeOnTheScreen();
+      expect(queries).toHaveLength(2);
+      expect(queries[1]?.cursor).toEqual(cursor);
+      expect(queries[1]?.range).toEqual(queries[0]?.range);
+    });
+  });
+
   describe('summary total coverage', () => {
     function renderSummary(
       summary: Partial<{

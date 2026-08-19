@@ -19,6 +19,7 @@ import type {
   PerformedExerciseSummary,
   WorkoutHistoryListItem,
   WorkoutHistoryPage,
+  WorkoutHistoryRange,
   WorkoutProgressSummary,
 } from '../application/workout-history-models';
 import {
@@ -36,9 +37,16 @@ import {
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
+/**
+ * The range is stored beside the page it produced, not read from the current
+ * selection, so a `Load More Workouts` press extends the period on screen even
+ * if the selection has already moved on. The reload a selection change triggers
+ * replaces the whole page moments later.
+ */
 type ReadyState = Readonly<{
   page: WorkoutHistoryPage;
   performedExercises: readonly PerformedExerciseSummary[];
+  range: WorkoutHistoryRange;
   summary: WorkoutProgressSummary;
   unitSystem: UnitSystem;
   useCases: UseCases;
@@ -67,15 +75,17 @@ export function WorkoutHistoryScreen({
     setError(undefined);
     void loadUseCases()
       .then(async (useCases) => {
+        const range = periodDetails.range;
         const [page, summary, profile, performedExercises] = await Promise.all([
-          useCases.list.execute(),
-          useCases.getSummary.execute(periodDetails.range),
+          useCases.list.execute({ range }),
+          useCases.getSummary.execute(range),
           useCases.getProfile.execute(),
           useCases.listPerformedExercises.execute(),
         ]);
         setReady({
           page,
           performedExercises,
+          range,
           summary,
           unitSystem: profile?.preferredUnitSystem ?? 'metric',
           useCases,
@@ -115,7 +125,7 @@ export function WorkoutHistoryScreen({
   const loadMore = () => {
     if (!ready.page.nextCursor) return;
     void ready.useCases.list
-      .execute({ cursor: ready.page.nextCursor })
+      .execute({ cursor: ready.page.nextCursor, range: ready.range })
       .then((next) =>
         setReady({
           ...ready,
