@@ -1,5 +1,6 @@
 import type { DomainId, WorkoutSession } from '@fitness/domain';
 import type {
+  CompletedWorkoutPageQuery,
   ExercisePerformancePage,
   PerformedExerciseSummary,
   WorkoutHistoryPage,
@@ -12,7 +13,7 @@ import type {
 export interface WorkoutHistoryRepository {
   getCompletedById(id: DomainId): Promise<WorkoutSession | null>;
   listCompletedPage(
-    query: WorkoutHistoryPageQuery,
+    query: CompletedWorkoutPageQuery,
   ): Promise<WorkoutHistoryPage>;
   listExercisePerformancePage(
     exerciseDefinitionId: DomainId,

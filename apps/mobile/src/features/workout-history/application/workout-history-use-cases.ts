@@ -1,6 +1,7 @@
 import { DomainId, type WorkoutSession } from '@fitness/domain';
 import type { ExercisePersonalRecords } from './exercise-personal-records';
 import type {
+  CompletedWorkoutPageQuery,
   WorkoutHistoryPageQuery,
   WorkoutHistoryRange,
 } from './workout-history-models';
@@ -11,7 +12,14 @@ import type { WorkoutPersonalRecordsReader } from './workout-personal-records-re
 export class ListWorkoutHistoryUseCase {
   constructor(private readonly repository: WorkoutHistoryRepository) {}
 
-  execute(query: WorkoutHistoryPageQuery = {}) {
+  /**
+   * A query without a range lists all completed history, exactly as it always
+   * has. A query carrying one lists the workouts that started inside it, using
+   * the same validation and the same refusal the range summary already uses, so
+   * a period cannot summarize one span while listing another.
+   */
+  execute(query: CompletedWorkoutPageQuery = {}) {
+    if (query.range !== undefined) requireValidRange(query.range);
     return this.repository.listCompletedPage({
       ...query,
       limit: normalizeLimit(query.limit),
@@ -34,12 +42,7 @@ export class GetWorkoutProgressSummaryUseCase {
   constructor(private readonly repository: WorkoutHistoryRepository) {}
 
   execute(range: WorkoutHistoryRange) {
-    if (
-      !isCalendarDate(range.startLocalCalendarDate) ||
-      !isCalendarDate(range.endLocalCalendarDate) ||
-      range.startLocalCalendarDate > range.endLocalCalendarDate
-    )
-      throw new Error('Workout history date range is invalid.');
+    requireValidRange(range);
     return this.repository.summarizeCompletedRange(range);
   }
 }
@@ -95,6 +98,15 @@ function normalizeLimit(limit: number | undefined): number {
   if (!Number.isInteger(limit) || limit < 1)
     return workoutHistoryPagePolicy.defaultLimit;
   return Math.min(limit, workoutHistoryPagePolicy.maximumLimit);
+}
+
+function requireValidRange(range: WorkoutHistoryRange): void {
+  if (
+    !isCalendarDate(range.startLocalCalendarDate) ||
+    !isCalendarDate(range.endLocalCalendarDate) ||
+    range.startLocalCalendarDate > range.endLocalCalendarDate
+  )
+    throw new Error('Workout history date range is invalid.');
 }
 
 function isCalendarDate(value: string): boolean {

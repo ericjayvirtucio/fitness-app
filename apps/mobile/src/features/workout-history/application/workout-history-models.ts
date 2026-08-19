@@ -39,6 +39,24 @@ export type WorkoutHistoryRange = Readonly<{
   startLocalCalendarDate: string;
 }>;
 
+/**
+ * A completed-workout page request, optionally bounded to a captured local date
+ * range.
+ *
+ * This is deliberately not `WorkoutHistoryPageQuery` with one more field.
+ * That type is shared with the exercise performance reader, which has no period
+ * control and therefore honours no range, and a shared optional field would
+ * declare a capability one of its two readers silently ignores. The completed
+ * list owns the range because the completed list is the only reader that
+ * applies it.
+ *
+ * The range bounds membership by `startedLocalCalendarDate`, the same date the
+ * range summary groups by, so a workout crossing midnight belongs to the period
+ * it started in and is counted and listed by the same one.
+ */
+export type CompletedWorkoutPageQuery = WorkoutHistoryPageQuery &
+  Readonly<{ range?: WorkoutHistoryRange }>;
+
 export type WorkoutProgressSummary = Readonly<{
   actualSetCount: number;
   completedWorkoutCount: number;
