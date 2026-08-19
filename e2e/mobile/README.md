@@ -436,10 +436,10 @@ and a specific workout through its own history card label or its completed
 detail.
 
 **Workout History is taller than one viewport.** The summary card and the period
-controls push "Recent workouts", the completed cards, and the empty state below
-the fold, and off-screen content in a scroll view is absent from the hierarchy
-rather than merely invisible. Scroll to anything below the summary before
-asserting it.
+controls push "Workouts in this period", the completed cards, and the empty
+state below the fold, and off-screen content in a scroll view is absent from the
+hierarchy rather than merely invisible. Scroll to anything below the summary
+before asserting it.
 
 **Dismiss the keyboard before scrolling to a control below a text field.** The
 number pad covers the save action, and a scroll gesture with it open drags

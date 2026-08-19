@@ -181,7 +181,7 @@ export function WorkoutHistoryScreen({
         ) : null}
       </View>
       <SelectionField
-        label="Summary period"
+        label="History period"
         onChange={selectPeriod}
         options={[
           { label: 'Day', value: 'day' },
@@ -224,7 +224,7 @@ export function WorkoutHistoryScreen({
           {error}
         </AppText>
       ) : null}
-      <SectionHeader title="Recent workouts" />
+      <SectionHeader title="Workouts in this period" />
       {ready.page.items.length === 0 ? (
         <EmptyState
           description={

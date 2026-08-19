@@ -479,6 +479,32 @@ describe('WorkoutHistoryScreen', () => {
         screen.queryByText('No workouts in this period'),
       ).not.toBeOnTheScreen();
     });
+
+    it('names the control and the section for the whole screen they govern', async () => {
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list: {
+                execute: () => Promise.resolve({ items: [], nextCursor: null }),
+              },
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByText('History period')).toBeOnTheScreen(),
+      );
+      expect(screen.getByText('Workouts in this period')).toBeOnTheScreen();
+      expect(screen.queryByText('Summary period')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Recent workouts')).not.toBeOnTheScreen();
+    });
   });
 
   describe('summary total coverage', () => {

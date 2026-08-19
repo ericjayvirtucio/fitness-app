@@ -15,8 +15,9 @@ appId: com.fitnessapp.dev
 # its recorded load volume in both directions — the covered total, or the
 # sentence saying there is none — so the summary is one line tall for this
 # dimension whatever was recorded, and no longer changes height with the
-# fixture. It is still tall enough to push "Recent workouts" and the first card
-# below the fold, so the card is scrolled to rather than tapped where it sits.
+# fixture. It is still tall enough to push "Workouts in this period" and the
+# first card below the fold, so the card is scrolled to rather than tapped where
+# it sits.
 # Scrolling is a no-op when it is already visible.
 - scrollUntilVisible:
     element:
