@@ -1,0 +1,32 @@
+appId: com.fitnessapp.dev
+name: An empty period says so in its own words
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+# The period control and the period's own controls sit above the summary, so
+# this scroll is a no-op when they are already in the first viewport.
+- scrollUntilVisible:
+    element:
+      id: workout-history-previous-period
+    direction: DOWN
+- tapOn:
+    id: workout-history-previous-period
+# Yesterday recorded nothing, and the workout that exists was performed today.
+- scrollUntilVisible:
+    element:
+      text: No workouts in this period
+    direction: DOWN
+    centerElement: true
+- assertVisible: Choose another period, or finish a workout to add one here.
+# Both sentences render in the same place, so this negative assertion is made
+# from the viewport where the other one would appear.
+- assertNotVisible: No completed workouts yet
+- assertNotVisible: Finish a workout with at least one performed set to build your history.
+- assertNotVisible:
+    id: completed-workout-card

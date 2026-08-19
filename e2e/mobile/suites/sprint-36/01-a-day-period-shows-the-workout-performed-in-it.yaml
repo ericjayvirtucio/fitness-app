@@ -1,0 +1,27 @@
+appId: com.fitnessapp.dev
+name: A day period shows the workout performed in it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+# The summary card and the period controls push the section and the cards below
+# the fold, and off-screen content in a scroll view is absent from the hierarchy
+# rather than invisible.
+- scrollUntilVisible:
+    element:
+      text: Workouts in this period
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open Workout,.*1 actual sets.*'
+# The card is one accessible element, so its lines are asserted through the name
+# it announces rather than through the text inside it.
+- assertNotVisible: No workouts in this period

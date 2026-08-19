@@ -1,0 +1,31 @@
+appId: com.fitnessapp.dev
+name: An empty history still says it has never recorded one
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+# No workout has ever been completed, so the period is empty for a different
+# reason and the screen says the different thing. This is what keeps the two
+# sentences distinct rather than one replacing the other.
+- scrollUntilVisible:
+    element:
+      text: No completed workouts yet
+    direction: DOWN
+    centerElement: true
+- assertVisible: Finish a workout with at least one performed set to build your history.
+- assertNotVisible: No workouts in this period
+- assertNotVisible: Choose another period, or finish a workout to add one here.
+# Moving to a period that never held anything either does not change the answer.
+- scrollUntilVisible:
+    element:
+      id: workout-history-previous-period
+    direction: UP
+- tapOn:
+    id: workout-history-previous-period
+- scrollUntilVisible:
+    element:
+      text: No completed workouts yet
+    direction: DOWN
+    centerElement: true
+- assertNotVisible: No workouts in this period
