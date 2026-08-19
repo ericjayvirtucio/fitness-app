@@ -63,6 +63,7 @@ export function CompletedWorkoutScreen({
   onClose,
   onCorrectSet,
   onDeleted,
+  onRename,
 }: Readonly<{
   hasAddedExercise?: boolean;
   id: string;
@@ -72,6 +73,7 @@ export function CompletedWorkoutScreen({
   onClose: () => void;
   onCorrectSet?: (exerciseId: string, setId: string) => void;
   onDeleted?: () => void;
+  onRename?: () => void;
 }>) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [session, setSession] = useState<WorkoutSession | null>();
@@ -230,6 +232,15 @@ export function CompletedWorkoutScreen({
       <AppText color="secondary">
         Completed workout · {session.startedLocalCalendarDate}
       </AppText>
+      {onRename ? (
+        <AppButton
+          accessibilityLabel={`Rename this workout, ${session.name}, ${formatCapturedDate(session.startedLocalCalendarDate)}`}
+          label="Rename This Workout"
+          onPress={onRename}
+          testID="rename-completed-workout"
+          variant="outline"
+        />
+      ) : null}
       <Card
         accessibilityLabel={describeCardContents(
           'Completed workout summary',

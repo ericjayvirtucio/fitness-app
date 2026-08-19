@@ -584,10 +584,57 @@ deletion returns to have no tab bar, so a flow beginning with
 `tapOn: id: tab-workout` fails there. Relaunch the app between phases to return
 to a known root rather than guessing at back gestures.
 
-**Workout History cards are indistinguishable by label.** Every synthetic
-workout is named "Workout", so a scenario that must open an older one selects
-`completed-workout-card` by index after scrolling the list into view. Index 0 is
-the most recent workout.
+**Workout History cards are indistinguishable by label unless a scenario names
+them.** A synthetic workout is named "Workout" by default, so a scenario that
+must open an older one selects `completed-workout-card` by index after scrolling
+the list into view. Index 0 is the most recent workout.
+
+**Ten assertions match the default workout name, and depend on a default rather
+than on a guarantee.** Six match `Open Workout,.*` — four in
+`flows/workout/complete-and-review-history.yaml` and two in
+`suites/sprint-33/01-a-weighted-period-states-what-its-total-covers.yaml` — and
+four match `in Workout, set 1`, in `suites/sprint-22/02`, `suites/sprint-23/03`
+(twice), and `suites/sprint-31/01`. They were written when nothing could rename a
+workout. A workout of either status can now be renamed, so **a scenario that
+renames one must not compose those flows, and must assert the name it chose.**
+Use an `E2E`-prefixed name and check every selector that would then match it: a
+workout's name is interpolated into the history card's accessible label, the
+exercise performance card's label, a personal record's evidence sentence, the
+add-exercise and delete control labels, and the deletion alert's title.
+
+**The naming control is selected by identifier, not by the words it displays.**
+`rename-active-workout` and `rename-completed-workout` both display "Rename This
+Workout", but an `AppButton` is read by its accessible label, and theirs carry
+the workout's current name — the very thing a renaming scenario is about to
+change. `flows/workout/rename-workout.yaml` takes the identifier as a parameter
+for this reason.
+
+**Adding the naming control made two screens taller, and where it was added
+mattered more than that it was.** The completed detail carries it under the date
+line; the active workout carries it among the whole-workout actions above "Finish
+Workout". It was originally under the active workout's heading, and Sprint 35's
+first QA run failed all four scenarios because of it: the extra row pushed the set
+form down until the iOS number pad covered "Save Set", so every scenario died on
+`Set 1: 12 reps` having never reached a naming assertion. The screenshot showed
+the rename had worked perfectly and the save control was simply behind the
+keyboard. **A control added above a keyboard-driven form can hide a control below
+it without any selector being wrong.** Four completion flows and one Sprint 27
+scenario still scroll to "Finish Workout" before tapping it, because the naming
+control now sits directly above it; that scroll is a no-op when it is already
+visible. This is the same trap a taller exercise picker set earlier: a flow that
+worked against a shorter screen is not evidence that it works against a taller
+one.
+
+**An alert's confirm option is `index: 0`, not `index: 1`.** Maestro enumerates
+the alert before the screen behind it, so when a confirmation repeats the words
+of the control that opened it, the alert's own option comes first. Every
+confirmation here uses `index: 0`; `flows/workout/empty-session-lifecycle.yaml`
+used `index: 1` and so had always been tapping the screen's own "Discard Workout"
+button, passing only because that button's coordinates happened to fall under the
+alert's confirm button. Sprint 35 moved the button roughly one row lower, the same
+tap landed on the backdrop instead, and the workout survived the discard. **A
+positional selector that happens to overlap the right target is not a working
+selector; it is a coincidence waiting for a layout change.**
 
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the

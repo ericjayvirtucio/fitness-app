@@ -1,0 +1,40 @@
+appId: com.fitnessapp.dev
+---
+# Names the workout the current screen shows, through the same screen a person
+# uses.
+#
+# RENAME_CONTROL and NEW_NAME are deliberately required rather than defaulted. A
+# flow's own `env` block is applied after the caller's `runFlow` env and
+# overrides it, so a default silently replaces every value a suite passed in.
+#
+# The naming control is selected by its identifier rather than by the words it
+# displays, because an AppButton is read by its accessible label and this one's
+# label carries the workout's current name — the very thing the caller is about
+# to change.
+- scrollUntilVisible:
+    element:
+      id: ${RENAME_CONTROL}
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: ${RENAME_CONTROL}
+- assertVisible: Rename workout
+# The field's own touch target, as the hydration target flow does. Tapping the
+# frame focuses the input the same way a person's tap does.
+- tapOn:
+    id: workout-name-touch-target
+- eraseText
+- inputText: ${NEW_NAME}
+# The text keyboard covers the save control, and a blind tap would land on a key
+# and append a character to the field that still holds focus. A short drag in the
+# content area dismisses it, because the screen sets
+# keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Save Name
+    direction: DOWN
+    centerElement: true
+- tapOn: Save Name

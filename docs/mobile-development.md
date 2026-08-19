@@ -381,7 +381,19 @@ component that couples a label to grouping: it sets
 pass a label through without it and hide nothing. See
 [Specification 0034](../specs/0034-announced-card-contents.md),
 [ADR 0024](decisions/0024-labelled-containers-announce-their-contents.md), and the
-[Sprint 34 manual checklist](manual-testing/sprint-34-announced-card-contents.md). See the
+[Sprint 34 manual checklist](manual-testing/sprint-34-announced-card-contents.md).
+
+A workout of either status can be renamed by its owner, through one screen at
+`/workout-session/[id]/name` reached from the active workout and from completed
+history. The name is user-authored free text, capped at 80 characters by the same
+policy the schema's `CHECK` already carried, rendered only through `AppText` and
+interpolated only into accessible names and one alert title. It never reaches a
+refusal sentence. Because both history readers project `display_name` through a
+live join rather than reading a stored snapshot, a rename also changes what a
+personal record says its evidence is called. See
+[Specification 0035](../specs/0035-owner-named-workouts.md),
+[ADR 0025](decisions/0025-a-workout-name-is-its-owners-label.md), and the
+[Sprint 35 manual checklist](manual-testing/sprint-35-owner-named-workouts.md). See the
 [personal records architecture](architecture/workout-personal-records.md),
 [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
 [ADR 0022](decisions/0022-personal-record-ordering-direction.md),

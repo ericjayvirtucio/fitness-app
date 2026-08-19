@@ -97,6 +97,15 @@ name: A workout is planned and completed against imported exercises alone
 - inputText: '12'
 - tapOn: Save Set
 - assertVisible: 'Set 1: 12 reps'
+# The active workout now carries a naming control under its heading, so every
+# control below it sits one row lower than it did. Scroll to the finish control
+# rather than tapping where it used to be; this is a no-op when it is already
+# visible.
+- scrollUntilVisible:
+    element:
+      text: Finish Workout
+    direction: DOWN
+    centerElement: true
 - tapOn: Finish Workout
 - tapOn:
     text: Finish Workout

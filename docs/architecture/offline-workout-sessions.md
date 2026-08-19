@@ -37,6 +37,15 @@ place where a snapshot's instant and its workout's instant differ. See
 exercise, and catalog UUIDs are provenance strings—not foreign keys or historical
 display sources.
 
+A session's own name is not a snapshot. It is stored as `workout_session.display_name`
+and projected live by every reader, so its owner can rename a workout of either
+status and every surface agrees on the answer. The rename is one guarded `UPDATE`
+on the parent row, validated by rebuilding the aggregate through
+`WorkoutSession.create` and guarded by the status and lifecycle instants the
+screen loaded. It writes no recorded value and is not correction. See
+[owner-named workouts](../../specs/0035-owner-named-workouts.md) and
+[ADR 0025](../decisions/0025-a-workout-name-is-its-owners-label.md).
+
 Exercise notes, favorite/search metadata, equipment, and muscle classification
 are not needed to interpret performed work and are not copied. Catalog deletion
 continues to be blocked only by active Planner references. Session snapshots do

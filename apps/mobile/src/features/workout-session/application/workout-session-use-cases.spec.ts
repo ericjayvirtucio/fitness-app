@@ -61,6 +61,9 @@ class Sessions implements WorkoutSessionRepository {
     this.current = session;
     return Promise.resolve();
   }
+  rename() {
+    return Promise.resolve(true);
+  }
   replace(session: WorkoutSession) {
     this.current = session;
     return Promise.resolve();

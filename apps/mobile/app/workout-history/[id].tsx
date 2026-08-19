@@ -20,6 +20,7 @@ export default function CompletedWorkoutRoute() {
           `/workout-history/${sessionId}/correct-set/${exerciseId}/${setId}`,
         )
       }
+      onRename={() => router.push(`/workout-session/${sessionId}/name`)}
       // Replaced rather than pushed, so Back cannot reopen a workout that no
       // longer exists. The flag carries no identifier and only asks history to
       // announce what happened.

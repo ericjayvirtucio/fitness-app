@@ -1,4 +1,8 @@
-import type { DomainId, WorkoutSession } from '@fitness/domain';
+import type {
+  DomainId,
+  WorkoutSession,
+  WorkoutSessionStatus,
+} from '@fitness/domain';
 
 /**
  * The lifecycle instants a caller believes a completed workout still holds.
@@ -11,6 +15,21 @@ import type { DomainId, WorkoutSession } from '@fitness/domain';
 export type CompletedWorkoutLifecycle = Readonly<{
   completedAtEpochMilliseconds: number;
   startedAtEpochMilliseconds: number;
+}>;
+
+/**
+ * The lifecycle facts a caller believes a workout of any status still holds.
+ *
+ * Wider than `CompletedWorkoutLifecycle` because a rename is the one workflow
+ * that reaches both an active and a completed workout, so its guard has to
+ * carry the status the caller saw as well as the instants. A caller holding a
+ * screen opened while the workout was active cannot rename it after it was
+ * finished, because the status it names no longer matches the stored row.
+ */
+export type WorkoutSessionLifecycle = Readonly<{
+  completedAtEpochMilliseconds: number | null;
+  startedAtEpochMilliseconds: number;
+  status: WorkoutSessionStatus;
 }>;
 
 export interface WorkoutSessionRepository {
@@ -66,6 +85,29 @@ export interface WorkoutSessionRepository {
   getActive(): Promise<WorkoutSession | null>;
   getById(id: DomainId): Promise<WorkoutSession | null>;
   insert(session: WorkoutSession): Promise<void>;
+  /**
+   * Rewrites one workout's name and nothing else.
+   *
+   * Deliberately separate from `replace`, which also rewrites status and
+   * completion and then deletes and reinserts every child row. Renaming
+   * through that method would rewrite every recorded set to change a label.
+   * This contract issues one guarded `UPDATE` against the parent row, so no
+   * exercise, set, position, or timestamp is touched on any path.
+   *
+   * Unlike `deleteCompleted` and `discard` this one method serves both
+   * statuses. Those two are split because destruction must never reach the
+   * wrong lifecycle; a rename destroys nothing, and the status the caller
+   * expects is a bound predicate on the statement itself, so a caller cannot
+   * rename a workout whose lifecycle moved underneath it.
+   *
+   * Reports whether a row matched the expected lifecycle. Nothing is written
+   * when none did.
+   */
+  rename(
+    id: DomainId,
+    name: string,
+    expected: WorkoutSessionLifecycle,
+  ): Promise<boolean>;
   replace(session: WorkoutSession): Promise<void>;
 }
 

@@ -30,6 +30,13 @@ everything it owns. None of them changes anything else. See
 [completed workout exercise addition](completed-workout-exercise-addition.md), and
 [completed workout deletion](completed-workout-deletion.md).
 
+A rename is deliberately none of those four. `nameSnapshot` is a projection of
+`workout_session.display_name`, not a stored copy, so renaming a completed workout
+changes what history and its personal records call it while changing no recorded
+value, no instant, and no snapshot. Naming is owned by `workout-session` and
+reached from history through a shared screen. See
+[ADR 0025](../decisions/0025-a-workout-name-is-its-owners-label.md).
+
 ## Captured dates and bounded history
 
 The start-time `started_local_calendar_date` permanently groups a session. Later

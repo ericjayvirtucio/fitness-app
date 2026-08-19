@@ -191,3 +191,10 @@ follow from the restored history with nothing to migrate, and stable identifiers
 keep evidence links intact. After erasure no records remain. Cross-capability
 Progress is unchanged: it answers what happened in a chosen period, while
 records answer a lifetime question.
+
+`occurrence.sessionNameSnapshot` is a projection of `workout_session.display_name`
+through a live join, despite its name. Renaming a workout therefore changes what a
+record says its evidence is called, including a record set months earlier. That is
+accepted and stated in the product; the record's category, value, ordering, ties,
+and evidence link are unaffected. See
+[ADR 0025](../decisions/0025-a-workout-name-is-its-owners-label.md).

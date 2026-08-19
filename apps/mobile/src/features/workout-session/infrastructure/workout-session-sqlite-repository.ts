@@ -14,6 +14,7 @@ import {
 } from '../../../infrastructure/persistence/persistence-error';
 import type {
   CompletedWorkoutLifecycle,
+  WorkoutSessionLifecycle,
   WorkoutSessionRepository,
 } from '../application/workout-session-repository';
 import {
@@ -110,6 +111,41 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
         throw new PersistenceError('operation-failed');
       await this.deleteChildren(session.id.value);
       await this.insertChildren(session);
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+  }
+
+  async rename(
+    id: DomainId,
+    name: string,
+    expected: WorkoutSessionLifecycle,
+  ): Promise<boolean> {
+    try {
+      // `IS` rather than `=`, because a completed instant is null on an active
+      // workout and `= NULL` matches nothing. One statement therefore guards
+      // both statuses without branching the SQL on a caller's value.
+      const predicate = `id = ? AND status = ? AND started_at_epoch_ms = ?
+         AND completed_at_epoch_ms IS ?`;
+      const parameters = [
+        id.value,
+        expected.status,
+        expected.startedAtEpochMilliseconds,
+        expected.completedAtEpochMilliseconds,
+      ];
+      const stored = await this.database.getFirst<{ id: string }>(
+        `SELECT id FROM workout_session WHERE ${predicate}`,
+        parameters,
+      );
+      if (stored === null) return false;
+      // The lifecycle predicate is repeated on the write rather than trusted
+      // from the check above, so the guard holds at the statement that changes
+      // the row instead of one statement earlier.
+      await this.database.run(
+        `UPDATE workout_session SET display_name = ? WHERE ${predicate}`,
+        [name, ...parameters],
+      );
+      return true;
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }

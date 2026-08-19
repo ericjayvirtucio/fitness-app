@@ -29,9 +29,11 @@ type Editor = Readonly<{ exerciseId: string; set?: WorkoutSet }>;
 export function WorkoutSessionScreen({
   loadUseCases = createWorkoutSessionUseCases,
   onClose,
+  onRename,
 }: Readonly<{
   loadUseCases?: () => Promise<UseCases>;
   onClose: () => void;
+  onRename?: (sessionId: string) => void;
 }>) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [session, setSession] = useState<WorkoutSession | null>();
@@ -259,6 +261,21 @@ export function WorkoutSessionScreen({
         <AppButton
           label="Add Exercise"
           onPress={() => setIsAddingExercise(true)}
+          variant="outline"
+        />
+      ) : null}
+      {/*
+       * Grouped with the other whole-workout actions rather than placed under
+       * the heading beside the name it changes. Above the exercise cards it
+       * pushed the set form down far enough that the number pad covered "Save
+       * Set", which is the most-used control on the most-used screen.
+       */}
+      {onRename ? (
+        <AppButton
+          accessibilityLabel={`Rename this workout, ${session.name}`}
+          label="Rename This Workout"
+          onPress={() => onRename(session.id.value)}
+          testID="rename-active-workout"
           variant="outline"
         />
       ) : null}

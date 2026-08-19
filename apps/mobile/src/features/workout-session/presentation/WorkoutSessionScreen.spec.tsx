@@ -389,4 +389,44 @@ describe('WorkoutSessionScreen', () => {
       expect(screen.getByText('Set 1: 12 reps')).toBeOnTheScreen(),
     );
   });
+
+  it('offers naming the active workout by the name it currently has', async () => {
+    const onRename = jest.fn();
+    const loadUseCases = loader(
+      activeSession([
+        activeExercise(1, 0, 'Push-up', 'repetitions', [
+          recordedSet(2, 0, RepetitionResult.valid(12)),
+        ]),
+      ]),
+    );
+    await render(
+      <WorkoutSessionScreen
+        loadUseCases={loadUseCases}
+        onClose={jest.fn()}
+        onRename={onRename}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Rename this workout, Morning workout'),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(screen.getByTestId('rename-active-workout'));
+    expect(onRename).toHaveBeenCalledWith(uuids[0]);
+  });
+
+  it('hides the naming control where no route offers one', async () => {
+    const loadUseCases = loader(
+      activeSession([
+        activeExercise(1, 0, 'Push-up', 'repetitions', [
+          recordedSet(2, 0, RepetitionResult.valid(12)),
+        ]),
+      ]),
+    );
+    await renderScreen(loadUseCases);
+
+    await waitFor(() => screen.getByText('Morning workout'));
+    expect(screen.queryByTestId('rename-active-workout')).toBeNull();
+  });
 });

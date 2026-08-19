@@ -1,0 +1,53 @@
+appId: com.fitnessapp.dev
+name: An empty workout takes the name the person performing it gives it
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+# The defect this sprint closes. Every workout started empty is called this, and
+# until now nothing in the application could change it.
+- assertVisible: Workout
+- runFlow:
+    file: ../../flows/workout/rename-workout.yaml
+    env:
+      RENAME_CONTROL: rename-active-workout
+      NEW_NAME: E2E Leg Day
+# Back on the active workout, under the name its owner chose.
+- assertVisible: E2E Leg Day
+- assertNotVisible: Workout
+- tapOn: Add Exercise
+- scrollUntilVisible:
+    element:
+      text: Add E2E Push-up
+    direction: DOWN
+    centerElement: true
+- tapOn: Add E2E Push-up
+- tapOn: Add Set for E2E Push-up
+- tapOn:
+    id: workout-set-repetitions-input
+- inputText: '12'
+- tapOn: Save Set
+- assertVisible: 'Set 1: 12 reps'
+- scrollUntilVisible:
+    element:
+      text: Finish Workout
+    direction: DOWN
+    centerElement: true
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0
+- runFlow: ../../flows/workout/open-workout-history.yaml
+# The completed card carries an accessibilityLabel, so it is one accessibility
+# element and its heading never reaches the tree. The name is proven through the
+# card's own sentence, with a trailing wildcard because Maestro matches a text
+# selector against an element's whole text.
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open E2E Leg Day,.*1 actual sets.*'
