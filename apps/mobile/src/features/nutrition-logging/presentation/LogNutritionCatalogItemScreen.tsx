@@ -1,4 +1,4 @@
-import type { DomainError } from '@fitness/domain';
+import type { ConsumptionEntry, DomainError, Result } from '@fitness/domain';
 import { useEffect, useState } from 'react';
 import { createNutritionLoggingUseCases } from '../../../composition/nutrition-logging';
 import {
@@ -13,7 +13,17 @@ import {
 import type { NutritionCatalogItem } from '../application/nutrition-catalog-item';
 import { formatNutritionEnergy } from './nutrition-formatting';
 
-type UseCases = Awaited<ReturnType<typeof createNutritionLoggingUseCases>>;
+type UseCases = Readonly<{
+  getCatalogItem: Readonly<{
+    execute: (id: string) => Promise<NutritionCatalogItem | null>;
+  }>;
+  logFromCatalog: Readonly<{
+    execute: (
+      catalogItemId: string,
+      consumedAmount: string,
+    ) => Promise<Result<ConsumptionEntry, readonly DomainError[]>>;
+  }>;
+}>;
 type Props = Readonly<{
   catalogItemId: string;
   loadUseCases?: () => Promise<UseCases>;
