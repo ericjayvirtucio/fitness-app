@@ -47,6 +47,16 @@ abstraction, builds a `ConsumptionEntry` for the current local time, inserts its
 snapshot, then increments use count and records last-used time. Both writes use
 transaction-scoped repositories. A failure rolls back both operations.
 
+The use case takes an optional local calendar day. Omitted, it behaves exactly as
+above. Given one, it re-validates that day rather than trusting the screen,
+records at noon on it with that instant's offset, and refuses a day that is not a
+calendar date or has not happened with a fixed sentence carrying no field, so the
+log screen renders it in its existing live region. Last-used time keeps the clock
+in both cases, because usage recency is when the item was reached for and not the
+day the entry was attributed to. The log control names the day it will record to:
+`Log to today`, or the day the diary was showing. See
+[ADR 0027](../decisions/0027-a-day-control-governs-what-a-screen-records.md).
+
 Scaling remains in `ConsumptionEntry.create` and `scaleNutritionFacts`. Unknown
 nutrients remain `null`; known zero remains zero. Mass and volume are never
 converted.

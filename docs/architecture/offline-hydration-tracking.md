@@ -45,6 +45,15 @@ captured date, so travel or later timezone changes do not move historical entrie
 Edits replace validated state while retaining identity and may move an event to a
 different day. Deletion is a confirmed hard delete with no tombstone or undo.
 
+The daily screen's selected day supplies the create path's default and reaches
+the entry route as a validated `date` query parameter, under the same rule
+Nutrition uses: today keeps the current clock, any other day prefills `12:00`,
+and an absent, malformed, or not-yet-happened day falls back to today with the
+Date field showing it. The `Next` control is disabled on today, because the entry
+builder refuses a future instant. Target progress still appears only for today,
+unchanged, because targets remain unversioned. See
+[ADR 0027](../decisions/0027-a-day-control-governs-what-a-screen-records.md).
+
 ## Target and daily aggregation
 
 Hydration owns one optional user-defined target. There is no default, profile

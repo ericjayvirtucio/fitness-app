@@ -125,6 +125,19 @@ definition they already wrote is never overwritten, never duplicated, and always
 reported as left alone. The application offers content; it does not endorse these
 movements, rank them above what the person writes, or tell anybody how to train.
 
+Recording caught up with reading last. Both daily screens — the nutrition diary
+and hydration — let a person walk back through their days, and both then offered
+an add control that recorded to today regardless. Someone who remembered last
+night's dinner the next morning moved to yesterday, followed the screen's own
+invitation to add something to it, and got an entry on a day they were not
+looking at while the day they were looking at still read as empty. Navigating to
+a day and logging to it are now the same act. A day that has not happened is
+simply not offered, because the application has always refused to record into the
+future and a screen should not propose what it will decline. Nothing already
+recorded moved, no total was recalculated, and correcting an entry's day is still
+the same editable field it always was — what changed is that the application now
+defaults to the day the person is actually looking at.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

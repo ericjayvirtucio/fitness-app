@@ -45,7 +45,19 @@ so travel and device timezone changes do not regroup history.
 
 The editor accepts local `YYYY-MM-DD` and 24-hour `HH:MM`, rejects nonexistent or
 invalid wall times, obtains the platform offset for the selected instant, and
-rejects future consumption. DST behavior follows the platform timezone database;
+rejects future consumption.
+
+The diary's selected day supplies the create path's default. It reaches the entry
+route and the saved-item log route as a `date` query parameter carrying a
+`YYYY-MM-DD` local calendar date, is validated before it prefills anything, and
+falls back to today when it is absent, malformed, or names a day that has not
+happened. `resolveRecordedDayPrefill` owns that rule: today keeps the current
+clock, and any other day prefills `12:00`, because the stored calendar date must
+be the date the instant and offset produce and noon is the one wall time no
+daylight-saving transition removes. The Date field remains editable and remains
+the override. The diary's `Next` control is disabled on today, because every
+entry builder refuses a future instant. See
+[ADR 0027](../decisions/0027-a-day-control-governs-what-a-screen-records.md). DST behavior follows the platform timezone database;
 ambiguous repeated wall times resolve using the platform's `Date` behavior and
 retain the selected resulting offset.
 
