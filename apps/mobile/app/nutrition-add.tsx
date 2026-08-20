@@ -8,7 +8,12 @@ export default function NutritionAddRoute() {
     <NutritionCatalogBrowserScreen
       onCreate={() => router.push('/nutrition-catalog/new')}
       onEdit={(id) => router.push(`/nutrition-catalog/${id}/edit`)}
-      onLog={(id) => router.push(`/nutrition-catalog/${id}/log`)}
+      onLog={(id) =>
+        router.push({
+          pathname: `/nutrition-catalog/${id}/log`,
+          params: dayParameters,
+        })
+      }
       onManual={() =>
         router.push({
           pathname: '/nutrition-entry/new',

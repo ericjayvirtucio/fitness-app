@@ -1,5 +1,10 @@
 import type { ConsumptionEntry, DomainError, Result } from '@fitness/domain';
 import { useEffect, useState } from 'react';
+import {
+  formatLocalCalendarDate,
+  formatLocalCalendarDateLabel,
+  resolveRecordedDayPrefill,
+} from '../../../application/date/local-calendar-date';
 import { createNutritionLoggingUseCases } from '../../../composition/nutrition-logging';
 import {
   AppButton,
@@ -21,6 +26,7 @@ type UseCases = Readonly<{
     execute: (
       catalogItemId: string,
       consumedAmount: string,
+      localCalendarDate?: string,
     ) => Promise<Result<ConsumptionEntry, readonly DomainError[]>>;
   }>;
 }>;
@@ -28,12 +34,14 @@ type Props = Readonly<{
   catalogItemId: string;
   loadUseCases?: () => Promise<UseCases>;
   onDone: () => void;
+  selectedLocalCalendarDate?: string;
 }>;
 
 export function LogNutritionCatalogItemScreen({
   catalogItemId,
   loadUseCases = createNutritionLoggingUseCases,
   onDone,
+  selectedLocalCalendarDate,
 }: Props) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [item, setItem] = useState<NutritionCatalogItem | null>();
@@ -68,13 +76,24 @@ export function LogNutritionCatalogItemScreen({
     );
   }
   const unit = item.kind === 'food' ? 'grams' : 'milliliters';
+  const now = new Date();
+  const recordedDay = resolveRecordedDayPrefill(
+    selectedLocalCalendarDate,
+    now,
+  ).localCalendarDate;
+  const isToday = recordedDay === formatLocalCalendarDate(now);
   const save = async () => {
     setErrors({});
     setIsSaving(true);
     try {
+      /*
+       * Today is passed as no day at all, so the entry keeps the clock instant
+       * it has always had rather than being moved to this day's noon.
+       */
       const result = await useCases.logFromCatalog.execute(
         catalogItemId,
         amount,
+        isToday ? undefined : recordedDay,
       );
       if (!result.isSuccess) {
         setErrors(toErrorRecord(result.error));
@@ -120,7 +139,11 @@ export function LogNutritionCatalogItemScreen({
       ) : null}
       <AppButton
         isLoading={isSaving}
-        label="Log to today"
+        label={
+          isToday
+            ? 'Log to today'
+            : `Log to ${formatLocalCalendarDateLabel(recordedDay)}`
+        }
         testID="log-catalog-item"
         onPress={() => void save()}
       />
