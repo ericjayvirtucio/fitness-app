@@ -181,6 +181,38 @@ describe('NutritionDiaryScreen', () => {
     await view.unmount();
   });
 
+  it('stops the day navigator at today and moves again once a day is past', async () => {
+    const view = await render(
+      <NutritionDiaryScreen
+        loadUseCases={loader({
+          carbohydrateGrams: 0,
+          fatGrams: 0,
+          fiberGrams: 0,
+          proteinGrams: 0,
+          sodiumMilligrams: 0,
+          sugarGrams: 0,
+        })}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Previous day' })).toBeEnabled();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeEnabled(),
+    );
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
+  });
+
   it('announces the error rather than stale totals', async () => {
     await render(
       <NutritionDiaryScreen

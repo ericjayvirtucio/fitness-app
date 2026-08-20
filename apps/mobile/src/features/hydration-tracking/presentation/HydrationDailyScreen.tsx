@@ -95,8 +95,15 @@ export function HydrationDailyScreen({
 
   const { entries, summary } = state.result;
   const selectedLocalCalendarDate = formatLocalCalendarDate(selectedDate);
-  const isToday =
-    selectedLocalCalendarDate === formatLocalCalendarDate(new Date());
+  const today = formatLocalCalendarDate(new Date());
+  const isToday = selectedLocalCalendarDate === today;
+  /*
+   * A recording screen may not offer a day that has not happened, because every
+   * entry builder refuses a future instant. Stopping the navigator at today is
+   * what keeps the add control below from offering an act the application will
+   * decline.
+   */
+  const isNextDisabled = selectedLocalCalendarDate >= today;
   return (
     <Screen
       accessibilityLabel="Hydration"
@@ -131,6 +138,7 @@ export function HydrationDailyScreen({
           />
           <AppButton
             accessibilityLabel="Next day"
+            disabled={isNextDisabled}
             label="Next"
             onPress={() => moveDay(1)}
             variant="outline"

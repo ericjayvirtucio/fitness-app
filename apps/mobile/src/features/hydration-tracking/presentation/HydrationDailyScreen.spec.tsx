@@ -170,6 +170,32 @@ describe('HydrationDailyScreen', () => {
     await view.unmount();
   });
 
+  it('stops the day navigator at today and moves again once a day is past', async () => {
+    const view = await render(
+      <HydrationDailyScreen
+        loadUseCases={emptyDayLoader()}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+        onSetTarget={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Previous day' })).toBeEnabled();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeEnabled(),
+    );
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
+  });
+
   it('reaches the change-target control the progress card renders', async () => {
     const onSetTarget = jest.fn();
     await render(
