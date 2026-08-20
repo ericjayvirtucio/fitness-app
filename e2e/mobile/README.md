@@ -379,13 +379,22 @@ The day controls are `AppButton`s, so they are tapped as `Previous day` and
 they display. And `Next day` is disabled on today, because every entry builder
 refuses a future instant, so no flow can walk a recording screen into tomorrow.
 
-**A past hydration day is a different height from today's.** The target card is
-replaced by one sentence when the selected day is not today, so a flow that
-reaches `Add fluid` by a fixed swipe on today cannot reach it on yesterday.
-`flows/hydration/log-fluid-to-a-past-day.yaml` scrolls to it, and scrolls back
-up before asserting the totals card, because the screen keeps that offset when
-the save returns to it. `flows/hydration/log-water-and-persist.yaml` keeps its
-fixed swipes and is unaffected: it never leaves today.
+**A past hydration day is SHORTER than today's, which put a control inside the
+tab-bar clearance.** The target card is replaced by one sentence when the
+selected day is not today. Sprint 37's first QA run lost a scenario to the
+consequence: `Add fluid` moved up into the tab-bar clearance at
+`[24,767][378,811]`, Maestro reported it fully visible against the device
+rectangle, `scrollUntilVisible` scrolled zero times, and `tapOn` completed
+against the tab bar. The screenshot showed the past day rendering perfectly and
+the form never opening, which read like a navigation defect and was not.
+`flows/hydration/log-fluid-to-a-past-day.yaml` passes `centerElement: true` for
+this reason, and scrolls back up before asserting the totals card because the
+screen keeps that offset when the save returns to it.
+`flows/hydration/log-water-and-persist.yaml` keeps its plain scroll and its fixed
+swipes and is unaffected: it never leaves today, where the taller target card
+above pushes the same control clear of the clearance. **A screen that shrinks
+with the data is the changed-height trap in the direction that hides a control
+rather than the one that pushes it away.**
 
 **Reach today through a relaunch rather than a scroll offset.** A suite proving
 that today did not gain what yesterday recorded needs today's diary at a known

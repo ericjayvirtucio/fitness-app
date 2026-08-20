@@ -4,11 +4,15 @@ appId: com.fitnessapp.dev
     id: tab-today
 - assertVisible: Hydration
 - tapOn: Previous day
-# A past day replaces the target card with one sentence, so the screen is a
-# different height from today's and the control is reached by scrolling rather
-# than by a fixed swipe.
+# A past day replaces the target card with one sentence, so this screen is
+# SHORTER than today's and "Add fluid" lands inside the tab-bar clearance.
+# Maestro judges visibility against the device rectangle, so it reports the
+# control fully visible, scrolls zero times, and taps a point the tab bar
+# covers. centerElement is what forces the scroll that today's flow gets for
+# free from the taller target card above it.
 - assertVisible: 'Historical days show recorded totals.*'
 - scrollUntilVisible:
+    centerElement: true
     element:
       text: Add fluid
     direction: DOWN
