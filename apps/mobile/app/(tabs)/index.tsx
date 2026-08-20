@@ -4,7 +4,9 @@ import { HydrationDailyScreen } from '../../src/features/hydration-tracking/pres
 export default function TodayScreen() {
   return (
     <HydrationDailyScreen
-      onAdd={() => router.push('/hydration-entry/new')}
+      onAdd={(date) =>
+        router.push({ pathname: '/hydration-entry/new', params: { date } })
+      }
       onEdit={(id) => router.push(`/hydration-entry/${id}`)}
       onSetTarget={() => router.push('/hydration-target')}
     />

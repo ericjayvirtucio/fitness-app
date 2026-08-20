@@ -36,7 +36,7 @@ type State =
 
 type Props = Readonly<{
   loadUseCases?: () => Promise<UseCases>;
-  onAdd: () => void;
+  onAdd: (localCalendarDate: string) => void;
   onEdit: (id: string) => void;
   onSetTarget: () => void;
 }>;
@@ -94,9 +94,9 @@ export function HydrationDailyScreen({
   }
 
   const { entries, summary } = state.result;
+  const selectedLocalCalendarDate = formatLocalCalendarDate(selectedDate);
   const isToday =
-    formatLocalCalendarDate(selectedDate) ===
-    formatLocalCalendarDate(new Date());
+    selectedLocalCalendarDate === formatLocalCalendarDate(new Date());
   return (
     <Screen
       accessibilityLabel="Hydration"
@@ -203,13 +203,16 @@ export function HydrationDailyScreen({
         </AppText>
       )}
 
-      <AppButton label="Add fluid" onPress={onAdd} />
+      <AppButton
+        label="Add fluid"
+        onPress={() => onAdd(selectedLocalCalendarDate)}
+      />
       {entries.length === 0 ? (
         <EmptyState
           actionLabel="Add first fluid"
           description="Record water or another fluid using an explicit milliliter amount."
           icon="water-outline"
-          onAction={onAdd}
+          onAction={() => onAdd(selectedLocalCalendarDate)}
           title="Nothing logged for this day"
         />
       ) : (
