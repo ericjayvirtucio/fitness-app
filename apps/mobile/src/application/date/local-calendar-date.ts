@@ -28,6 +28,62 @@ export function isLocalCalendarDate(value: string): boolean {
   return formatLocalCalendarDate(date) === value;
 }
 
+export type RecordedDayPrefill = Readonly<{
+  localCalendarDate: string;
+  time: string;
+}>;
+
+/**
+ * Noon is this application's representative wall time for a local day. Both
+ * daily screens already anchor a selected day at hour 12, because noon is the
+ * one wall time no daylight-saving transition removes, so a form can always
+ * prefill it and the entry builders can always accept it.
+ */
+const representativeDayTime = '12:00';
+
+export function noonOnLocalCalendarDate(value: string): Date | null {
+  if (!isLocalCalendarDate(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1, 12);
+}
+
+export function formatLocalCalendarDateLabel(value: string): string {
+  const date = noonOnLocalCalendarDate(value);
+  if (date === null) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
+/**
+ * A recording screen may be asked to record onto a day chosen elsewhere. The
+ * request is untrusted: it arrives as a route parameter, so a day that is not
+ * a local calendar date, or one that has not happened, resolves to today with
+ * the current clock rather than to a value the entry builders would refuse.
+ */
+export function resolveRecordedDayPrefill(
+  requestedLocalCalendarDate: string | undefined,
+  now: Date,
+): RecordedDayPrefill {
+  const today = formatLocalCalendarDate(now);
+  if (
+    requestedLocalCalendarDate === undefined ||
+    !isLocalCalendarDate(requestedLocalCalendarDate) ||
+    requestedLocalCalendarDate >= today
+  ) {
+    return Object.freeze({
+      localCalendarDate: today,
+      time: formatWallClockTime(now),
+    });
+  }
+  return Object.freeze({
+    localCalendarDate: requestedLocalCalendarDate,
+    time: representativeDayTime,
+  });
+}
+
 export function isLocalCalendarDateRange(
   range: LocalCalendarDateRange,
 ): boolean {
@@ -92,6 +148,12 @@ export function enumerateLocalCalendarDates(
     date.setDate(date.getDate() + 1);
   }
   return Object.freeze(dates);
+}
+
+function formatWallClockTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 function formatPeriodLabel(
