@@ -1,0 +1,20 @@
+appId: com.fitnessapp.dev
+name: Logging to the day you are viewing
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-to-a-past-day.yaml
+    env:
+      NAME: E2E Yesterday Banana
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: '.*E2E Yesterday Banana.*'
+    direction: DOWN
+- assertVisible: 'Edit food entry, E2E Yesterday Banana, 89 kcal.*'
+- runFlow:
+    file: ../../flows/hydration/log-fluid-to-a-past-day.yaml
+    env:
+      PRESET: 500 mL
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'

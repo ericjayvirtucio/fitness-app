@@ -1,0 +1,30 @@
+appId: com.fitnessapp.dev
+---
+- tapOn:
+    id: tab-today
+- assertVisible: Hydration
+- tapOn: Previous day
+# A past day replaces the target card with one sentence, so the screen is a
+# different height from today's and the control is reached by scrolling rather
+# than by a fixed swipe.
+- assertVisible: 'Historical days show recorded totals.*'
+- scrollUntilVisible:
+    element:
+      text: Add fluid
+    direction: DOWN
+- tapOn: Add fluid
+- tapOn: ${PRESET}
+- scrollUntilVisible:
+    element:
+      text: Save fluid
+    direction: DOWN
+# The Date and Time fields are left exactly as the form prefilled them.
+- tapOn: Save fluid
+# Reaching the add control scrolled this screen, and it keeps that offset when
+# the save returns to it, so the totals card above is scrolled back into view
+# rather than assumed to be where it started.
+- scrollUntilVisible:
+    element:
+      text: Hydration
+    direction: UP
+- assertVisible: Hydration

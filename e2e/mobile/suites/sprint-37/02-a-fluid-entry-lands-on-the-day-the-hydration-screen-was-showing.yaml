@@ -1,0 +1,22 @@
+appId: com.fitnessapp.dev
+name: A fluid entry lands on the day the hydration screen was showing
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/hydration/log-fluid-to-a-past-day.yaml
+    env:
+      PRESET: 500 mL
+# The totals card is one accessible element, so its name carries every subtotal
+# the day recorded.
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
+# A past day states why it shows no target progress, and still shows its totals.
+- assertVisible: 'Historical days show recorded totals.*'
+# A relaunch returns to a known root showing today, which is both how today is
+# reached without guessing a scroll offset and proof the entry survived a
+# restart on the day it was recorded to.
+- stopApp
+- launchApp
+- assertVisible: 'Daily fluid totals, total 0 mL, plain water 0 mL, other fluids 0 mL, 0 entries'
+- tapOn: Previous day
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'

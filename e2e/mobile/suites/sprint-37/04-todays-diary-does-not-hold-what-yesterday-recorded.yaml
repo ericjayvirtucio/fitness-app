@@ -1,0 +1,26 @@
+appId: com.fitnessapp.dev
+name: Today's diary does not hold what yesterday recorded
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-to-a-past-day.yaml
+    env:
+      NAME: E2E Yesterday Banana
+# A relaunch returns to a known root, and the diary opens on today.
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-nutrition
+- assertVisible: Nutrition
+# The totals card is one accessible element, so today's emptiness is stated
+# through the name it announces rather than through the lines inside it.
+- assertVisible: 'Daily nutrition totals, 0 kcal, 0 entries,.*'
+# Made from the viewport where the row would render, beneath the empty state
+# today now shows.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Nothing logged for this day
+    direction: DOWN
+- assertNotVisible: 'Edit food entry, E2E Yesterday Banana.*'

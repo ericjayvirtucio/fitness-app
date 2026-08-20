@@ -54,6 +54,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 30 --platform ios
 ./scripts/qa.sh sprint 31 --platform ios
 ./scripts/qa.sh sprint 36 --platform ios
+./scripts/qa.sh sprint 37 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -89,7 +90,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–34. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–37. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -365,6 +366,33 @@ nothing has ever been completed. Both render in the same place, so a negative
 assertion about one is only safe from the viewport where the other appears.
 `suites/sprint-22/01` and `suites/sprint-24/07` assert the never-completed
 sentence and are unaffected, because both reach a history with nothing in it.
+
+**A daily screen's add control records to the day that screen is showing.** The
+Nutrition diary and Hydration pass their selected day to the entry form and to
+the saved-item log screen, so `flows/nutrition/log-entry-to-a-past-day.yaml`,
+`flows/hydration/log-fluid-to-a-past-day.yaml`, and
+`flows/nutrition/log-catalog-item-to-a-past-day.yaml` never type a date: they
+move a day and then leave the Date and Time fields exactly as the form
+prefilled them, which is the claim under test. Two consequences for selectors.
+The day controls are `AppButton`s, so they are tapped as `Previous day` and
+`Next day` — their accessible labels — and not as the "Previous" and "Next"
+they display. And `Next day` is disabled on today, because every entry builder
+refuses a future instant, so no flow can walk a recording screen into tomorrow.
+
+**A past hydration day is a different height from today's.** The target card is
+replaced by one sentence when the selected day is not today, so a flow that
+reaches `Add fluid` by a fixed swipe on today cannot reach it on yesterday.
+`flows/hydration/log-fluid-to-a-past-day.yaml` scrolls to it, and scrolls back
+up before asserting the totals card, because the screen keeps that offset when
+the save returns to it. `flows/hydration/log-water-and-persist.yaml` keeps its
+fixed swipes and is unaffected: it never leaves today.
+
+**Reach today through a relaunch rather than a scroll offset.** A suite proving
+that today did not gain what yesterday recorded needs today's diary at a known
+position. `stopApp` and `launchApp` give it one, keep the stored data, and
+prove the back-dated entry survived a restart on the day it was recorded to —
+which is why `suites/sprint-37/02` and `suites/sprint-37/04` relaunch instead
+of tapping `Today` from wherever the previous step left the screen.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two
