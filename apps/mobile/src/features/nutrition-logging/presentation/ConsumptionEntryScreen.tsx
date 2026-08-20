@@ -1,6 +1,7 @@
 import type { ConsumptionEntry, DomainError } from '@fitness/domain';
 import { Alert } from 'react-native';
 import { useEffect, useState } from 'react';
+import { resolveRecordedDayPrefill } from '../../../application/date/local-calendar-date';
 import { createNutritionLoggingUseCases } from '../../../composition/nutrition-logging';
 import {
   AppButton,
@@ -42,6 +43,7 @@ type Props = Readonly<{
   loadUseCases?: () => Promise<UseCases>;
   onDone: () => void;
   onSaveReusable?: (id: string) => void;
+  selectedLocalCalendarDate?: string;
 }>;
 
 export function ConsumptionEntryScreen({
@@ -49,6 +51,7 @@ export function ConsumptionEntryScreen({
   loadUseCases = createNutritionLoggingUseCases,
   onDone,
   onSaveReusable,
+  selectedLocalCalendarDate,
 }: Props) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [entry, setEntry] = useState<ConsumptionEntry | null>();
@@ -152,7 +155,9 @@ export function ConsumptionEntryScreen({
   return (
     <ConsumptionEntryForm
       errors={errors}
-      initialValues={entry ? formValues(entry) : emptyFormValues()}
+      initialValues={
+        entry ? formValues(entry) : emptyFormValues(selectedLocalCalendarDate)
+      }
       isSaving={isSaving}
       onCancel={onDone}
       onSave={(values) => void save(values)}
@@ -164,12 +169,17 @@ export function ConsumptionEntryScreen({
   );
 }
 
-function emptyFormValues(): ConsumptionEntryFormValues {
-  const now = new Date();
+function emptyFormValues(
+  selectedLocalCalendarDate: string | undefined,
+): ConsumptionEntryFormValues {
+  const prefill = resolveRecordedDayPrefill(
+    selectedLocalCalendarDate,
+    new Date(),
+  );
   return {
     carbohydrateGrams: '',
     consumedAmount: '',
-    date: localDate(now),
+    date: prefill.localCalendarDate,
     description: '',
     energyKilocalories: '',
     fatGrams: '',
@@ -180,7 +190,7 @@ function emptyFormValues(): ConsumptionEntryFormValues {
     referenceAmount: '',
     sodiumMilligrams: '',
     sugarGrams: '',
-    time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    time: prefill.time,
   };
 }
 
@@ -217,10 +227,6 @@ function formValues(entry: ConsumptionEntry): ConsumptionEntryFormValues {
 
 function optionalString(value: number | null): string {
   return value === null ? '' : String(value);
-}
-
-function localDate(date: Date): string {
-  return `${String(date.getFullYear()).padStart(4, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function toErrorRecord(errors: readonly DomainError[]) {

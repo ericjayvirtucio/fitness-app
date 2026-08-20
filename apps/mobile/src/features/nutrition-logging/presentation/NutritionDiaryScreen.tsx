@@ -37,7 +37,7 @@ type State =
 
 type Props = Readonly<{
   loadUseCases?: () => Promise<UseCases>;
-  onAdd: () => void;
+  onAdd: (localCalendarDate: string) => void;
   onEdit: (id: string) => void;
 }>;
 
@@ -95,6 +95,7 @@ export function NutritionDiaryScreen({
   }
 
   const { entries, summary } = state.result;
+  const selectedLocalCalendarDate = formatLocalCalendarDate(selectedDate);
   /**
    * Every total the card states, in the order it reads them. A labelled card is
    * one accessibility element, so its own name is the only thing announced;
@@ -183,13 +184,16 @@ export function NutritionDiaryScreen({
         ) : null}
       </Card>
 
-      <AppButton label="Add food or beverage" onPress={onAdd} />
+      <AppButton
+        label="Add food or beverage"
+        onPress={() => onAdd(selectedLocalCalendarDate)}
+      />
       {entries.length === 0 ? (
         <EmptyState
           actionLabel="Add first entry"
           description="Record food or a caloric beverage using grams or milliliters."
           icon="nutrition-outline"
-          onAction={onAdd}
+          onAction={() => onAdd(selectedLocalCalendarDate)}
           title="Nothing logged for this day"
         />
       ) : (
