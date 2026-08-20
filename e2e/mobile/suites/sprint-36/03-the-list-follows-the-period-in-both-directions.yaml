@@ -1,0 +1,50 @@
+appId: com.fitnessapp.dev
+name: The list follows the period in both directions
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+- scrollUntilVisible:
+    element:
+      id: workout-history-previous-period
+    direction: DOWN
+- tapOn:
+    id: workout-history-previous-period
+- scrollUntilVisible:
+    element:
+      text: No workouts in this period
+    direction: DOWN
+    centerElement: true
+# Returning to today brings the workout back, so the list follows the control
+# rather than merely emptying once.
+- scrollUntilVisible:
+    element:
+      id: workout-history-next-period
+    direction: UP
+- tapOn:
+    id: workout-history-next-period
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open Workout,.*1 actual sets.*'
+# A period that has not happened yet holds nothing, and says the same thing a
+# past empty period says.
+- scrollUntilVisible:
+    element:
+      id: workout-history-next-period
+    direction: UP
+- tapOn:
+    id: workout-history-next-period
+- scrollUntilVisible:
+    element:
+      text: No workouts in this period
+    direction: DOWN
+    centerElement: true
+- assertNotVisible: No completed workouts yet

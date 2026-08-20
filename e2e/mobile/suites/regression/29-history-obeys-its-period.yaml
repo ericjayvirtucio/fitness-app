@@ -1,0 +1,49 @@
+appId: com.fitnessapp.dev
+name: History obeys its period
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+# The sprint suite proves each claim on its own from a clean installation. This
+# proves the whole loop in one traversal, and proves it survives a relaunch:
+# the period is screen state and resets to this week, so the workout must still
+# be reachable by narrowing to today again rather than by whatever was selected
+# when the process died.
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open Workout,.*1 actual sets.*'
+- scrollUntilVisible:
+    element:
+      id: workout-history-previous-period
+    direction: UP
+- tapOn:
+    id: workout-history-previous-period
+- scrollUntilVisible:
+    element:
+      text: No workouts in this period
+    direction: DOWN
+    centerElement: true
+- assertNotVisible: No completed workouts yet
+- stopApp
+- launchApp
+- runFlow: ../../flows/workout/open-history-day-period.yaml
+- scrollUntilVisible:
+    element:
+      id: completed-workout-card
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Open Workout,.*1 actual sets.*'
+# The summary above the list describes the same day the list does.
+- scrollUntilVisible:
+    element:
+      text: 'Workout progress summary, 1 completed workouts, 1 actual sets,.*'
+    direction: UP
+    centerElement: true

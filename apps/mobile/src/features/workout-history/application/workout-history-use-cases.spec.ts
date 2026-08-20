@@ -4,7 +4,7 @@ import {
   type ExercisePersonalRecords,
 } from './exercise-personal-records';
 import type {
-  WorkoutHistoryPageQuery,
+  CompletedWorkoutPageQuery,
   WorkoutHistoryRange,
 } from './workout-history-models';
 import type { WorkoutHistoryRepository } from './workout-history-repository';
@@ -31,13 +31,15 @@ class PersonalRecordsReader implements WorkoutPersonalRecordsReader {
 
 class Repository implements WorkoutHistoryRepository {
   lastLimit = 0;
+  lastPageQuery?: CompletedWorkoutPageQuery;
   range?: WorkoutHistoryRange;
 
   getCompletedById(): Promise<WorkoutSession | null> {
     return Promise.resolve(null);
   }
-  listCompletedPage(query: WorkoutHistoryPageQuery) {
+  listCompletedPage(query: CompletedWorkoutPageQuery) {
     this.lastLimit = query.limit ?? 0;
+    this.lastPageQuery = query;
     return Promise.resolve({ items: [], nextCursor: null });
   }
   listExercisePerformancePage() {
@@ -78,6 +80,50 @@ describe('workout history use cases', () => {
     expect(repository.lastLimit).toBe(20);
     await new ListPerformedExercisesUseCase(repository).execute(500);
     expect(repository.lastLimit).toBe(20);
+  });
+
+  it('forwards a listed range unchanged with the normalized limit', async () => {
+    const repository = new Repository();
+    const range = {
+      endLocalCalendarDate: '2026-07-31',
+      startLocalCalendarDate: '2026-07-01',
+    };
+
+    await new ListWorkoutHistoryUseCase(repository).execute({ range });
+
+    expect(repository.lastPageQuery).toEqual({ limit: 20, range });
+  });
+
+  it('lists all completed history when no range is given', async () => {
+    const repository = new Repository();
+
+    await new ListWorkoutHistoryUseCase(repository).execute();
+
+    expect(repository.lastPageQuery).toEqual({ limit: 20 });
+    expect(repository.lastPageQuery).not.toHaveProperty('range');
+  });
+
+  it('refuses an invalid or reversed listed range before reading', () => {
+    const repository = new Repository();
+    const useCase = new ListWorkoutHistoryUseCase(repository);
+
+    expect(() =>
+      useCase.execute({
+        range: {
+          endLocalCalendarDate: '2026-07-01',
+          startLocalCalendarDate: '2026-07-31',
+        },
+      }),
+    ).toThrow('Workout history date range is invalid.');
+    expect(() =>
+      useCase.execute({
+        range: {
+          endLocalCalendarDate: '2026-02-30',
+          startLocalCalendarDate: '2026-02-30',
+        },
+      }),
+    ).toThrow('Workout history date range is invalid.');
+    expect(repository.lastPageQuery).toBeUndefined();
   });
 
   it('accepts valid inclusive captured-local-date ranges', async () => {

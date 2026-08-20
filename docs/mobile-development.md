@@ -175,10 +175,17 @@ and
 Workout History reads completed session snapshots and provides detail,
 captured-local-date Day/Week/Month summaries, bounded pagination, and genuinely
 performed exercise recents. It never derives performance from Planner targets or
-current Catalog definitions. See
-[Workout History architecture](architecture/offline-workout-history.md), the
-[Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md), and
-[troubleshooting guidance](troubleshooting/offline-workout-history.md).
+current Catalog definitions. The selected period governs the workout list as well
+as the summary, by the date a workout started, so a workout crossing midnight is
+listed and counted by the same period; a period holding none says
+`No workouts in this period`, which is a different sentence from
+`No completed workouts yet`. See
+[Workout History architecture](architecture/offline-workout-history.md),
+[Specification 0036](../specs/0036-history-obeys-its-period.md),
+[ADR 0026](decisions/0026-a-period-control-governs-every-list-beneath-it.md), the
+[Sprint 15 manual checklist](manual-testing/sprint-15-workout-history.md),
+the [Sprint 36 manual checklist](manual-testing/sprint-36-history-obeys-its-period.md),
+and [troubleshooting guidance](troubleshooting/offline-workout-history.md).
 
 ## Completed workout correction
 

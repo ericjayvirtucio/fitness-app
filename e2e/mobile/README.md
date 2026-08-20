@@ -53,6 +53,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 29 --platform ios
 ./scripts/qa.sh sprint 30 --platform ios
 ./scripts/qa.sh sprint 31 --platform ios
+./scripts/qa.sh sprint 36 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -344,6 +345,27 @@ and the following `tapOn` taps a point the user cannot see. Pass
 `centerElement: true` when scrolling to the last control on a long screen, as
 the data-controls flow does.
 
+**Workout History's list is bounded by the selected period.** Every scenario that
+completes a workout and then asserts its card still passes unmodified, and each
+one passes for the same reason: the workout is completed today and the default
+period is this week, which contains today. That is a property of the fixtures,
+not a coincidence to rely on silently — a scenario that needed a workout in a
+previous week or month could not create one, because start and completion
+instants come from the device clock and are not editable through the product.
+`flows/workout/open-history-day-period.yaml` narrows to a single day for exactly
+this reason: a day is the only period a run can move out of and back into while
+still holding a workout. Workouts in two different months, a period holding more
+than one page, and a workout performed across midnight are manual claims, in
+`docs/manual-testing/sprint-36-history-obeys-its-period.md`, and are deliberately
+not written as scenarios that would only ever exercise today.
+
+**An empty period and an empty history say different things.** `No workouts in
+this period` means the selection holds none; `No completed workouts yet` means
+nothing has ever been completed. Both render in the same place, so a negative
+assertion about one is only safe from the viewport where the other appears.
+`suites/sprint-22/01` and `suites/sprint-24/07` assert the never-completed
+sentence and are unaffected, because both reach a history with nothing in it.
+
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two
 check-ins must be ordered, the earlier one uses the synthetic time `00:01` and
@@ -436,10 +458,10 @@ and a specific workout through its own history card label or its completed
 detail.
 
 **Workout History is taller than one viewport.** The summary card and the period
-controls push "Recent workouts", the completed cards, and the empty state below
-the fold, and off-screen content in a scroll view is absent from the hierarchy
-rather than merely invisible. Scroll to anything below the summary before
-asserting it.
+controls push "Workouts in this period", the completed cards, and the empty
+state below the fold, and off-screen content in a scroll view is absent from the
+hierarchy rather than merely invisible. Scroll to anything below the summary
+before asserting it.
 
 **Dismiss the keyboard before scrolling to a control below a text field.** The
 number pad covers the save action, and a scroll gesture with it open drags

@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -210,6 +211,300 @@ describe('WorkoutHistoryScreen', () => {
     );
     expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen();
     expect(screen.getByText('0 completed workouts')).toBeOnTheScreen();
+  });
+
+  describe('the selected period', () => {
+    const summary = {
+      actualSetCount: 1,
+      completedWorkoutCount: 1,
+      distanceMillimeters: null,
+      durationSeconds: null,
+      elapsedWorkoutSeconds: 600,
+      performedExerciseCount: 1,
+      recordedLoadVolumeGramRepetitions: null,
+      repetitions: 12,
+    };
+
+    function item(name: string, sessionId: string) {
+      return {
+        actualSetCount: 1,
+        completedAtEpochMilliseconds: 600_000,
+        elapsedSeconds: 600,
+        exerciseCount: 1,
+        nameSnapshot: name,
+        performedExerciseCount: 1,
+        sessionId: id(sessionId),
+        startedAtEpochMilliseconds: 0,
+        startedLocalCalendarDate: '2026-08-08',
+        startedUtcOffsetMinutes: 0,
+      };
+    }
+
+    it('reads the list and the summary for the same span, and moves both together', async () => {
+      const listRanges: unknown[] = [];
+      const summaryRanges: unknown[] = [];
+      const list = {
+        execute: (query: { range?: { startLocalCalendarDate: string } }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
+          listRanges.push(query.range);
+          return Promise.resolve({
+            items: [
+              item(
+                `Workout of ${query.range?.startLocalCalendarDate ?? 'nowhere'}`,
+                '550e8400-e29b-41d4-a716-446655440000',
+              ),
+            ],
+            nextCursor: null,
+          });
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: {
+                execute: (range: unknown) => {
+                  summaryRanges.push(range);
+                  return Promise.resolve(summary);
+                },
+              },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByTestId('completed-workout-card')).toBeOnTheScreen(),
+      );
+      expect(listRanges).toHaveLength(1);
+      expect(listRanges[0]).toEqual(summaryRanges[0]);
+      const first = listRanges[0];
+
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+
+      await waitFor(() => expect(listRanges).toHaveLength(2));
+      expect(listRanges[1]).not.toEqual(first);
+      expect(listRanges[1]).toEqual(summaryRanges[1]);
+    });
+
+    it('pages within the period the page on screen belongs to', async () => {
+      const queries: { cursor?: unknown; range?: unknown }[] = [];
+      const cursor = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        startedAtEpochMilliseconds: 0,
+        startedLocalCalendarDate: '2026-08-08',
+      };
+      const list = {
+        execute: (query: { cursor?: unknown; range?: unknown }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
+          queries.push(query);
+          return Promise.resolve(
+            query.cursor === undefined
+              ? {
+                  items: [
+                    item('First', '550e8400-e29b-41d4-a716-446655440000'),
+                  ],
+                  nextCursor: cursor,
+                }
+              : {
+                  items: [
+                    item('Second', '550e8400-e29b-41d4-a716-446655440001'),
+                  ],
+                  nextCursor: null,
+                },
+          );
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() => expect(screen.getByText('First')).toBeOnTheScreen());
+      await fireEvent.press(screen.getByLabelText('Load More Workouts'));
+
+      await waitFor(() => expect(screen.getByText('Second')).toBeOnTheScreen());
+      expect(screen.getByText('First')).toBeOnTheScreen();
+      expect(queries).toHaveLength(2);
+      expect(queries[1]?.cursor).toEqual(cursor);
+      expect(queries[1]?.range).toEqual(queries[0]?.range);
+    });
+
+    it('lets only the newest period read write what the screen shows', async () => {
+      const pending: ((name: string) => void)[] = [];
+      let callCount = 0;
+      const list = {
+        execute: (query: { range?: unknown }) => {
+          if (query.range === undefined)
+            return Promise.resolve({ items: [], nextCursor: null });
+          callCount += 1;
+          if (callCount === 1)
+            return Promise.resolve({
+              items: [item('First', '550e8400-e29b-41d4-a716-446655440000')],
+              nextCursor: null,
+            });
+          return new Promise((resolve) => {
+            pending.push((name: string) =>
+              resolve({
+                items: [item(name, '550e8400-e29b-41d4-a716-446655440000')],
+                nextCursor: null,
+              }),
+            );
+          });
+        },
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+      await waitFor(() => expect(screen.getByText('First')).toBeOnTheScreen());
+
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+      await waitFor(() => expect(pending).toHaveLength(1));
+      await fireEvent.press(screen.getByLabelText('Show previous week'));
+      await waitFor(() => expect(pending).toHaveLength(2));
+
+      // The newer read answers first; the older one answers last and must lose.
+      await act(async () => {
+        pending[1]?.('Newest period');
+        pending[0]?.('Superseded period');
+        await Promise.resolve();
+      });
+
+      await waitFor(() =>
+        expect(screen.getByText('Newest period')).toBeOnTheScreen(),
+      );
+      expect(screen.queryByText('Superseded period')).not.toBeOnTheScreen();
+    });
+
+    it('says a period is empty in its own words when history exists elsewhere', async () => {
+      const list = {
+        execute: (query: { range?: unknown }) =>
+          Promise.resolve(
+            query.range === undefined
+              ? {
+                  items: [
+                    item('Earlier', '550e8400-e29b-41d4-a716-446655440000'),
+                  ],
+                  nextCursor: null,
+                }
+              : { items: [], nextCursor: null },
+          ),
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('No workouts in this period'),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByText(
+          'Choose another period, or finish a workout to add one here.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText('No completed workouts yet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the never-completed words when no workout has ever been completed', async () => {
+      const list = {
+        execute: () => Promise.resolve({ items: [], nextCursor: null }),
+      };
+
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list,
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByText('No completed workouts yet')).toBeOnTheScreen(),
+      );
+      expect(
+        screen.queryByText('No workouts in this period'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('names the control and the section for the whole screen they govern', async () => {
+      await render(
+        <WorkoutHistoryScreen
+          loadUseCases={() =>
+            Promise.resolve({
+              getProfile: { execute: () => Promise.resolve(null) },
+              getSummary: { execute: () => Promise.resolve(summary) },
+              list: {
+                execute: () => Promise.resolve({ items: [], nextCursor: null }),
+              },
+              listPerformedExercises: { execute: () => Promise.resolve([]) },
+            } as never)
+          }
+          onOpenExercise={jest.fn()}
+          onOpenSession={jest.fn()}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(screen.getByText('History period')).toBeOnTheScreen(),
+      );
+      expect(screen.getByText('Workouts in this period')).toBeOnTheScreen();
+      expect(screen.queryByText('Summary period')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Recent workouts')).not.toBeOnTheScreen();
+    });
   });
 
   describe('summary total coverage', () => {

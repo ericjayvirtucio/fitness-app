@@ -6,6 +6,7 @@ import {
 } from '../../../infrastructure/persistence/persistence-error';
 import { WorkoutSessionSqliteRepository } from '../../workout-session/infrastructure/workout-session-sqlite-repository';
 import type {
+  CompletedWorkoutPageQuery,
   ExercisePerformanceItem,
   PerformedExerciseSummary,
   WorkoutHistoryCursor,
@@ -81,10 +82,29 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
     return session?.status === 'completed' ? session : null;
   }
 
-  async listCompletedPage(query: WorkoutHistoryPageQuery) {
+  /**
+   * Completed workouts, newest first, optionally bounded to a captured local
+   * date range.
+   *
+   * The range predicate is the one `summarizeCompletedRange` already uses, on
+   * the same column, inclusive at both ends, so the list and the summary of one
+   * period describe the same workouts. It also sits on the second column of
+   * `workout_session_completed_local_date`, whose remaining columns are exactly
+   * this query's ordering, so a bounded page seeks and scans in index order
+   * instead of scanning every completed workout.
+   */
+  async listCompletedPage(query: CompletedWorkoutPageQuery) {
     try {
       const limit = query.limit ?? 20;
       const parameters: (number | string)[] = ['completed'];
+      const rangeClause = query.range
+        ? 'AND session.started_local_calendar_date BETWEEN ? AND ?'
+        : '';
+      if (query.range)
+        parameters.push(
+          query.range.startLocalCalendarDate,
+          query.range.endLocalCalendarDate,
+        );
       const cursorClause = query.cursor
         ? `AND (
             session.started_local_calendar_date < ? OR
@@ -118,7 +138,7 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
               ON exercise.id = actual.workout_session_exercise_id
             WHERE exercise.workout_session_id = session.id) AS actual_set_count
         FROM workout_session session
-        WHERE session.status = ? ${cursorClause}
+        WHERE session.status = ? ${rangeClause} ${cursorClause}
         ORDER BY session.started_local_calendar_date DESC,
           session.started_at_epoch_ms DESC, session.id DESC
         LIMIT ?`,

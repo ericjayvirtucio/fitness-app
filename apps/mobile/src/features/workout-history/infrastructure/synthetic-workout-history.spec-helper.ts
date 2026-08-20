@@ -49,6 +49,8 @@ export type SyntheticSession = Readonly<{
   dayIndex: number;
   exercises: readonly SyntheticExercise[];
   name?: string;
+  /** Hour the session starts, so a session can be made to finish after midnight. */
+  startHour?: number;
   status?: WorkoutSessionStatus;
 }>;
 
@@ -75,7 +77,12 @@ export class SyntheticWorkoutHistory {
   }
 
   private buildSession(input: SyntheticSession): WorkoutSession {
-    const startedAt = Date.UTC(2026, 0, 1 + input.dayIndex, 9);
+    const startedAt = Date.UTC(
+      2026,
+      0,
+      1 + input.dayIndex,
+      input.startHour ?? 9,
+    );
     const status = input.status ?? 'completed';
     return unwrap(
       WorkoutSession.create({

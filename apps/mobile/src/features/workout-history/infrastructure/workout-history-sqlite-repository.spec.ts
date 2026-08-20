@@ -80,6 +80,55 @@ describe('WorkoutHistorySqliteRepository', () => {
     });
   });
 
+  it('binds a listed range before the cursor and keeps the ordering', async () => {
+    const database = new FakeDatabase();
+    database.allRows = [historyRow];
+
+    await new WorkoutHistorySqliteRepository(database).listCompletedPage({
+      cursor: {
+        id: historyRow.id,
+        startedAtEpochMilliseconds: historyRow.started_at_epoch_ms,
+        startedLocalCalendarDate: '2026-08-08',
+      },
+      limit: 20,
+      range: {
+        endLocalCalendarDate: '2026-08-31',
+        startLocalCalendarDate: '2026-08-01',
+      },
+    });
+
+    expect(database.lastStatement).toContain(
+      'session.started_local_calendar_date BETWEEN ? AND ?',
+    );
+    expect(database.lastStatement).toContain(
+      'ORDER BY session.started_local_calendar_date DESC',
+    );
+    expect(database.lastParameters).toEqual([
+      'completed',
+      '2026-08-01',
+      '2026-08-31',
+      '2026-08-08',
+      '2026-08-08',
+      historyRow.started_at_epoch_ms,
+      '2026-08-08',
+      historyRow.started_at_epoch_ms,
+      historyRow.id,
+      21,
+    ]);
+  });
+
+  it('leaves an unbounded completed page free of a date predicate', async () => {
+    const database = new FakeDatabase();
+    database.allRows = [historyRow];
+
+    await new WorkoutHistorySqliteRepository(database).listCompletedPage({
+      limit: 20,
+    });
+
+    expect(database.lastStatement).not.toContain('BETWEEN');
+    expect(database.lastParameters).toEqual(['completed', 21]);
+  });
+
   it('binds captured date ranges and preserves absent dimensions', async () => {
     const database = new FakeDatabase();
     database.firstRow = {

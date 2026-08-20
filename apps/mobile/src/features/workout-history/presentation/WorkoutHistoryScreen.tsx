@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
 import type { UnitSystem } from '@fitness/domain';
@@ -19,6 +19,7 @@ import type {
   PerformedExerciseSummary,
   WorkoutHistoryListItem,
   WorkoutHistoryPage,
+  WorkoutHistoryRange,
   WorkoutProgressSummary,
 } from '../application/workout-history-models';
 import {
@@ -36,9 +37,23 @@ import {
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createWorkoutHistoryUseCases>>;
+/**
+ * The range is stored beside the page it produced, not read from the current
+ * selection, so a `Load More Workouts` press extends the period on screen even
+ * if the selection has already moved on. The reload a selection change triggers
+ * replaces the whole page moments later.
+ *
+ * `hasAnyCompletedWorkout` comes from one unbounded page of one workout,
+ * because an empty period and an empty history need different sentences and a
+ * bounded page cannot tell them apart. The performed exercises cannot answer it
+ * either: a completed workout that recorded no set is history without being a
+ * performed exercise.
+ */
 type ReadyState = Readonly<{
+  hasAnyCompletedWorkout: boolean;
   page: WorkoutHistoryPage;
   performedExercises: readonly PerformedExerciseSummary[];
+  range: WorkoutHistoryRange;
   summary: WorkoutProgressSummary;
   unitSystem: UnitSystem;
   useCases: UseCases;
@@ -60,29 +75,48 @@ export function WorkoutHistoryScreen({
   const [ready, setReady] = useState<ReadyState>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
+  const requestSequence = useRef(0);
   const periodDetails = getWorkoutHistoryPeriodDetails(anchor, period);
 
+  /**
+   * Only the newest read may write what the screen shows. Moving through
+   * periods quickly starts one read per period, and a slower earlier one
+   * finishing last would leave one period's summary above another period's
+   * workouts — the disagreement the period-bounded list exists to prevent.
+   */
   const load = useCallback(() => {
+    const request = ++requestSequence.current;
     setIsLoading(true);
     setError(undefined);
     void loadUseCases()
       .then(async (useCases) => {
-        const [page, summary, profile, performedExercises] = await Promise.all([
-          useCases.list.execute(),
-          useCases.getSummary.execute(periodDetails.range),
-          useCases.getProfile.execute(),
-          useCases.listPerformedExercises.execute(),
-        ]);
+        const range = periodDetails.range;
+        const [page, summary, profile, performedExercises, anyHistory] =
+          await Promise.all([
+            useCases.list.execute({ range }),
+            useCases.getSummary.execute(range),
+            useCases.getProfile.execute(),
+            useCases.listPerformedExercises.execute(),
+            useCases.list.execute({ limit: 1 }),
+          ]);
+        if (request !== requestSequence.current) return;
         setReady({
+          hasAnyCompletedWorkout: anyHistory.items.length > 0,
           page,
           performedExercises,
+          range,
           summary,
           unitSystem: profile?.preferredUnitSystem ?? 'metric',
           useCases,
         });
       })
-      .catch(() => setError('Workout history could not be loaded.'))
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        if (request === requestSequence.current)
+          setError('Workout history could not be loaded.');
+      })
+      .finally(() => {
+        if (request === requestSequence.current) setIsLoading(false);
+      });
   }, [
     loadUseCases,
     periodDetails.range.endLocalCalendarDate,
@@ -115,7 +149,7 @@ export function WorkoutHistoryScreen({
   const loadMore = () => {
     if (!ready.page.nextCursor) return;
     void ready.useCases.list
-      .execute({ cursor: ready.page.nextCursor })
+      .execute({ cursor: ready.page.nextCursor, range: ready.range })
       .then((next) =>
         setReady({
           ...ready,
@@ -147,7 +181,7 @@ export function WorkoutHistoryScreen({
         ) : null}
       </View>
       <SelectionField
-        label="Summary period"
+        label="History period"
         onChange={selectPeriod}
         options={[
           { label: 'Day', value: 'day' },
@@ -190,12 +224,20 @@ export function WorkoutHistoryScreen({
           {error}
         </AppText>
       ) : null}
-      <SectionHeader title="Recent workouts" />
+      <SectionHeader title="Workouts in this period" />
       {ready.page.items.length === 0 ? (
         <EmptyState
-          description="Finish a workout with at least one performed set to build your history."
+          description={
+            ready.hasAnyCompletedWorkout
+              ? 'Choose another period, or finish a workout to add one here.'
+              : 'Finish a workout with at least one performed set to build your history.'
+          }
           icon="time-outline"
-          title="No completed workouts yet"
+          title={
+            ready.hasAnyCompletedWorkout
+              ? 'No workouts in this period'
+              : 'No completed workouts yet'
+          }
         />
       ) : (
         ready.page.items.map((item) => (

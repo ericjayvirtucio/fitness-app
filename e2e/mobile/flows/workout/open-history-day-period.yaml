@@ -1,0 +1,28 @@
+appId: com.fitnessapp.dev
+---
+# Opens Workout History and narrows it to a single day.
+#
+# Day is the only period a scenario can move out of and back into within one
+# run: start and completion instants come from the device clock and are not
+# editable, so no flow can put a workout in a previous week or month. Choosing a
+# period re-anchors on today, so the day shown after this flow is always today
+# whatever was shown before it.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Workout History
+    direction: DOWN
+- tapOn: Open Workout History
+- assertVisible: Workout History
+# The period control sits below the heading and its subtitle, so it can start
+# below the fold on a short device. Scrolling to it is a no-op when it is
+# already visible, and off-screen content in a scroll view is absent from the
+# hierarchy rather than merely invisible.
+- scrollUntilVisible:
+    element:
+      id: workout-history-period-day
+    direction: DOWN
+- assertVisible: History period
+- tapOn:
+    id: workout-history-period-day

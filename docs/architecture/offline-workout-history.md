@@ -48,9 +48,20 @@ History pages are ordered by captured local date, start instant, and UUID descen
 Keyset cursors keep results stable and bounded; pages default to 20 and cannot exceed 50. List queries project counts without loading child aggregates. Detail uses the
 existing fixed aggregate reconstruction and accepts completed status only.
 
+The completed page is optionally bounded to a captured local date range, through
+`CompletedWorkoutPageQuery` and the same inclusive `BETWEEN` predicate the range
+summary binds, so a period's list and its summary describe the same workouts. The
+exercise performance reader keeps the unbounded `WorkoutHistoryPageQuery`, because
+its screen has no period control. The range bounds the window and the keyset cursor
+bounds the position inside it, so paging within a period needs nothing the cursor
+does not already carry.
+
 Migration 10 adds `(status, local date, start, id)` and `(source exercise, session)`
 indexes. It adds no table or authoritative column. All history values remain in the
-version-9 session schema.
+version-9 session schema. A bounded page seeks the second column of the first index
+and scans in index order without a sort, so it reads a strict subset of what the
+unbounded page read; the third and fourth key columns exist only for this query's
+tie-breakers.
 
 ## Deterministic progress semantics
 
@@ -114,7 +125,13 @@ needs a definition that exists.
 
 Workout links to History without adding another primary tab. History provides Day,
 Week, and Month range controls, previous/next period actions, a textual summary,
-bounded recent cards, and completed detail. Snapshot names, planned context, and
+the cards of the selected period, and completed detail. The period control governs
+the list as well as the summary; `Exercise progress` stays all-time, because it is
+a claim about a person's training rather than about a period. A period holding no
+workouts says so in its own sentence, distinct from having no history at all, and
+only the newest period read may write what the screen shows. See
+[Specification 0036](../../specs/0036-history-obeys-its-period.md) and
+[ADR 0026](../decisions/0026-a-period-control-governs-every-list-beneath-it.md). Snapshot names, planned context, and
 performed sets remain visibly distinct. Completed detail also carries the correction
 controls for its recorded sets, the per-exercise removal control, and one entry
 point for adding an exercise that was performed but never logged, and it never
