@@ -1,45 +1,6 @@
 appId: com.fitnessapp.dev
 ---
-- tapOn:
-    id: tab-nutrition
-- tapOn: Add food or beverage
-- tapOn: Create reusable item
-- assertVisible: Create saved item
-# A short drag dismisses the keyboard between fields, because the screen uses
-# keyboardDismissMode="on-drag". Without it the keyboard covers the next field
-# and text lands in the previous one.
-- tapOn:
-    id: catalog-name
-- inputText: E2E Oats
-- swipe:
-    start: 50%, 45%
-    end: 50%, 40%
-- scrollUntilVisible:
-    element:
-      id: catalog-reference-amount
-    direction: DOWN
-- tapOn:
-    id: catalog-reference-amount
-- inputText: '100'
-- swipe:
-    start: 50%, 45%
-    end: 50%, 40%
-- scrollUntilVisible:
-    element:
-      id: catalog-energy
-    direction: DOWN
-- tapOn:
-    id: catalog-energy
-- inputText: '380'
-- swipe:
-    start: 50%, 45%
-    end: 50%, 40%
-- scrollUntilVisible:
-    element:
-      id: save-catalog-item
-    direction: DOWN
-- tapOn:
-    id: save-catalog-item
+- runFlow: create-catalog-item.yaml
 # A saved item is neither a favorite nor recently used until it is logged, so
 # it is found through search rather than the landing sections.
 - tapOn:
