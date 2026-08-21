@@ -181,12 +181,19 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Energy"
             value={formatProgressEnergy(value.energyKilojoules)}
           />
-          <Metric
-            label="Average per logged day"
-            value={formatProgressEnergy(
-              value.averageEnergyKilojoulesPerLoggedDay ?? 0,
-            )}
-          />
+          {/*
+           * An average is unknown only when the period logged no day, which
+           * this branch has already excluded. The line is omitted rather than
+           * defaulted so an unknown can never be displayed as a zero.
+           */}
+          {value.averageEnergyKilojoulesPerLoggedDay === null ? null : (
+            <Metric
+              label="Average per logged day"
+              value={formatProgressEnergy(
+                value.averageEnergyKilojoulesPerLoggedDay,
+              )}
+            />
+          )}
           <Metric label="Logged days" value={String(value.loggedDayCount)} />
           <Metric label="Entries" value={String(value.entryCount)} />
           <Metric
@@ -230,12 +237,14 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Plain water"
             value={formatProgressVolume(value.plainWaterMilliliters)}
           />
-          <Metric
-            label="Average per logged day"
-            value={formatProgressVolume(
-              value.averageFluidMillilitersPerLoggedDay ?? 0,
-            )}
-          />
+          {value.averageFluidMillilitersPerLoggedDay === null ? null : (
+            <Metric
+              label="Average per logged day"
+              value={formatProgressVolume(
+                value.averageFluidMillilitersPerLoggedDay,
+              )}
+            />
+          )}
           <Metric label="Logged days" value={String(value.loggedDayCount)} />
           <Metric label="Entries" value={String(value.entryCount)} />
         </>

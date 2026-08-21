@@ -154,6 +154,41 @@ describe('ProgressScreen', () => {
     );
   });
 
+  it('omits an unknown average rather than showing it as zero', async () => {
+    // The read model permits an unknown average beside a logged day even
+    // though the reader cannot produce one. The guard is what keeps that
+    // combination unrenderable instead of rendering it as a false zero.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  hydration: {
+                    ...summary.hydration,
+                    averageFluidMillilitersPerLoggedDay: null,
+                  },
+                  nutrition: {
+                    ...summary.nutrition,
+                    averageEnergyKilojoulesPerLoggedDay: null,
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
+    );
+    expect(screen.queryByLabelText(/Average per logged day, 0/)).toBeNull();
+    expect(screen.queryByLabelText(/Average per logged day/)).toBeNull();
+  });
+
   it('offers retry after a loading failure', async () => {
     await render(
       <ProgressScreen
