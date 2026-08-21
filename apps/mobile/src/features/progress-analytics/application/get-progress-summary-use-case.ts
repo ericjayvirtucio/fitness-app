@@ -88,24 +88,25 @@ function summarizeNutrition(
     energyKilojoules,
     entryCount: sum(days.map((day) => day.entryCount)),
     fat: summarizeNutrient(days.map((day) => day.fat)),
+    fiber: summarizeNutrient(days.map((day) => day.fiber)),
     loggedDayCount,
     protein: summarizeNutrient(days.map((day) => day.protein)),
+    sodium: summarizeNutrient(days.map((day) => day.sodium)),
+    sugar: summarizeNutrient(days.map((day) => day.sugar)),
   });
 }
 
 function summarizeNutrient(
   values: readonly NutrientProgressValue[],
 ): ProgressNutrientSummary {
-  const isComplete = values.every((value) => value.isComplete);
-  const totalGrams = isComplete
-    ? sum(values.map((value) => value.totalGrams ?? 0))
+  const isComplete = values.every((value) => value.total !== null);
+  const total = isComplete
+    ? sum(values.map((value) => value.total ?? 0))
     : null;
   return Object.freeze({
-    averageGramsPerLoggedDay:
-      totalGrams === null || values.length === 0
-        ? null
-        : totalGrams / values.length,
-    totalGrams,
+    averagePerLoggedDay:
+      total === null || values.length === 0 ? null : total / values.length,
+    total,
   });
 }
 

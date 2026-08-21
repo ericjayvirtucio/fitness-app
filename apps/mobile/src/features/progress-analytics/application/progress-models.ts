@@ -12,10 +12,14 @@ import type {
  * A nutrient is incomplete when any included entry omitted it, and both the
  * total and the average are then unknown together. Absence carries that fact,
  * so no separate completeness flag says it a second time.
+ *
+ * Both values are in the unit that nutrient is recorded in — grams for five of
+ * the six, milligrams for sodium — so neither field name states a unit that
+ * would be false for one of them. The caller supplies the unit it renders.
  */
 export type ProgressNutrientSummary = Readonly<{
-  averageGramsPerLoggedDay: number | null;
-  totalGrams: number | null;
+  averagePerLoggedDay: number | null;
+  total: number | null;
 }>;
 
 export type ProgressNutritionSummary = Readonly<{
@@ -24,8 +28,11 @@ export type ProgressNutritionSummary = Readonly<{
   energyKilojoules: number;
   entryCount: number;
   fat: ProgressNutrientSummary;
+  fiber: ProgressNutrientSummary;
   loggedDayCount: number;
   protein: ProgressNutrientSummary;
+  sodium: ProgressNutrientSummary;
+  sugar: ProgressNutrientSummary;
 }>;
 
 export type ProgressHydrationSummary = Readonly<{

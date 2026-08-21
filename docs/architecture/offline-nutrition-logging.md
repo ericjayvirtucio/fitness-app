@@ -86,9 +86,14 @@ Domain arithmetic retains full precision. Presentation rounds energy to whole
 kilocalories and nutrients to at most one decimal place.
 
 Progress range summaries are exposed through a Nutrition-owned reader. SQLite
-groups the bounded local-date range and returns entry counts, energy, macro sums,
-and known-value counts. The Progress application layer uses those counts to keep
-unknown optional nutrients distinct from zero and to average only logged days.
+groups the bounded local-date range and returns entry counts, energy, a sum and a
+known-value count for each of the six stored nutrients, and nothing else. The
+Progress application layer uses those counts to keep unknown optional nutrients
+distinct from zero and to average only logged days.
+
+A period therefore summarizes exactly what a day summarizes. Sodium's sum stays
+in milligrams and the other five stay in grams; no layer between the row and the
+screen converts a unit.
 
 The daily totals card is one accessibility element, so its accessible name carries
 the day's energy, entry count, six nutrient lines, and completeness note rather

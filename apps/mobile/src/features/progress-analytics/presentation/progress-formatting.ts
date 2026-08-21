@@ -2,9 +2,18 @@ export function formatProgressEnergy(kilojoules: number): string {
   return `${Math.round(kilojoules / 4.184)} kcal`;
 }
 
-export function formatProgressMass(grams: number | null): string {
-  if (grams === null) return 'Incomplete';
-  return `${formatNumber(grams, 1)} g`;
+/**
+ * A nutrient's period value in the unit it was recorded in. Five nutrients are
+ * stored in grams and sodium in milligrams, so the unit is supplied by the
+ * caller that knows which nutrient it is labelling rather than baked into a
+ * second formatter that would differ by one character of output.
+ */
+export function formatProgressMass(
+  value: number | null,
+  unit: 'g' | 'mg',
+): string {
+  if (value === null) return 'Incomplete';
+  return `${formatNumber(value, 1)} ${unit}`;
 }
 
 export function formatProgressVolume(milliliters: number): string {

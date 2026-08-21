@@ -55,6 +55,8 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 31 --platform ios
 ./scripts/qa.sh sprint 36 --platform ios
 ./scripts/qa.sh sprint 37 --platform ios
+./scripts/qa.sh sprint 38 --platform ios
+./scripts/qa.sh sprint 39 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -567,6 +569,20 @@ this set." The evidence read like a broken assertion and was not; the product wa
 right and the flow was wrong. An identifier does not protect a tap from the
 keyboard — only reaching the higher field second does, which is why the guidance
 above says filling a form bottom-up avoids the problem entirely.
+
+**A negative assertion survives a layout change by passing for the wrong
+reason.** Sprint 39 added six lines to the Nutrition Progress card — a total and
+an average for fiber, sugar, and sodium — which pushed the completeness sentence
+six lines further down. `sprint-38/01` asserted that sentence absent from the
+viewport it reached by scrolling to `Fat, 12 g`, which had been the line
+directly above it. After the change that assertion still passed, and it proved
+nothing: the sentence was off-screen rather than absent, so it would have passed
+against a build that rendered it. Nothing failed, no screenshot looked wrong,
+and the only evidence was reading the card's render order. The scenario now
+scrolls to `Average sodium per logged day, 450 mg`, the line that is actually
+last before the sentence, and asserts from there. **When a section grows, re-audit
+every negative assertion beneath it, not only the positive ones — a positive
+assertion that moved off-screen fails loudly, and a negative one goes quiet.**
 
 **Removing height invalidates assertions the same way adding it does.** Sprint 30
 put twenty-five filter chips away behind one button, which moved the Exercise

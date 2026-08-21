@@ -149,6 +149,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Fiber (g)"
           onChangeText={(value) => set('fiberGrams', value)}
+          testID="nutrition-fiber-input"
           value={values.fiberGrams}
         />
         <TextField
@@ -156,6 +157,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Sugar (g)"
           onChangeText={(value) => set('sugarGrams', value)}
+          testID="nutrition-sugar-input"
           value={values.sugarGrams}
         />
         <TextField
@@ -163,6 +165,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Sodium (mg)"
           onChangeText={(value) => set('sodiumMilligrams', value)}
+          testID="nutrition-sodium-input"
           value={values.sodiumMilligrams}
         />
       </Card>

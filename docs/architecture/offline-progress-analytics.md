@@ -36,18 +36,31 @@ goals, and hydration target are not.
 
 ## What the summary states
 
-Every value the summary computes is a value the screen states. The Nutrition
+Every value the summary computes is a value the screen states, and every
+nutrient the application captures is a value the summary computes. The Nutrition
 card renders energy, its average per logged day, the logged day and entry
-counts, and a total and an average per logged day for protein, carbohydrate,
-and fat. The Hydration card renders the total fluid, its plain water and other
-fluid components, an average per logged day for each of the first two, and the
-logged day and entry counts. Each average is labelled by the value it averages,
-because four averages share one card.
+counts, and a total and an average per logged day for all six stored
+nutrients — protein, carbohydrate, fat, fiber, sugar, and sodium — in the order
+the nutrition diary uses. That is sixteen metrics. The Hydration card renders
+the total fluid, its plain water and other fluid components, an average per
+logged day for each of the first two, and the logged day and entry counts. Each
+average is labelled by the value it averages, because several averages share one
+card.
+
+A nutrient's period values are carried in the unit that nutrient is recorded in:
+grams for five of the six, milligrams for sodium. Nothing converts a unit
+between the row and the screen. `formatProgressMass` takes the unit as a
+parameter, so one formatting path serves both rather than a second function
+differing by one character of output.
 
 An average's denominator is logged days — the days holding at least one entry of
 that kind — which is the count the card names on its own `Logged days` line.
 Neither average divides by days in the period.
 
+[ADR 0029](../decisions/0029-a-captured-value-is-a-value-a-summary-can-state.md)
+records that a value the application asks a person to record and already
+aggregates for a day is a value it aggregates for a period, and that no nutrient
+is exempt from carrying both a total and an average.
 [ADR 0028](../decisions/0028-a-summary-states-every-value-it-computes.md) records
 the rule and its boundary with
 [ADR 0023](../decisions/0023-displayed-totals-state-their-coverage.md): a value
@@ -80,8 +93,17 @@ Range grouping remains inside capability-owned SQLite adapters. Existing indexes
 lead with nutrition/hydration local date and workout status/local date, and
 migration 11 adds one ordered body-weight index, together covering the maximum
 initial one-month window. The body-weight period read is a single statement
-holding a count and two bounded boundary sub-selects. Summaries are not persisted. A schema or
-index change requires measurement and a separate migration review.
+holding a count and two bounded boundary sub-selects. Summaries are not
+persisted. A schema or index change requires measurement and a separate
+migration review.
+
+The nutrition period statement aggregates six nutrients over the rows it already
+scanned. Its only predicate and its only grouping key are `local_calendar_date`,
+the leading column of `nutrition_consumption_entry_local_date_occurred_at`, which
+serves the range seek, the grouping, and the ordering without a sorter. That
+index does not carry the nutrient columns, so a rowid lookup per matching row
+already materialised the whole row, and the three nutrients Sprint 39 added come
+from bytes already fetched. Widening the projection changed no part of the plan.
 
 ## Experience, accessibility, privacy, and failures
 

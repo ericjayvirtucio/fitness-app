@@ -1,0 +1,50 @@
+appId: com.fitnessapp.dev
+name: Sodium is counted in the milligrams it was recorded in
+---
+# Sodium is the one nutrient the form asks for in milligrams and the schema
+# stores in milligrams. A period that rendered it as grams would state a
+# quantity a thousand times smaller while looking entirely plausible, so the
+# unit is proven rather than assumed.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-with-nutrients.yaml
+    env:
+      CARBOHYDRATE: '40'
+      ENERGY: '100'
+      FAT: '12'
+      FIBER: '6'
+      NAME: E2E Salted Meal
+      PROTEIN: '30'
+      SODIUM: '450'
+      SUGAR: '9'
+# The day screen states the recorded unit first, so the period screen below is
+# compared against a value this run already saw rendered. The diary's totals
+# card carries its own accessibilityLabel, so its sodium line never reaches the
+# accessibility tree on its own and the card's composed name is matched instead.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Daily nutrition totals,.*Sodium: 450 mg.*'
+    direction: DOWN
+- assertVisible: 'Daily nutrition totals,.*Sodium: 450 mg.*'
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Sodium, 450 mg'
+    direction: DOWN
+- assertVisible: 'Sodium, 450 mg'
+- assertVisible: 'Average sodium per logged day, 450 mg'
+# Asserted from the viewport where sodium actually renders, so the absence of a
+# gram rendering is evidence rather than a scroll position.
+- assertNotVisible: 'Sodium, 450 g'
+- assertNotVisible: 'Average sodium per logged day, 450 g'
+# The gram nutrients keep their own unit in the same viewport.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Fiber, 6 g'
+    direction: UP
+- assertVisible: 'Fiber, 6 g'

@@ -13,13 +13,16 @@ name: A complete nutrient states its average per logged day
       CARBOHYDRATE: '40'
       ENERGY: '100'
       FAT: '12'
+      FIBER: '6'
       NAME: E2E Complete Meal
       PROTEIN: '30'
+      SODIUM: '450'
+      SUGAR: '9'
 - tapOn:
     id: tab-progress
 # Every Progress metric is its own accessible element announcing "label, value",
 # so each line is asserted by its whole name and none of its two texts can be
-# asserted on its own. The Nutrition card is now ten metrics tall, so every
+# asserted on its own. The Nutrition card is now sixteen metrics tall, so every
 # assertion below the first scrolls to what it asserts.
 - assertVisible: 'Energy, 100 kcal'
 - scrollUntilVisible:
@@ -46,6 +49,15 @@ name: A complete nutrient states its average per logged day
       text: 'Fat, 12 g'
     direction: DOWN
 - assertVisible: 'Average fat per logged day, 12 g'
-# The completeness sentence renders directly beneath the fat average, so this
-# viewport is the one where its absence is evidence rather than a guess.
+# The completeness sentence used to render directly beneath the fat average.
+# Six lines now sit between them, so a negative assertion from the fat viewport
+# would pass because the sentence is off-screen rather than because it is
+# absent. The sodium average is the last line before the sentence, so this is
+# the viewport where the sentence would render if any nutrient were incomplete.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Average sodium per logged day, 450 mg'
+    direction: DOWN
+- assertVisible: 'Average sodium per logged day, 450 mg'
 - assertNotVisible: Incomplete means one or more entries did not include that nutrient.

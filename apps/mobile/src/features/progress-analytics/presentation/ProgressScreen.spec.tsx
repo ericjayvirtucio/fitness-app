@@ -32,8 +32,9 @@ describe('ProgressScreen', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
-    // Protein is unknown in this fixture, so its total and its average both
-    // read Incomplete for the same reason.
+    // Protein is the only unknown nutrient in this fixture, so its total and
+    // its average both read Incomplete for the same reason and nothing else
+    // does. This count was two while the card carried three nutrients.
     expect(screen.getAllByText('Incomplete')).toHaveLength(2);
     expect(
       screen.getByLabelText('Average protein per logged day, Incomplete'),
@@ -44,6 +45,22 @@ describe('ProgressScreen', () => {
     expect(
       screen.getByLabelText('Average fat per logged day, 10 g'),
     ).toBeOnTheScreen();
+    // The three nutrients a period could not previously state.
+    expect(screen.getByLabelText('Fiber, 6 g')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fiber per logged day, 6 g'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sugar, 9 g')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sugar per logged day, 9 g'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sodium, 450 mg')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sodium per logged day, 450 mg'),
+    ).toBeOnTheScreen();
+    // Sodium is stored and displayed in milligrams. A gram rendering of the
+    // same number would be a different quantity by three orders of magnitude.
+    expect(screen.queryByLabelText('Sodium, 450 g')).toBeNull();
     // Four averages share one card, so each names the value it averages.
     expect(
       screen.getByLabelText('Average energy per logged day, 1000 kcal'),
@@ -89,6 +106,90 @@ describe('ProgressScreen', () => {
     ).toBeOnTheScreen();
     // A period with nothing logged states that in words and claims no average.
     expect(screen.queryByLabelText(/Average /)).toBeNull();
+  });
+
+  it('states an unknown fiber, sugar, and sodium exactly as an unknown macronutrient', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  nutrition: {
+                    ...summary.nutrition,
+                    fiber: { averagePerLoggedDay: null, total: null },
+                    sodium: { averagePerLoggedDay: null, total: null },
+                    sugar: { averagePerLoggedDay: null, total: null },
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Fiber, Incomplete')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Average fiber per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sugar, Incomplete')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sugar per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sodium, Incomplete')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sodium per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    // The card keeps one height whatever the period contains: a nutrient's
+    // total and its average are unknown together, so this is still sixteen
+    // metrics and the three exact nutrients are untouched.
+    expect(screen.getByLabelText('Carbohydrate, 30 g')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Incomplete means one or more entries did not include that nutrient.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains the word Incomplete when only a newly counted nutrient is unknown', async () => {
+    // The sentence defines a word, and the word is now put on screen by six
+    // nutrients rather than three. A period whose only gap is sodium must still
+    // carry the explanation.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  nutrition: {
+                    ...summary.nutrition,
+                    protein: { averagePerLoggedDay: 30, total: 30 },
+                    sodium: { averagePerLoggedDay: null, total: null },
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Sodium, Incomplete')).toBeOnTheScreen(),
+    );
+    expect(screen.getByLabelText('Protein, 30 g')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Incomplete means one or more entries did not include that nutrient.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('describes recorded body weight without claiming a trend', async () => {
@@ -247,12 +348,15 @@ const summary: ProgressSummary = {
       },
       localCalendarDate: '2026-08-02',
       nutrition: {
-        carbohydrate: { isComplete: true, totalGrams: 30 },
+        carbohydrate: { total: 30 },
         energyKilojoules: 4_184,
         entryCount: 1,
-        fat: { isComplete: true, totalGrams: 10 },
+        fat: { total: 10 },
+        fiber: { total: 6 },
         localCalendarDate: '2026-08-02',
-        protein: { isComplete: false, totalGrams: null },
+        protein: { total: null },
+        sodium: { total: 450 },
+        sugar: { total: 9 },
       },
       workout: {
         actualSetCount: 1,
@@ -273,12 +377,15 @@ const summary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: 4_184,
-    carbohydrate: { averageGramsPerLoggedDay: 30, totalGrams: 30 },
+    carbohydrate: { averagePerLoggedDay: 30, total: 30 },
     energyKilojoules: 4_184,
     entryCount: 1,
-    fat: { averageGramsPerLoggedDay: 10, totalGrams: 10 },
+    fat: { averagePerLoggedDay: 10, total: 10 },
+    fiber: { averagePerLoggedDay: 6, total: 6 },
     loggedDayCount: 1,
-    protein: { averageGramsPerLoggedDay: null, totalGrams: null },
+    protein: { averagePerLoggedDay: null, total: null },
+    sodium: { averagePerLoggedDay: 450, total: 450 },
+    sugar: { averagePerLoggedDay: 9, total: 9 },
   },
   preferredUnitSystem: 'metric',
   range: {
@@ -311,12 +418,15 @@ const emptySummary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: null,
-    carbohydrate: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    carbohydrate: { averagePerLoggedDay: null, total: 0 },
     energyKilojoules: 0,
     entryCount: 0,
-    fat: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    fat: { averagePerLoggedDay: null, total: 0 },
+    fiber: { averagePerLoggedDay: null, total: 0 },
     loggedDayCount: 0,
-    protein: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    protein: { averagePerLoggedDay: null, total: 0 },
+    sodium: { averagePerLoggedDay: null, total: 0 },
+    sugar: { averagePerLoggedDay: null, total: 0 },
   },
   preferredUnitSystem: 'metric',
   range: {

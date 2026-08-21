@@ -1,0 +1,36 @@
+appId: com.fitnessapp.dev
+name: Progress counts every nutrient you logged
+---
+# The sprint suite proves each claim in detail against a fixture shaped for it.
+# This scenario proves the six nutrient pairs survive from a clean state beside
+# every other standing scenario, and that one period carries a gram nutrient and
+# a milligram nutrient at once without either borrowing the other's unit.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-with-nutrients.yaml
+    env:
+      CARBOHYDRATE: '40'
+      ENERGY: '100'
+      FAT: '12'
+      FIBER: '6'
+      NAME: E2E Six Nutrient Meal
+      PROTEIN: '30'
+      SODIUM: '450'
+      SUGAR: '9'
+- tapOn:
+    id: tab-progress
+- assertVisible: 'Energy, 100 kcal'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Fiber, 6 g'
+    direction: DOWN
+- assertVisible: 'Average fiber per logged day, 6 g'
+- assertVisible: 'Sugar, 9 g'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Sodium, 450 mg'
+    direction: DOWN
+- assertVisible: 'Average sodium per logged day, 450 mg'
