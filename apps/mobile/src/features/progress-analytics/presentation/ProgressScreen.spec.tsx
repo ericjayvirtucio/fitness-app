@@ -32,7 +32,18 @@ describe('ProgressScreen', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
-    expect(screen.getAllByText('Incomplete')).toHaveLength(1);
+    // Protein is unknown in this fixture, so its total and its average both
+    // read Incomplete for the same reason.
+    expect(screen.getAllByText('Incomplete')).toHaveLength(2);
+    expect(
+      screen.getByLabelText('Average protein per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average carbohydrate per logged day, 30 g'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fat per logged day, 10 g'),
+    ).toBeOnTheScreen();
     // Four averages share one card, so each names the value it averages.
     expect(
       screen.getByLabelText('Average energy per logged day, 1000 kcal'),
@@ -72,6 +83,8 @@ describe('ProgressScreen', () => {
     expect(
       screen.getByText('No completed workouts in this period.'),
     ).toBeOnTheScreen();
+    // A period with nothing logged states that in words and claims no average.
+    expect(screen.queryByLabelText(/Average /)).toBeNull();
   });
 
   it('describes recorded body weight without claiming a trend', async () => {

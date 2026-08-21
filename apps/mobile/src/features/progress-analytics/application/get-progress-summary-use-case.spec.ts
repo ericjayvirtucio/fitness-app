@@ -5,8 +5,14 @@ import type {
   BodyWeightProgressSummary,
 } from '../../body-measurement-history/application/body-weight-progress-reader';
 import type { PersonalProfileRepository } from '../../personal-profile/application/personal-profile-repository';
-import type { HydrationProgressReader } from '../../hydration-tracking/application/hydration-progress-reader';
-import type { NutritionProgressReader } from '../../nutrition-logging/application/nutrition-progress-reader';
+import type {
+  HydrationProgressDay,
+  HydrationProgressReader,
+} from '../../hydration-tracking/application/hydration-progress-reader';
+import type {
+  NutritionProgressDay,
+  NutritionProgressReader,
+} from '../../nutrition-logging/application/nutrition-progress-reader';
 import {
   GetProgressSummaryUseCase,
   type ProgressWorkoutReader,
@@ -41,6 +47,51 @@ describe('GetProgressSummaryUseCase', () => {
       totalGrams: null,
     });
     expect(summary.nutrition.energyKilojoules).toBe(1_000);
+  });
+
+  it('averages a nutrient over logged days rather than days in the period', async () => {
+    // Three days in range and two logged days, so a per-day denominator would
+    // produce 10 g and a per-logged-day denominator produces 15 g. This pins
+    // arithmetic the use case already performed; the line that displays it is
+    // what is new.
+    const summary = await createUseCase({
+      nutritionComplete: true,
+      nutritionDays: [
+        {
+          carbohydrate: { isComplete: true, totalGrams: 40 },
+          energyKilojoules: 600,
+          entryCount: 1,
+          fat: { isComplete: true, totalGrams: 6 },
+          localCalendarDate: '2026-08-01',
+          protein: { isComplete: true, totalGrams: 20 },
+        },
+        {
+          carbohydrate: { isComplete: true, totalGrams: 20 },
+          energyKilojoules: 400,
+          entryCount: 1,
+          fat: { isComplete: true, totalGrams: 4 },
+          localCalendarDate: '2026-08-03',
+          protein: { isComplete: true, totalGrams: 10 },
+        },
+      ],
+    }).execute({
+      endLocalCalendarDate: '2026-08-03',
+      startLocalCalendarDate: '2026-08-01',
+    });
+
+    expect(summary.nutrition.loggedDayCount).toBe(2);
+    expect(summary.nutrition.protein).toEqual({
+      averageGramsPerLoggedDay: 15,
+      totalGrams: 30,
+    });
+    expect(summary.nutrition.carbohydrate).toEqual({
+      averageGramsPerLoggedDay: 30,
+      totalGrams: 60,
+    });
+    expect(summary.nutrition.fat).toEqual({
+      averageGramsPerLoggedDay: 5,
+      totalGrams: 10,
+    });
   });
 
   it('rejects invalid ranges before reading any capability', async () => {
@@ -111,40 +162,48 @@ function storedProfile(
 
 function createUseCase({
   bodyWeight: bodyWeightSummary = null,
+  hydrationDays,
   nutritionComplete,
+  nutritionDays,
   preferredUnitSystem,
 }: {
   bodyWeight?: BodyWeightProgressSummary | null;
+  hydrationDays?: readonly HydrationProgressDay[];
   nutritionComplete: boolean;
+  nutritionDays?: readonly NutritionProgressDay[];
   preferredUnitSystem?: 'imperial' | 'metric';
 }) {
   const nutrition: NutritionProgressReader = {
     summarizeRange: () =>
-      Promise.resolve([
-        {
-          carbohydrate: { isComplete: true, totalGrams: 20 },
-          energyKilojoules: 1_000,
-          entryCount: 2,
-          fat: { isComplete: true, totalGrams: 8 },
-          localCalendarDate: '2026-08-02',
-          protein: {
-            isComplete: nutritionComplete,
-            totalGrams: nutritionComplete ? 12 : null,
+      Promise.resolve(
+        nutritionDays ?? [
+          {
+            carbohydrate: { isComplete: true, totalGrams: 20 },
+            energyKilojoules: 1_000,
+            entryCount: 2,
+            fat: { isComplete: true, totalGrams: 8 },
+            localCalendarDate: '2026-08-02',
+            protein: {
+              isComplete: nutritionComplete,
+              totalGrams: nutritionComplete ? 12 : null,
+            },
           },
-        },
-      ]),
+        ],
+      ),
   };
   const hydration: HydrationProgressReader = {
     summarizeRange: () =>
-      Promise.resolve([
-        {
-          entryCount: 1,
-          localCalendarDate: '2026-08-02',
-          otherFluidMilliliters: 0,
-          plainWaterMilliliters: 500,
-          totalFluidMilliliters: 500,
-        },
-      ]),
+      Promise.resolve(
+        hydrationDays ?? [
+          {
+            entryCount: 1,
+            localCalendarDate: '2026-08-02',
+            otherFluidMilliliters: 0,
+            plainWaterMilliliters: 500,
+            totalFluidMilliliters: 500,
+          },
+        ],
+      ),
   };
   const workout: ProgressWorkoutReader = {
     summarizeCompletedByDay: () => Promise.resolve([]),

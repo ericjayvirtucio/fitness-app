@@ -200,13 +200,32 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Protein"
             value={formatProgressMass(value.protein.totalGrams)}
           />
+          {/*
+           * A nutrient's total and its average are unknown together, so both
+           * read Incomplete for the same reason and the card keeps one height
+           * whatever the period contains.
+           */}
+          <Metric
+            label="Average protein per logged day"
+            value={formatProgressMass(value.protein.averageGramsPerLoggedDay)}
+          />
           <Metric
             label="Carbohydrate"
             value={formatProgressMass(value.carbohydrate.totalGrams)}
           />
           <Metric
+            label="Average carbohydrate per logged day"
+            value={formatProgressMass(
+              value.carbohydrate.averageGramsPerLoggedDay,
+            )}
+          />
+          <Metric
             label="Fat"
             value={formatProgressMass(value.fat.totalGrams)}
+          />
+          <Metric
+            label="Average fat per logged day"
+            value={formatProgressMass(value.fat.averageGramsPerLoggedDay)}
           />
           {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">
