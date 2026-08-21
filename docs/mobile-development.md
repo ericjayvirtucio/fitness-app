@@ -424,16 +424,28 @@ The Progress tab combines bounded, capability-owned Nutrition, Hydration, and
 completed-workout readers. It derives Today, Sunday-to-Saturday week, and calendar
 month summaries from captured local dates without persisted rollups.
 
-Every value the summary computes is displayed. Each average is labelled by the
-value it averages and divides by logged days, the count the card names beside
-it; an average that cannot be computed is omitted rather than rendered as zero.
+Every value the summary computes is displayed, and every nutrient the entry form
+captures is summarized over a period as well as over a day. The Nutrition card
+carries sixteen metrics: energy, its average, the logged day and entry counts,
+and a total and an average per logged day for protein, carbohydrate, fat, fiber,
+sugar, and sodium. Each average is labelled by the value it averages and divides
+by logged days, the count the card names beside it; an average that cannot be
+computed is omitted rather than rendered as zero.
+
+A nutrient's period value stays in the unit it was recorded in — sodium in
+milligrams, the other five in grams — and `formatProgressMass` takes that unit as
+a parameter rather than a second formatter existing for one of them.
+
 The Progress summary cards deliberately carry no `accessibilityLabel`, so each
 metric stays its own accessible element announcing `label, value`. See the
 [offline Progress architecture](architecture/offline-progress-analytics.md),
 [Specification 0038](../specs/0038-progress-states-everything-it-counted.md),
-[ADR 0028](decisions/0028-a-summary-states-every-value-it-computes.md), the
-[Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md), the
-[Sprint 38 manual checklist](manual-testing/sprint-38-progress-states-everything-it-counted.md),
+[Specification 0039](../specs/0039-progress-counts-every-nutrient-you-logged.md),
+[ADR 0028](decisions/0028-a-summary-states-every-value-it-computes.md),
+[ADR 0029](decisions/0029-a-captured-value-is-a-value-a-summary-can-state.md),
+the [Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md),
+the [Sprint 38 manual checklist](manual-testing/sprint-38-progress-states-everything-it-counted.md),
+the [Sprint 39 manual checklist](manual-testing/sprint-39-progress-counts-every-nutrient-you-logged.md),
 and the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
 
 ## Offline data export

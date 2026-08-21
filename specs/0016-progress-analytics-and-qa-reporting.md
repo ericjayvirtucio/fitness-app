@@ -115,3 +115,25 @@ unknown total already did, and no stored value, SQL statement, reader contract,
 query, or total changed. See
 [Specification 0038](0038-progress-states-everything-it-counted.md) and
 [ADR 0028](../docs/decisions/0028-a-summary-states-every-value-it-computes.md).
+
+## Amendment: a period counts every nutrient a day counts
+
+The nutrient enumeration above named three nutrients. The consumption entry form
+asks for six, the schema stores six under non-negative constraints, and the
+nutrition diary totals six for a day, so naming three described the
+implementation rather than the product. Somebody who recorded sodium at every
+meal could read that day's sodium and never that week's.
+
+The selected period now presents a total and an average per logged day for
+**protein, carbohydrate, fat, fiber, sugar, and sodium**, in the order the diary
+uses. Sodium is stated in the milligrams it is recorded in; the other five are
+stated in grams. The completeness rule this specification already states — that
+an optional nutrient is incomplete when any included entry has an unknown value,
+and that known values are never presented as a falsely complete period total or
+average — was always written about "an optional nutrient" with no count, and now
+governs all six.
+
+One SQL projection widened over columns that already existed. No stored value,
+entry, daily total, migration, index, query plan, or export format changed. See
+[Specification 0039](0039-progress-counts-every-nutrient-you-logged.md) and
+[ADR 0029](../docs/decisions/0029-a-captured-value-is-a-value-a-summary-can-state.md).

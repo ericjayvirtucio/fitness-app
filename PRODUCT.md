@@ -153,6 +153,21 @@ did; and a value the application cannot compute is left unsaid rather than
 shown as a zero. Nothing recorded changed: no entry, amount, total, target, or
 export.
 
+Giving back caught up with asking after that. The entry form asks a person for
+six optional nutrients, the database stores six, and the nutrition diary totals
+six for a day and says which of them are incomplete. A week or a month showed
+three. Somebody who filled in sodium at every meal — the number people are most
+often told to watch and the one nobody can estimate — could read today's sodium
+and never this week's, and the blank where that line should have been read like
+an app that does not track sodium at all rather than one that had been asked to.
+A period now counts every nutrient a day counts, in the same order and the same
+words, with sodium in the milligrams it was recorded in. Where an entry left a
+nutrient blank, the period says `Incomplete` for it, exactly as it already did
+for protein — silence became a truthful unknown. The Nutrition card is
+substantially taller for it, which is the accepted price of not making a person
+guess which nutrients the application will hand back. Nothing recorded changed:
+no entry, amount, daily total, target, or export.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

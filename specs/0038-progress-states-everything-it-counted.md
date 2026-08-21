@@ -411,3 +411,34 @@ onboarding, localization, export format changes, cloud synchronization,
 authentication, notifications, AI, unifying the four time navigators, renaming
 the `Snapshot`-suffixed projected fields, and removing the duplicated
 completeness field from the nutrition reader contract.
+
+## Correction: the fiber, sugar, and sodium exclusion no longer holds
+
+This specification excludes "fiber, sugar, and sodium in Progress" in both its
+scope paragraph and its exclusions list. That was a scope boundary rather than a
+product decision, and
+[Specification 0039](0039-progress-counts-every-nutrient-you-logged.md) removed
+it: the Progress Nutrition card now presents a total and an average per logged
+day for all six stored nutrients, so it renders sixteen metrics rather than the
+ten this document describes.
+
+Two further statements above were superseded by the same change, and are
+recorded here rather than edited in place, because this document describes what
+Sprint 38 shipped.
+
+`NutrientProgressValue.isComplete` on the nutrition reader contract is no longer
+"unchanged". The reason recorded for keeping it — that a reader contract was
+outside this specification's scope — expired when Specification 0039 changed
+that contract, and the field was removed there. The reader still compares
+`knownCount === entryCount` to decide the null and no longer publishes the
+boolean beside it.
+
+`progress-formatting.ts` is no longer unchanged. `formatProgressMass` now takes
+the unit it renders, because sodium is stored in milligrams. That is one
+formatting path with a parameter rather than the second path this document and
+[ADR 0028](../docs/decisions/0028-a-summary-states-every-value-it-computes.md)
+rejected.
+
+Everything else this specification states remains true: no stored value, entry,
+daily total, migration, index, or export format changed, the schema stays at
+user version 11, and every value the summary computes is still stated.
