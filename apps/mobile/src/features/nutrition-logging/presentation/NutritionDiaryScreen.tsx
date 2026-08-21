@@ -37,7 +37,7 @@ type State =
 
 type Props = Readonly<{
   loadUseCases?: () => Promise<UseCases>;
-  onAdd: () => void;
+  onAdd: (localCalendarDate: string) => void;
   onEdit: (id: string) => void;
 }>;
 
@@ -95,6 +95,15 @@ export function NutritionDiaryScreen({
   }
 
   const { entries, summary } = state.result;
+  const selectedLocalCalendarDate = formatLocalCalendarDate(selectedDate);
+  /*
+   * A recording screen may not offer a day that has not happened, because every
+   * entry builder refuses a future instant. Stopping the navigator at today is
+   * what keeps the add control below from offering an act the application will
+   * decline.
+   */
+  const isNextDisabled =
+    selectedLocalCalendarDate >= formatLocalCalendarDate(new Date());
   /**
    * Every total the card states, in the order it reads them. A labelled card is
    * one accessibility element, so its own name is the only thing announced;
@@ -157,6 +166,7 @@ export function NutritionDiaryScreen({
           />
           <AppButton
             accessibilityLabel="Next day"
+            disabled={isNextDisabled}
             label="Next"
             onPress={() => moveDay(1)}
             variant="outline"
@@ -183,13 +193,16 @@ export function NutritionDiaryScreen({
         ) : null}
       </Card>
 
-      <AppButton label="Add food or beverage" onPress={onAdd} />
+      <AppButton
+        label="Add food or beverage"
+        onPress={() => onAdd(selectedLocalCalendarDate)}
+      />
       {entries.length === 0 ? (
         <EmptyState
           actionLabel="Add first entry"
           description="Record food or a caloric beverage using grams or milliliters."
           icon="nutrition-outline"
-          onAction={onAdd}
+          onAction={() => onAdd(selectedLocalCalendarDate)}
           title="Nothing logged for this day"
         />
       ) : (

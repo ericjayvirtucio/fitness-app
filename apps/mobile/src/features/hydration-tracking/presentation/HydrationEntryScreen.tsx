@@ -1,6 +1,7 @@
 import type { DomainError, HydrationEntry } from '@fitness/domain';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
+import { resolveRecordedDayPrefill } from '../../../application/date/local-calendar-date';
 import { createHydrationTrackingUseCases } from '../../../composition/hydration-tracking';
 import {
   AppButton,
@@ -41,12 +42,14 @@ type Props = Readonly<{
   entryId?: string;
   loadUseCases?: () => Promise<UseCases>;
   onDone: () => void;
+  selectedLocalCalendarDate?: string;
 }>;
 
 export function HydrationEntryScreen({
   entryId,
   loadUseCases = createHydrationTrackingUseCases,
   onDone,
+  selectedLocalCalendarDate,
 }: Props) {
   const [useCases, setUseCases] = useState<UseCases>();
   const [entry, setEntry] = useState<HydrationEntry | null>();
@@ -149,7 +152,9 @@ export function HydrationEntryScreen({
   return (
     <HydrationEntryForm
       errors={errors}
-      initialValues={entry ? formValues(entry) : emptyFormValues()}
+      initialValues={
+        entry ? formValues(entry) : emptyFormValues(selectedLocalCalendarDate)
+      }
       isSaving={isSaving}
       onCancel={onDone}
       onSave={(values) => void save(values)}
@@ -158,13 +163,18 @@ export function HydrationEntryScreen({
   );
 }
 
-function emptyFormValues(): HydrationEntryFormValues {
-  const now = new Date();
+function emptyFormValues(
+  selectedLocalCalendarDate: string | undefined,
+): HydrationEntryFormValues {
+  const prefill = resolveRecordedDayPrefill(
+    selectedLocalCalendarDate,
+    new Date(),
+  );
   return {
-    date: localDate(now),
+    date: prefill.localCalendarDate,
     description: '',
     fluidType: 'plain-water',
-    time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    time: prefill.time,
     volumeMilliliters: '',
   };
 }
@@ -180,10 +190,6 @@ function formValues(entry: HydrationEntry): HydrationEntryFormValues {
     time: `${String(shifted.getUTCHours()).padStart(2, '0')}:${String(shifted.getUTCMinutes()).padStart(2, '0')}`,
     volumeMilliliters: String(entry.volume.milliliters),
   };
-}
-
-function localDate(date: Date): string {
-  return `${String(date.getFullYear()).padStart(4, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function toErrorRecord(errors: readonly DomainError[]) {

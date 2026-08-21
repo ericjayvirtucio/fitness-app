@@ -1,0 +1,12 @@
+appId: com.fitnessapp.dev
+name: A saved item logs to the day the diary was showing
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/nutrition/log-catalog-item-to-a-past-day.yaml
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Edit food entry, E2E Oats.*'
+    direction: DOWN
+- assertVisible: 'Edit food entry, E2E Oats, 190 kcal.*'

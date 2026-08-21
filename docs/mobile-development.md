@@ -43,6 +43,8 @@ To add a future nested screen, add a route beneath the relevant feature route or
 
 To add or intentionally change a primary tab, update both the route file and `src/navigation/tab-destinations.ts`, then update its behavior tests. Five tabs are already the intended maximum for this shell, so an additional product area requires navigation review.
 
+An optional value travels to a screen as an expo-router query parameter: push with `router.push({ pathname, params })` and read with `useLocalSearchParams<{ name?: string }>()`, then spread it into the screen prop conditionally, because `exactOptionalPropertyTypes` makes an explicitly `undefined` optional property a type error rather than a no-op. `fromEntryId` and the daily screens' `date` both travel this way. A route parameter is untrusted input: validate it before it prefills a field or reaches a query, and fall back to a value the screen displays rather than to one it hides.
+
 ## Design system and appearance
 
 The public design-system boundary is `src/design-system/index.ts`. Mobile routes
@@ -128,7 +130,11 @@ with the app database. The application itself provides no delete or reset action
 The Nutrition tab lists entry-owned food and caloric beverage snapshots for a
 captured local calendar day. Create and edit screens accept only grams or
 milliliters, `YYYY-MM-DD`, and 24-hour `HH:MM`. Blank optional nutrients remain
-unknown; zero must be entered only when known. See
+unknown; zero must be entered only when known. Recording from the diary applies
+to the day the diary is showing: the day travels as a validated `date` route
+parameter, a past day prefills `12:00` while today keeps the current clock, the
+Date field stays editable as the override, and `Next` is disabled on today
+because every entry builder refuses a future instant. See
 [offline nutrition logging architecture](architecture/offline-nutrition-logging.md),
 the [manual QA checklist](manual-testing/sprint-8-offline-nutrition-logging.md),
 and [troubleshooting guidance](troubleshooting/offline-nutrition-logging.md).
@@ -137,8 +143,10 @@ and [troubleshooting guidance](troubleshooting/offline-nutrition-logging.md).
 
 The Today tab lists plain-water and explicit other-fluid volumes for a captured
 local calendar day. Entry routes accept exact presets or custom milliliters plus
-`YYYY-MM-DD` and 24-hour `HH:MM`. The optional target is user-defined in mL or L;
-progress appears only for today because target history is not versioned. See
+`YYYY-MM-DD` and 24-hour `HH:MM`. Recording applies to the day the screen is
+showing, under the same rule Nutrition uses. The optional target is user-defined
+in mL or L; progress appears only for today because target history is not
+versioned. See
 [offline Hydration architecture](architecture/offline-hydration-tracking.md), the
 [manual QA checklist](manual-testing/sprint-10-offline-hydration-tracking.md), and
 [troubleshooting guidance](troubleshooting/offline-hydration-tracking.md).

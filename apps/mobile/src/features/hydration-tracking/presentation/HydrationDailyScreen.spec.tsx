@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { formatLocalCalendarDate } from '../../../application/date/local-calendar-date';
 import { HydrationDailyScreen } from './HydrationDailyScreen';
 
 jest.mock('expo-router', () => {
@@ -23,6 +24,32 @@ function volume(amount: number) {
   const result = Volume.create(amount, 'milliliter');
   if (!result.isSuccess) throw new Error('Invalid fixture');
   return result.value;
+}
+
+/**
+ * Created once per test rather than inline in the element. The screen reloads
+ * whenever its loader identity changes, so a new function per render never
+ * settles.
+ */
+function emptyDayLoader() {
+  const useCases = {
+    getDailyHydration: {
+      execute: () =>
+        Promise.resolve({
+          entries: [],
+          summary: {
+            completionPercentage: null,
+            entryCount: 0,
+            otherFluidVolume: volume(0),
+            plainWaterVolume: volume(0),
+            remainingVolume: null,
+            targetVolume: null,
+            totalFluidVolume: volume(0),
+          },
+        }),
+    },
+  };
+  return () => Promise.resolve(useCases);
 }
 
 describe('HydrationDailyScreen', () => {
@@ -103,6 +130,70 @@ describe('HydrationDailyScreen', () => {
     ).toBeTruthy();
     expect(screen.getByText('Daily fluid target')).toBeTruthy();
     expect(screen.getByText(/Target reached/)).toBeTruthy();
+  });
+
+  it('adds to the day it is showing, before and after moving a day', async () => {
+    const onAdd = jest.fn();
+    const view = await render(
+      <HydrationDailyScreen
+        loadUseCases={emptyDayLoader()}
+        onAdd={onAdd}
+        onEdit={jest.fn()}
+        onSetTarget={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add fluid' })).toBeTruthy(),
+    );
+
+    const today = new Date();
+    await fireEvent.press(screen.getByRole('button', { name: 'Add fluid' }));
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(today));
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add first fluid' }),
+    );
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(today));
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add fluid' })).toBeTruthy(),
+    );
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    await fireEvent.press(screen.getByRole('button', { name: 'Add fluid' }));
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(yesterday));
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
+  });
+
+  it('stops the day navigator at today and moves again once a day is past', async () => {
+    const view = await render(
+      <HydrationDailyScreen
+        loadUseCases={emptyDayLoader()}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+        onSetTarget={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Previous day' })).toBeEnabled();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeEnabled(),
+    );
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
   });
 
   it('reaches the change-target control the progress card renders', async () => {

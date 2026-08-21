@@ -36,7 +36,7 @@ type State =
 
 type Props = Readonly<{
   loadUseCases?: () => Promise<UseCases>;
-  onAdd: () => void;
+  onAdd: (localCalendarDate: string) => void;
   onEdit: (id: string) => void;
   onSetTarget: () => void;
 }>;
@@ -94,9 +94,16 @@ export function HydrationDailyScreen({
   }
 
   const { entries, summary } = state.result;
-  const isToday =
-    formatLocalCalendarDate(selectedDate) ===
-    formatLocalCalendarDate(new Date());
+  const selectedLocalCalendarDate = formatLocalCalendarDate(selectedDate);
+  const today = formatLocalCalendarDate(new Date());
+  const isToday = selectedLocalCalendarDate === today;
+  /*
+   * A recording screen may not offer a day that has not happened, because every
+   * entry builder refuses a future instant. Stopping the navigator at today is
+   * what keeps the add control below from offering an act the application will
+   * decline.
+   */
+  const isNextDisabled = selectedLocalCalendarDate >= today;
   return (
     <Screen
       accessibilityLabel="Hydration"
@@ -131,6 +138,7 @@ export function HydrationDailyScreen({
           />
           <AppButton
             accessibilityLabel="Next day"
+            disabled={isNextDisabled}
             label="Next"
             onPress={() => moveDay(1)}
             variant="outline"
@@ -203,13 +211,16 @@ export function HydrationDailyScreen({
         </AppText>
       )}
 
-      <AppButton label="Add fluid" onPress={onAdd} />
+      <AppButton
+        label="Add fluid"
+        onPress={() => onAdd(selectedLocalCalendarDate)}
+      />
       {entries.length === 0 ? (
         <EmptyState
           actionLabel="Add first fluid"
           description="Record water or another fluid using an explicit milliliter amount."
           icon="water-outline"
-          onAction={onAdd}
+          onAction={() => onAdd(selectedLocalCalendarDate)}
           title="Nothing logged for this day"
         />
       ) : (

@@ -1,0 +1,52 @@
+appId: com.fitnessapp.dev
+name: A fluid entry lands on the day the hydration screen was showing
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/hydration/log-fluid-to-a-past-day.yaml
+    env:
+      PRESET: 500 mL
+# The totals card is one accessible element, so its name carries every subtotal
+# the day recorded. Everything below the heading is scrolled to rather than
+# assumed to sit inside the first viewport on every device size.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
+    direction: DOWN
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
+# A past day states why it shows no target progress, and still shows its totals.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Historical days show recorded totals.*'
+    direction: DOWN
+- assertVisible: 'Historical days show recorded totals.*'
+- scrollUntilVisible:
+    element:
+      text: Hydration
+    direction: UP
+# A relaunch returns to a known root showing today, which is both how today is
+# reached without guessing a scroll offset and proof the entry survived a
+# restart on the day it was recorded to.
+- stopApp
+- launchApp
+# The card is the third block on the screen, so it is scrolled to rather than
+# assumed to sit inside the first viewport on every device size. The scroll is a
+# no-op when it is already there.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Daily fluid totals, total 0 mL, plain water 0 mL, other fluids 0 mL, 0 entries'
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: Hydration
+    direction: UP
+- tapOn: Previous day
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
+    direction: DOWN

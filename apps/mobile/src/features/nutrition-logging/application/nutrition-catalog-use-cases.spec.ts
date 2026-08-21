@@ -230,6 +230,92 @@ describe('nutrition catalog application', () => {
     expect(transactionRuns).toBe(1);
   });
 
+  it('keeps today and the clock when no day is given', async () => {
+    const catalog = new FakeCatalogRepository();
+    const consumption = new FakeConsumptionRepository();
+    catalog.items.push(createItem());
+    const runner: TransactionRunner<NutritionCatalogTransactionContext> = {
+      run: (operation) =>
+        operation({
+          consumptionEntryRepository: consumption,
+          nutritionCatalogRepository: catalog,
+        }),
+    };
+    const now = new Date(2026, 7, 3, 9, 5).getTime();
+    const result = await new LogFromNutritionCatalogUseCase(
+      runner,
+      () => entryId,
+      () => now,
+    ).execute(id, '175');
+
+    expect(result.isSuccess).toBe(true);
+    if (!result.isSuccess) return;
+    expect(result.value.localCalendarDate).toBe('2026-08-03');
+    expect(result.value.occurredAtEpochMilliseconds).toBe(now);
+  });
+
+  it('logs onto a chosen past day at noon while usage keeps the clock', async () => {
+    const catalog = new FakeCatalogRepository();
+    const consumption = new FakeConsumptionRepository();
+    catalog.items.push(createItem());
+    const runner: TransactionRunner<NutritionCatalogTransactionContext> = {
+      run: (operation) =>
+        operation({
+          consumptionEntryRepository: consumption,
+          nutritionCatalogRepository: catalog,
+        }),
+    };
+    const now = new Date(2026, 7, 3, 9, 5).getTime();
+    const result = await new LogFromNutritionCatalogUseCase(
+      runner,
+      () => entryId,
+      () => now,
+    ).execute(id, '175', '2026-08-01');
+
+    expect(result.isSuccess).toBe(true);
+    if (!result.isSuccess) return;
+    expect(result.value.localCalendarDate).toBe('2026-08-01');
+    expect(result.value.occurredAtEpochMilliseconds).toBe(
+      new Date(2026, 7, 1, 12).getTime(),
+    );
+    expect(catalog.recordedUsage).toEqual([{ id, time: now }]);
+  });
+
+  it('refuses a day that has not happened or is not a calendar date', async () => {
+    const catalog = new FakeCatalogRepository();
+    const consumption = new FakeConsumptionRepository();
+    catalog.items.push(createItem());
+    const runner: TransactionRunner<NutritionCatalogTransactionContext> = {
+      run: (operation) =>
+        operation({
+          consumptionEntryRepository: consumption,
+          nutritionCatalogRepository: catalog,
+        }),
+    };
+    const now = new Date(2026, 7, 3, 9, 5).getTime();
+    const useCase = new LogFromNutritionCatalogUseCase(
+      runner,
+      () => entryId,
+      () => now,
+    );
+
+    const future = await useCase.execute(id, '175', '2026-08-04');
+    expect(future.isSuccess).toBe(false);
+    if (future.isSuccess) return;
+    expect(future.error[0]?.message).toBe(
+      'Consumption time cannot be in the future.',
+    );
+    expect(future.error[0]?.field).toBeUndefined();
+
+    const malformed = await useCase.execute(id, '175', '2026-02-30');
+    expect(malformed.isSuccess).toBe(false);
+    if (malformed.isSuccess) return;
+    expect(malformed.error[0]?.message).toBe(
+      'Consumption calendar date is invalid.',
+    );
+    expect(consumption.entries).toHaveLength(0);
+  });
+
   it('propagates transaction failure instead of reporting a partial success', async () => {
     const runner: TransactionRunner<NutritionCatalogTransactionContext> = {
       run: () => Promise.reject(new Error('transaction failed')),

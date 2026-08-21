@@ -1,0 +1,36 @@
+appId: com.fitnessapp.dev
+---
+- runFlow: create-catalog-item.yaml
+# Saving returns to the saved-item browser; the diary is one gesture back, and
+# the day control lives there rather than on the browser.
+- assertVisible: Add nutrition
+- swipe:
+    start: 1%,50%
+    end: 95%,50%
+    duration: 300
+- assertVisible: Nutrition
+# An AppButton is read by its accessible label, not by the "Previous" it shows.
+- tapOn: Previous day
+- tapOn: Add food or beverage
+- tapOn:
+    id: catalog-search
+- inputText: E2E Oats
+- assertVisible: Search results
+- tapOn: Log E2E Oats
+- tapOn:
+    id: catalog-consumed-amount
+- inputText: '50'
+- swipe:
+    start: 50%, 45%
+    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: log-catalog-item
+    direction: DOWN
+# The control names the day it will record to, which is the claim. It is tapped
+# by identifier because its label is the very thing under test.
+- assertVisible: 'Log to .*'
+- assertNotVisible: Log to today
+- tapOn:
+    id: log-catalog-item
+- assertVisible: Nutrition

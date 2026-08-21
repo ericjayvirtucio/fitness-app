@@ -1,5 +1,11 @@
 import { Energy, isOk, type DailyNutritionSummary } from '@fitness/domain';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
+import { formatLocalCalendarDate } from '../../../application/date/local-calendar-date';
 import { NutritionDiaryScreen } from './NutritionDiaryScreen';
 
 jest.mock('expo-router', () => {
@@ -121,6 +127,90 @@ describe('NutritionDiaryScreen', () => {
         'Daily nutrition totals, 89 kcal, 1 entry, Protein: 1.1 g, Carbohydrate: 22.8 g, Fat: 0.3 g, Fiber: Incomplete, Sugar: 12.2 g, Sodium: 1 mg, Incomplete means at least one entry has unknown information for that nutrient.',
       ),
     ).toBeTruthy();
+  });
+
+  it('adds to the day it is showing, before and after moving a day', async () => {
+    const onAdd = jest.fn();
+    const view = await render(
+      <NutritionDiaryScreen
+        loadUseCases={loader({
+          carbohydrateGrams: 0,
+          fatGrams: 0,
+          fiberGrams: 0,
+          proteinGrams: 0,
+          sodiumMilligrams: 0,
+          sugarGrams: 0,
+        })}
+        onAdd={onAdd}
+        onEdit={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Add food or beverage' }),
+      ).toBeTruthy(),
+    );
+
+    const today = new Date();
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add food or beverage' }),
+    );
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(today));
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add first entry' }),
+    );
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(today));
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Add food or beverage' }),
+      ).toBeTruthy(),
+    );
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add food or beverage' }),
+    );
+    expect(onAdd).toHaveBeenLastCalledWith(formatLocalCalendarDate(yesterday));
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
+  });
+
+  it('stops the day navigator at today and moves again once a day is past', async () => {
+    const view = await render(
+      <NutritionDiaryScreen
+        loadUseCases={loader({
+          carbohydrateGrams: 0,
+          fatGrams: 0,
+          fiberGrams: 0,
+          proteinGrams: 0,
+          sodiumMilligrams: 0,
+          sugarGrams: 0,
+        })}
+        onAdd={jest.fn()}
+        onEdit={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Previous day' })).toBeEnabled();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Previous day' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next day' })).toBeEnabled(),
+    );
+    /*
+     * Unmounted explicitly. Moving a day starts another read, and leaving it to
+     * automatic cleanup lets that update land inside the next test's render.
+     */
+    await view.unmount();
   });
 
   it('announces the error rather than stale totals', async () => {
