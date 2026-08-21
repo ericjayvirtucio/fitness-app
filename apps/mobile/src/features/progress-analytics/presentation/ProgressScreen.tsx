@@ -169,6 +169,9 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
     value.protein,
     value.carbohydrate,
     value.fat,
+    value.fiber,
+    value.sugar,
+    value.sodium,
   ].some((item) => item.total === null);
   return (
     <Card variant="elevated">
@@ -227,6 +230,35 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
           <Metric
             label="Average fat per logged day"
             value={formatProgressMass(value.fat.averagePerLoggedDay, 'g')}
+          />
+          <Metric
+            label="Fiber"
+            value={formatProgressMass(value.fiber.total, 'g')}
+          />
+          <Metric
+            label="Average fiber per logged day"
+            value={formatProgressMass(value.fiber.averagePerLoggedDay, 'g')}
+          />
+          <Metric
+            label="Sugar"
+            value={formatProgressMass(value.sugar.total, 'g')}
+          />
+          <Metric
+            label="Average sugar per logged day"
+            value={formatProgressMass(value.sugar.averagePerLoggedDay, 'g')}
+          />
+          {/*
+           * Sodium is the one nutrient recorded in milligrams, so it is the one
+           * pair that asks the formatter for a different unit. Nothing converts
+           * it; the stored unit is the displayed unit, as it is on the diary.
+           */}
+          <Metric
+            label="Sodium"
+            value={formatProgressMass(value.sodium.total, 'mg')}
+          />
+          <Metric
+            label="Average sodium per logged day"
+            value={formatProgressMass(value.sodium.averagePerLoggedDay, 'mg')}
           />
           {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">

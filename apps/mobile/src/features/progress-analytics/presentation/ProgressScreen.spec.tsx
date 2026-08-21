@@ -32,8 +32,9 @@ describe('ProgressScreen', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
-    // Protein is unknown in this fixture, so its total and its average both
-    // read Incomplete for the same reason.
+    // Protein is the only unknown nutrient in this fixture, so its total and
+    // its average both read Incomplete for the same reason and nothing else
+    // does. This count was two while the card carried three nutrients.
     expect(screen.getAllByText('Incomplete')).toHaveLength(2);
     expect(
       screen.getByLabelText('Average protein per logged day, Incomplete'),
@@ -44,6 +45,22 @@ describe('ProgressScreen', () => {
     expect(
       screen.getByLabelText('Average fat per logged day, 10 g'),
     ).toBeOnTheScreen();
+    // The three nutrients a period could not previously state.
+    expect(screen.getByLabelText('Fiber, 6 g')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fiber per logged day, 6 g'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sugar, 9 g')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sugar per logged day, 9 g'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sodium, 450 mg')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sodium per logged day, 450 mg'),
+    ).toBeOnTheScreen();
+    // Sodium is stored and displayed in milligrams. A gram rendering of the
+    // same number would be a different quantity by three orders of magnitude.
+    expect(screen.queryByLabelText('Sodium, 450 g')).toBeNull();
     // Four averages share one card, so each names the value it averages.
     expect(
       screen.getByLabelText('Average energy per logged day, 1000 kcal'),
@@ -89,6 +106,90 @@ describe('ProgressScreen', () => {
     ).toBeOnTheScreen();
     // A period with nothing logged states that in words and claims no average.
     expect(screen.queryByLabelText(/Average /)).toBeNull();
+  });
+
+  it('states an unknown fiber, sugar, and sodium exactly as an unknown macronutrient', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  nutrition: {
+                    ...summary.nutrition,
+                    fiber: { averagePerLoggedDay: null, total: null },
+                    sodium: { averagePerLoggedDay: null, total: null },
+                    sugar: { averagePerLoggedDay: null, total: null },
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Fiber, Incomplete')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Average fiber per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sugar, Incomplete')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sugar per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Sodium, Incomplete')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average sodium per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    // The card keeps one height whatever the period contains: a nutrient's
+    // total and its average are unknown together, so this is still sixteen
+    // metrics and the three exact nutrients are untouched.
+    expect(screen.getByLabelText('Carbohydrate, 30 g')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Incomplete means one or more entries did not include that nutrient.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains the word Incomplete when only a newly counted nutrient is unknown', async () => {
+    // The sentence defines a word, and the word is now put on screen by six
+    // nutrients rather than three. A period whose only gap is sodium must still
+    // carry the explanation.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  nutrition: {
+                    ...summary.nutrition,
+                    protein: { averagePerLoggedDay: 30, total: 30 },
+                    sodium: { averagePerLoggedDay: null, total: null },
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Sodium, Incomplete')).toBeOnTheScreen(),
+    );
+    expect(screen.getByLabelText('Protein, 30 g')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Incomplete means one or more entries did not include that nutrient.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('describes recorded body weight without claiming a trend', async () => {
