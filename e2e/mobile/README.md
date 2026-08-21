@@ -90,7 +90,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–37. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–38. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -402,6 +402,39 @@ position. `stopApp` and `launchApp` give it one, keep the stored data, and
 prove the back-dated entry survived a restart on the day it was recorded to —
 which is why `suites/sprint-37/02` and `suites/sprint-37/04` relaunch instead
 of tapping `Today` from wherever the previous step left the screen.
+
+**A complete nutrient needs every optional field, and those fields now have
+identifiers.** `flows/nutrition/log-one-time-entry.yaml` supplies energy and no
+optional nutrient, so every period it builds reads `Incomplete` for protein,
+carbohydrate, and fat. Proving the opposite needs a fixture that fills them, and
+the three fields carried no `testID` until Sprint 38 added
+`nutrition-protein-input`, `nutrition-carbohydrate-input`, and
+`nutrition-fat-input`. Tapping them by their visible label would have been
+ambiguous: `TextField` renders the label as text and puts the same string on the
+input's accessible name, so `Protein (g)` matches two elements and picking one
+is a coincidence rather than a selector.
+`flows/nutrition/log-entry-with-nutrients.yaml` centres each field before
+tapping it, for the same reason every other field in that form does.
+
+**A nutrient average cannot be proven over two days end to end.** The average's
+denominator is logged days, so distinguishing it from a per-day denominator
+needs a period holding two logged days. A back-dated entry falls outside the
+selected week whenever the run happens on a Sunday, and outside the selected
+month whenever it happens on the first. That denominator is pinned in
+`get-progress-summary-use-case.spec.ts`, where the fixture is deterministic, and
+`suites/sprint-38/01` proves only what a single logged day can prove: that the
+line renders and states a real number.
+
+**Progress gained five lines, and the Nutrition card grew by three.** Since
+Sprint 38 the Nutrition card renders ten metrics whenever the period holds a
+logged day, and the Hydration card seven. Nothing above the Nutrition card
+moved, so `Energy, …` is still assertable from the first viewport, but the
+completeness sentence at the bottom of that card moved three lines down and
+`suites/sprint-16/02` now scrolls to it rather than asserting it where it used
+to sit. Every Progress metric is its own accessible element announcing
+`label, value` — the summary cards deliberately carry no `accessibilityLabel` —
+so a line is asserted by its whole name and neither of its two texts can be
+asserted alone.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two

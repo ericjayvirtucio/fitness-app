@@ -125,6 +125,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Protein (g)"
           onChangeText={(value) => set('proteinGrams', value)}
+          testID="nutrition-protein-input"
           value={values.proteinGrams}
         />
         <TextField
@@ -132,6 +133,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Carbohydrate (g)"
           onChangeText={(value) => set('carbohydrateGrams', value)}
+          testID="nutrition-carbohydrate-input"
           value={values.carbohydrateGrams}
         />
         <TextField
@@ -139,6 +141,7 @@ export function ConsumptionEntryForm({
           keyboardType="decimal-pad"
           label="Fat (g)"
           onChangeText={(value) => set('fatGrams', value)}
+          testID="nutrition-fat-input"
           value={values.fatGrams}
         />
         <TextField

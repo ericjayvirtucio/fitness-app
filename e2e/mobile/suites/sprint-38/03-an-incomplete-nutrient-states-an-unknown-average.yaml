@@ -1,0 +1,31 @@
+appId: com.fitnessapp.dev
+name: An incomplete nutrient states an unknown average
+---
+# The one-time entry flow supplies energy and no optional nutrient, so every
+# nutrient in this period is incomplete and its average is unknown for exactly
+# the same reason its total is.
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/nutrition/log-one-time-entry.yaml
+- tapOn:
+    id: tab-progress
+- assertVisible: 'Energy, 89 kcal'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Protein, Incomplete'
+    direction: DOWN
+- assertVisible: 'Average protein per logged day, Incomplete'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Fat, Incomplete'
+    direction: DOWN
+- assertVisible: 'Average fat per logged day, Incomplete'
+# The word the sentence explains is on screen, so the sentence is too.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Incomplete means one or more entries did not include that nutrient.
+    direction: DOWN
+- assertVisible: Incomplete means one or more entries did not include that nutrient.

@@ -1,0 +1,32 @@
+appId: com.fitnessapp.dev
+---
+# Callers must pass VOLUME, matching one of the quick amount controls. This flow
+# declares no env defaults because a default here would win over the value
+# supplied by runFlow.
+#
+# Synthetic values only. The entry is recorded as another fluid rather than as
+# plain water, which is what separates the two hydration components.
+- tapOn:
+    id: tab-today
+- assertVisible: Hydration
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Add fluid
+    direction: DOWN
+- tapOn: Add fluid
+- assertVisible: Add fluid
+- tapOn: Other fluid
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: ${VOLUME} mL
+    direction: DOWN
+- tapOn: ${VOLUME} mL
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Save fluid
+    direction: DOWN
+- tapOn: Save fluid
+- assertVisible: Hydration

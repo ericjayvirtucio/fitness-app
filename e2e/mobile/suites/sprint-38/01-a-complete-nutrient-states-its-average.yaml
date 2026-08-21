@@ -1,0 +1,52 @@
+appId: com.fitnessapp.dev
+name: A complete nutrient states its average per logged day
+---
+# One logged day, so the average equals the total. The denominator itself is
+# pinned by the use case tests rather than here, because a fixture spanning two
+# days would fall outside the selected week whenever the run happened on a
+# Sunday, and a scenario that fails one day in seven is not evidence.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-with-nutrients.yaml
+    env:
+      CARBOHYDRATE: '40'
+      ENERGY: '100'
+      FAT: '12'
+      NAME: E2E Complete Meal
+      PROTEIN: '30'
+      SHOULD_USE_PREVIOUS_DAY: 'false'
+- tapOn:
+    id: tab-progress
+# Every Progress metric is its own accessible element announcing "label, value",
+# so each line is asserted by its whole name and none of its two texts can be
+# asserted on its own. The Nutrition card is now ten metrics tall, so every
+# assertion below the first scrolls to what it asserts.
+- assertVisible: 'Energy, 100 kcal'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Average energy per logged day, 100 kcal'
+    direction: DOWN
+- assertVisible: 'Average energy per logged day, 100 kcal'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Protein, 30 g'
+    direction: DOWN
+- assertVisible: 'Average protein per logged day, 30 g'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Carbohydrate, 40 g'
+    direction: DOWN
+- assertVisible: 'Average carbohydrate per logged day, 40 g'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Fat, 12 g'
+    direction: DOWN
+- assertVisible: 'Average fat per logged day, 12 g'
+# The completeness sentence renders directly beneath the fat average, so this
+# viewport is the one where its absence is evidence rather than a guess.
+- assertNotVisible: Incomplete means one or more entries did not include that nutrient.
