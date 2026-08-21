@@ -13,8 +13,11 @@ name: A complete nutrient states its average per logged day
       CARBOHYDRATE: '40'
       ENERGY: '100'
       FAT: '12'
+      FIBER: '6'
       NAME: E2E Complete Meal
       PROTEIN: '30'
+      SODIUM: '450'
+      SUGAR: '9'
 - tapOn:
     id: tab-progress
 # Every Progress metric is its own accessible element announcing "label, value",

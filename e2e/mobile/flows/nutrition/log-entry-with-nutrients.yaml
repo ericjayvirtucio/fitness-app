@@ -1,23 +1,25 @@
 appId: com.fitnessapp.dev
 ---
-# Callers must pass CARBOHYDRATE, ENERGY, FAT, NAME, and PROTEIN. This flow
-# declares no env defaults because a default here would win over the value
-# supplied by runFlow.
+# Callers must pass CARBOHYDRATE, ENERGY, FAT, FIBER, NAME, PROTEIN, SODIUM, and
+# SUGAR. This flow declares no env defaults because a default here would win over
+# the value supplied by runFlow.
 #
-# Synthetic values only. Every nutrient is supplied, which is what makes the
-# period's nutrient totals and averages complete rather than Incomplete.
+# Synthetic values only. All six nutrients are supplied, which is what makes the
+# period's nutrient totals and averages complete rather than Incomplete. SODIUM
+# is in milligrams; every other nutrient is in grams.
 #
 # This flow records to today. A period spanning two logged days cannot be built
 # end to end without falling outside the selected week on a Sunday, so the
 # average's denominator is pinned by the use case tests instead.
 #
-# The numeric fields are filled BOTTOM-UP: consumed amount, fat, carbohydrate,
-# protein, energy, reference amount. Every tap after the first therefore aims at
-# a field ABOVE the one just typed into, which the number pad cannot cover, and
-# every scroll actually moves — which is what makes centerElement take effect.
-# Filling downwards fails here: protein sits immediately below energy, so once
-# the pad is up scrollUntilVisible reports protein visible, scrolls zero times,
-# and the tap lands on a key while focus stays on energy.
+# The numeric fields are filled BOTTOM-UP in form order: consumed amount,
+# sodium, sugar, fiber, fat, carbohydrate, protein, energy, reference amount.
+# Every tap after the first therefore aims at a field ABOVE the one just typed
+# into, which the number pad cannot cover, and every scroll actually moves —
+# which is what makes centerElement take effect. Filling downwards fails here:
+# protein sits immediately below energy, so once the pad is up
+# scrollUntilVisible reports protein visible, scrolls zero times, and the tap
+# lands on a key while focus stays on energy.
 - tapOn:
     id: tab-nutrition
 - assertVisible: Nutrition
@@ -35,6 +37,30 @@ appId: com.fitnessapp.dev
 - tapOn:
     id: nutrition-consumed-amount-input-touch-target
 - inputText: '100'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-sodium-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-sodium-input-touch-target
+- inputText: ${SODIUM}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-sugar-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-sugar-input-touch-target
+- inputText: ${SUGAR}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-fiber-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-fiber-input-touch-target
+- inputText: ${FIBER}
 - scrollUntilVisible:
     centerElement: true
     element:

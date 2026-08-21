@@ -12,8 +12,11 @@ name: Progress states everything it counted
       CARBOHYDRATE: '40'
       ENERGY: '100'
       FAT: '12'
+      FIBER: '6'
       NAME: E2E Complete Meal
       PROTEIN: '30'
+      SODIUM: '450'
+      SUGAR: '9'
 - runFlow:
     file: ../../flows/hydration/log-other-fluid.yaml
     env:
