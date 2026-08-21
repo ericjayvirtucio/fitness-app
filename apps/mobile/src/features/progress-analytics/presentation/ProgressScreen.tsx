@@ -198,7 +198,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
           <Metric label="Entries" value={String(value.entryCount)} />
           <Metric
             label="Protein"
-            value={formatProgressMass(value.protein.total)}
+            value={formatProgressMass(value.protein.total, 'g')}
           />
           {/*
            * A nutrient's total and its average are unknown together, so both
@@ -207,20 +207,26 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            */}
           <Metric
             label="Average protein per logged day"
-            value={formatProgressMass(value.protein.averagePerLoggedDay)}
+            value={formatProgressMass(value.protein.averagePerLoggedDay, 'g')}
           />
           <Metric
             label="Carbohydrate"
-            value={formatProgressMass(value.carbohydrate.total)}
+            value={formatProgressMass(value.carbohydrate.total, 'g')}
           />
           <Metric
             label="Average carbohydrate per logged day"
-            value={formatProgressMass(value.carbohydrate.averagePerLoggedDay)}
+            value={formatProgressMass(
+              value.carbohydrate.averagePerLoggedDay,
+              'g',
+            )}
           />
-          <Metric label="Fat" value={formatProgressMass(value.fat.total)} />
+          <Metric
+            label="Fat"
+            value={formatProgressMass(value.fat.total, 'g')}
+          />
           <Metric
             label="Average fat per logged day"
-            value={formatProgressMass(value.fat.averagePerLoggedDay)}
+            value={formatProgressMass(value.fat.averagePerLoggedDay, 'g')}
           />
           {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">
