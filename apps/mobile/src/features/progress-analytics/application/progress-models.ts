@@ -8,9 +8,13 @@ import type {
   WorkoutProgressSummary,
 } from '../../workout-history/application/workout-history-models';
 
+/**
+ * A nutrient is incomplete when any included entry omitted it, and both the
+ * total and the average are then unknown together. Absence carries that fact,
+ * so no separate completeness flag says it a second time.
+ */
 export type ProgressNutrientSummary = Readonly<{
   averageGramsPerLoggedDay: number | null;
-  isComplete: boolean;
   totalGrams: number | null;
 }>;
 

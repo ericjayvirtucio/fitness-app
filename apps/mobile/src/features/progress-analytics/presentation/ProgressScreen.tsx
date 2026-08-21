@@ -163,6 +163,13 @@ export function ProgressScreen({
 
 function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.nutrition;
+  // An unknown nutrient total is what incompleteness looks like on this model,
+  // so the sentence below is conditioned on the absence itself.
+  const hasIncompleteNutrient = [
+    value.protein,
+    value.carbohydrate,
+    value.fat,
+  ].some((item) => item.totalGrams === null);
   return (
     <Card variant="elevated">
       <SectionHeader title="Nutrition" />
@@ -194,9 +201,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Fat"
             value={formatProgressMass(value.fat.totalGrams)}
           />
-          {![value.protein, value.carbohydrate, value.fat].every(
-            (item) => item.isComplete,
-          ) ? (
+          {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">
               Incomplete means one or more entries did not include that
               nutrient.

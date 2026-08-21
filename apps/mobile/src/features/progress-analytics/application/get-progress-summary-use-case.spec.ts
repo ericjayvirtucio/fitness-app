@@ -38,7 +38,6 @@ describe('GetProgressSummaryUseCase', () => {
     );
     expect(summary.nutrition.protein).toEqual({
       averageGramsPerLoggedDay: null,
-      isComplete: false,
       totalGrams: null,
     });
     expect(summary.nutrition.energyKilojoules).toBe(1_000);
