@@ -30,10 +30,16 @@ describe('GetProgressSummaryUseCase', () => {
     );
     expect(summary.days).toHaveLength(2);
     expect(summary.days[0]).toMatchObject({ hydration: null, nutrition: null });
-    expect(summary.nutrition).toMatchObject({
+    // Every field is pinned rather than sampled, so a later change to what
+    // the summary presents cannot quietly change what it computes.
+    expect(summary.nutrition).toEqual({
       averageEnergyKilojoulesPerLoggedDay: 1_000,
+      carbohydrate: { averageGramsPerLoggedDay: 20, totalGrams: 20 },
       energyKilojoules: 1_000,
+      entryCount: 2,
+      fat: { averageGramsPerLoggedDay: 8, totalGrams: 8 },
       loggedDayCount: 1,
+      protein: { averageGramsPerLoggedDay: 12, totalGrams: 12 },
     });
     expect(summary.hydration.averageFluidMillilitersPerLoggedDay).toBe(500);
   });
