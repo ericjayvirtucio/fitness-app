@@ -422,10 +422,19 @@ and [troubleshooting guidance](troubleshooting/workout-personal-records.md).
 
 The Progress tab combines bounded, capability-owned Nutrition, Hydration, and
 completed-workout readers. It derives Today, Sunday-to-Saturday week, and calendar
-month summaries from captured local dates without persisted rollups. See the
-[offline Progress architecture](architecture/offline-progress-analytics.md), the
-[Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md), and
-the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
+month summaries from captured local dates without persisted rollups.
+
+Every value the summary computes is displayed. Each average is labelled by the
+value it averages and divides by logged days, the count the card names beside
+it; an average that cannot be computed is omitted rather than rendered as zero.
+The Progress summary cards deliberately carry no `accessibilityLabel`, so each
+metric stays its own accessible element announcing `label, value`. See the
+[offline Progress architecture](architecture/offline-progress-analytics.md),
+[Specification 0038](../specs/0038-progress-states-everything-it-counted.md),
+[ADR 0028](decisions/0028-a-summary-states-every-value-it-computes.md), the
+[Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md), the
+[Sprint 38 manual checklist](manual-testing/sprint-38-progress-states-everything-it-counted.md),
+and the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
 
 ## Offline data export
 
