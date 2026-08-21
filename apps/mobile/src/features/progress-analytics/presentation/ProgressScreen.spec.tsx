@@ -247,12 +247,12 @@ const summary: ProgressSummary = {
       },
       localCalendarDate: '2026-08-02',
       nutrition: {
-        carbohydrate: { isComplete: true, totalGrams: 30 },
+        carbohydrate: { total: 30 },
         energyKilojoules: 4_184,
         entryCount: 1,
-        fat: { isComplete: true, totalGrams: 10 },
+        fat: { total: 10 },
         localCalendarDate: '2026-08-02',
-        protein: { isComplete: false, totalGrams: null },
+        protein: { total: null },
       },
       workout: {
         actualSetCount: 1,
@@ -273,12 +273,12 @@ const summary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: 4_184,
-    carbohydrate: { averageGramsPerLoggedDay: 30, totalGrams: 30 },
+    carbohydrate: { averagePerLoggedDay: 30, total: 30 },
     energyKilojoules: 4_184,
     entryCount: 1,
-    fat: { averageGramsPerLoggedDay: 10, totalGrams: 10 },
+    fat: { averagePerLoggedDay: 10, total: 10 },
     loggedDayCount: 1,
-    protein: { averageGramsPerLoggedDay: null, totalGrams: null },
+    protein: { averagePerLoggedDay: null, total: null },
   },
   preferredUnitSystem: 'metric',
   range: {
@@ -311,12 +311,12 @@ const emptySummary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: null,
-    carbohydrate: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    carbohydrate: { averagePerLoggedDay: null, total: 0 },
     energyKilojoules: 0,
     entryCount: 0,
-    fat: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    fat: { averagePerLoggedDay: null, total: 0 },
     loggedDayCount: 0,
-    protein: { averageGramsPerLoggedDay: null, totalGrams: 0 },
+    protein: { averagePerLoggedDay: null, total: 0 },
   },
   preferredUnitSystem: 'metric',
   range: {

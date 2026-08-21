@@ -96,16 +96,14 @@ function summarizeNutrition(
 function summarizeNutrient(
   values: readonly NutrientProgressValue[],
 ): ProgressNutrientSummary {
-  const isComplete = values.every((value) => value.isComplete);
-  const totalGrams = isComplete
-    ? sum(values.map((value) => value.totalGrams ?? 0))
+  const isComplete = values.every((value) => value.total !== null);
+  const total = isComplete
+    ? sum(values.map((value) => value.total ?? 0))
     : null;
   return Object.freeze({
-    averageGramsPerLoggedDay:
-      totalGrams === null || values.length === 0
-        ? null
-        : totalGrams / values.length,
-    totalGrams,
+    averagePerLoggedDay:
+      total === null || values.length === 0 ? null : total / values.length,
+    total,
   });
 }
 

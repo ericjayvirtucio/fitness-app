@@ -34,12 +34,12 @@ describe('GetProgressSummaryUseCase', () => {
     // the summary presents cannot quietly change what it computes.
     expect(summary.nutrition).toEqual({
       averageEnergyKilojoulesPerLoggedDay: 1_000,
-      carbohydrate: { averageGramsPerLoggedDay: 20, totalGrams: 20 },
+      carbohydrate: { averagePerLoggedDay: 20, total: 20 },
       energyKilojoules: 1_000,
       entryCount: 2,
-      fat: { averageGramsPerLoggedDay: 8, totalGrams: 8 },
+      fat: { averagePerLoggedDay: 8, total: 8 },
       loggedDayCount: 1,
-      protein: { averageGramsPerLoggedDay: 12, totalGrams: 12 },
+      protein: { averagePerLoggedDay: 12, total: 12 },
     });
     expect(summary.hydration.averageFluidMillilitersPerLoggedDay).toBe(500);
   });
@@ -49,8 +49,8 @@ describe('GetProgressSummaryUseCase', () => {
       range,
     );
     expect(summary.nutrition.protein).toEqual({
-      averageGramsPerLoggedDay: null,
-      totalGrams: null,
+      averagePerLoggedDay: null,
+      total: null,
     });
     expect(summary.nutrition.energyKilojoules).toBe(1_000);
   });
@@ -64,20 +64,20 @@ describe('GetProgressSummaryUseCase', () => {
       nutritionComplete: true,
       nutritionDays: [
         {
-          carbohydrate: { isComplete: true, totalGrams: 40 },
+          carbohydrate: { total: 40 },
           energyKilojoules: 600,
           entryCount: 1,
-          fat: { isComplete: true, totalGrams: 6 },
+          fat: { total: 6 },
           localCalendarDate: '2026-08-01',
-          protein: { isComplete: true, totalGrams: 20 },
+          protein: { total: 20 },
         },
         {
-          carbohydrate: { isComplete: true, totalGrams: 20 },
+          carbohydrate: { total: 20 },
           energyKilojoules: 400,
           entryCount: 1,
-          fat: { isComplete: true, totalGrams: 4 },
+          fat: { total: 4 },
           localCalendarDate: '2026-08-03',
-          protein: { isComplete: true, totalGrams: 10 },
+          protein: { total: 10 },
         },
       ],
     }).execute({
@@ -87,16 +87,16 @@ describe('GetProgressSummaryUseCase', () => {
 
     expect(summary.nutrition.loggedDayCount).toBe(2);
     expect(summary.nutrition.protein).toEqual({
-      averageGramsPerLoggedDay: 15,
-      totalGrams: 30,
+      averagePerLoggedDay: 15,
+      total: 30,
     });
     expect(summary.nutrition.carbohydrate).toEqual({
-      averageGramsPerLoggedDay: 30,
-      totalGrams: 60,
+      averagePerLoggedDay: 30,
+      total: 60,
     });
     expect(summary.nutrition.fat).toEqual({
-      averageGramsPerLoggedDay: 5,
-      totalGrams: 10,
+      averagePerLoggedDay: 5,
+      total: 10,
     });
   });
 
@@ -219,15 +219,12 @@ function createUseCase({
       Promise.resolve(
         nutritionDays ?? [
           {
-            carbohydrate: { isComplete: true, totalGrams: 20 },
+            carbohydrate: { total: 20 },
             energyKilojoules: 1_000,
             entryCount: 2,
-            fat: { isComplete: true, totalGrams: 8 },
+            fat: { total: 8 },
             localCalendarDate: '2026-08-02',
-            protein: {
-              isComplete: nutritionComplete,
-              totalGrams: nutritionComplete ? 12 : null,
-            },
+            protein: { total: nutritionComplete ? 12 : null },
           },
         ],
       ),

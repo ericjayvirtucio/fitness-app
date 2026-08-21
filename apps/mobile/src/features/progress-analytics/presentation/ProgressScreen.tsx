@@ -169,7 +169,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
     value.protein,
     value.carbohydrate,
     value.fat,
-  ].some((item) => item.totalGrams === null);
+  ].some((item) => item.total === null);
   return (
     <Card variant="elevated">
       <SectionHeader title="Nutrition" />
@@ -198,7 +198,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
           <Metric label="Entries" value={String(value.entryCount)} />
           <Metric
             label="Protein"
-            value={formatProgressMass(value.protein.totalGrams)}
+            value={formatProgressMass(value.protein.total)}
           />
           {/*
            * A nutrient's total and its average are unknown together, so both
@@ -207,25 +207,20 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            */}
           <Metric
             label="Average protein per logged day"
-            value={formatProgressMass(value.protein.averageGramsPerLoggedDay)}
+            value={formatProgressMass(value.protein.averagePerLoggedDay)}
           />
           <Metric
             label="Carbohydrate"
-            value={formatProgressMass(value.carbohydrate.totalGrams)}
+            value={formatProgressMass(value.carbohydrate.total)}
           />
           <Metric
             label="Average carbohydrate per logged day"
-            value={formatProgressMass(
-              value.carbohydrate.averageGramsPerLoggedDay,
-            )}
+            value={formatProgressMass(value.carbohydrate.averagePerLoggedDay)}
           />
-          <Metric
-            label="Fat"
-            value={formatProgressMass(value.fat.totalGrams)}
-          />
+          <Metric label="Fat" value={formatProgressMass(value.fat.total)} />
           <Metric
             label="Average fat per logged day"
-            value={formatProgressMass(value.fat.averageGramsPerLoggedDay)}
+            value={formatProgressMass(value.fat.averagePerLoggedDay)}
           />
           {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">

@@ -28,9 +28,9 @@ describe('NutritionProgressSqliteReader', () => {
     });
     expect(database.parameters).toEqual(['2026-08-02', '2026-08-08']);
     expect(result[0]).toMatchObject({
-      carbohydrate: { isComplete: true, totalGrams: 30 },
-      fat: { isComplete: false, totalGrams: null },
-      protein: { isComplete: false, totalGrams: null },
+      carbohydrate: { total: 30 },
+      fat: { total: null },
+      protein: { total: null },
     });
   });
 });

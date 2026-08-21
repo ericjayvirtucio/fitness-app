@@ -70,11 +70,10 @@ function nutrient(
   knownCount: number,
   entryCount: number,
 ): NutrientProgressValue {
+  // The comparison decides the null and is not published beside it. A caller
+  // reading the absence learns exactly what a boolean would have told it.
   const isComplete = nonnegativeInteger(knownCount) === entryCount;
-  return Object.freeze({
-    isComplete,
-    totalGrams: isComplete ? nonnegative(total) : null,
-  });
+  return Object.freeze({ total: isComplete ? nonnegative(total) : null });
 }
 
 function nonnegative(value: number | null): number {
