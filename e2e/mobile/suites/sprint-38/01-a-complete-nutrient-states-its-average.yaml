@@ -15,7 +15,6 @@ name: A complete nutrient states its average per logged day
       FAT: '12'
       NAME: E2E Complete Meal
       PROTEIN: '30'
-      SHOULD_USE_PREVIOUS_DAY: 'false'
 - tapOn:
     id: tab-progress
 # Every Progress metric is its own accessible element announcing "label, value",

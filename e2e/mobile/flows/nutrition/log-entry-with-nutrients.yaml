@@ -1,23 +1,17 @@
 appId: com.fitnessapp.dev
 ---
-# Callers must pass CARBOHYDRATE, ENERGY, FAT, NAME, PROTEIN, and
-# SHOULD_USE_PREVIOUS_DAY. This flow declares no env defaults because a default
-# here would win over the value supplied by runFlow.
+# Callers must pass CARBOHYDRATE, ENERGY, FAT, NAME, and PROTEIN. This flow
+# declares no env defaults because a default here would win over the value
+# supplied by runFlow.
 #
 # Synthetic values only. Every nutrient is supplied, which is what makes the
 # period's nutrient totals and averages complete rather than Incomplete.
 - tapOn:
     id: tab-nutrition
 - assertVisible: Nutrition
-# The navigation controls are AppButtons, which are read by their accessible
-# label rather than by the "Previous" and "Next" text they display. The diary
-# records to the day it is showing, so moving first is what back-dates the
-# entry.
-- runFlow:
-    when:
-      true: ${SHOULD_USE_PREVIOUS_DAY == 'true'}
-    commands:
-      - tapOn: Previous day
+# This flow records to today. A period spanning two logged days cannot be built
+# end to end without falling outside the selected week on a Sunday, so the
+# average's denominator is pinned by the use case tests instead.
 - tapOn: Add food or beverage
 - tapOn: Enter one-time item
 - assertVisible: Add food or beverage

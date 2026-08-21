@@ -14,7 +14,6 @@ name: Progress states everything it counted
       FAT: '12'
       NAME: E2E Complete Meal
       PROTEIN: '30'
-      SHOULD_USE_PREVIOUS_DAY: 'false'
 - runFlow:
     file: ../../flows/hydration/log-other-fluid.yaml
     env:
