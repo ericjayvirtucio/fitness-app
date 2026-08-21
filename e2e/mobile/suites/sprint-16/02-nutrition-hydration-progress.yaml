@@ -8,8 +8,16 @@ name: Recorded nutrition and hydration appear in progress
 - tapOn:
     id: tab-progress
 - assertVisible: 'Energy, 89 kcal'
+# The completeness sentence sits at the bottom of the Nutrition card, which
+# gained three average lines above it, so it is no longer in the first viewport.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Incomplete means one or more entries did not include that nutrient.
+    direction: DOWN
 - assertVisible: Incomplete means one or more entries did not include that nutrient.
 - scrollUntilVisible:
+    centerElement: true
     element:
       text: 'Total fluid, 500 mL'
     direction: DOWN
