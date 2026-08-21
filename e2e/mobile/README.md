@@ -416,6 +416,22 @@ is a coincidence rather than a selector.
 `flows/nutrition/log-entry-with-nutrients.yaml` centres each field before
 tapping it, for the same reason every other field in that form does.
 
+**The field immediately below the one just typed into is under the number pad,
+and `scrollUntilVisible` will not scroll to something it already believes is
+visible.** Sprint 38's first QA run lost a scenario to this. The nutrient flow
+filled the form downwards, and protein sits immediately below energy, so once
+`100` had gone into energy the pad covered protein; the hierarchy still reported
+protein visible, the scroll moved zero times, `centerElement` never applied, and
+the tap landed on a key while focus stayed on energy. `30` was appended to the
+field that still had focus and the entry saved `10030 kcal`. Every step reported
+COMPLETED and the screenshot showed the product faithfully rendering
+`Energy 10030 kcal`, which read like a conversion defect and was not. Carbohydrate
+and fat landed correctly, because they sit far enough down that their scrolls
+actually moved — which is the tell: `centerElement` only helps a scroll that
+happens. `flows/nutrition/log-entry-with-nutrients.yaml` fills every numeric
+field bottom-up for this reason, so each tap after the first aims at a field
+above the last one and every scroll moves.
+
 **A nutrient average cannot be proven over two days end to end.** The average's
 denominator is logged days, so distinguishing it from a per-day denominator
 needs a period holding two logged days. A back-dated entry falls outside the
