@@ -188,7 +188,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            */}
           {value.averageEnergyKilojoulesPerLoggedDay === null ? null : (
             <Metric
-              label="Average per logged day"
+              label="Average energy per logged day"
               value={formatProgressEnergy(
                 value.averageEnergyKilojoulesPerLoggedDay,
               )}
@@ -239,7 +239,7 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
           />
           {value.averageFluidMillilitersPerLoggedDay === null ? null : (
             <Metric
-              label="Average per logged day"
+              label="Average fluid per logged day"
               value={formatProgressVolume(
                 value.averageFluidMillilitersPerLoggedDay,
               )}

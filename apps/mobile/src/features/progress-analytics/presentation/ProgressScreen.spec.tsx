@@ -33,6 +33,14 @@ describe('ProgressScreen', () => {
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
     expect(screen.getAllByText('Incomplete')).toHaveLength(1);
+    // Four averages share one card, so each names the value it averages.
+    expect(
+      screen.getByLabelText('Average energy per logged day, 1000 kcal'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fluid per logged day, 500 mL'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByLabelText(/^Average per logged day/)).toBeNull();
     expect(screen.getByLabelText('Completed workouts, 1')).toBeOnTheScreen();
     expect(
       screen.getByLabelText(
@@ -185,8 +193,8 @@ describe('ProgressScreen', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
-    expect(screen.queryByLabelText(/Average per logged day, 0/)).toBeNull();
-    expect(screen.queryByLabelText(/Average per logged day/)).toBeNull();
+    expect(screen.queryByLabelText(/Average energy per logged day/)).toBeNull();
+    expect(screen.queryByLabelText(/Average fluid per logged day/)).toBeNull();
   });
 
   it('offers retry after a loading failure', async () => {
