@@ -14,9 +14,15 @@ type Row = Readonly<{
   entry_count: number;
   fat_grams: number | null;
   fat_known_count: number;
+  fiber_grams: number | null;
+  fiber_known_count: number;
   local_calendar_date: string;
   protein_grams: number | null;
   protein_known_count: number;
+  sodium_milligrams: number | null;
+  sodium_known_count: number;
+  sugar_grams: number | null;
+  sugar_known_count: number;
 }>;
 
 export class NutritionProgressSqliteReader implements NutritionProgressReader {
@@ -34,7 +40,13 @@ export class NutritionProgressSqliteReader implements NutritionProgressReader {
           SUM(carbohydrate_grams) AS carbohydrate_grams,
           COUNT(carbohydrate_grams) AS carbohydrate_known_count,
           SUM(fat_grams) AS fat_grams,
-          COUNT(fat_grams) AS fat_known_count
+          COUNT(fat_grams) AS fat_known_count,
+          SUM(fiber_grams) AS fiber_grams,
+          COUNT(fiber_grams) AS fiber_known_count,
+          SUM(sugar_grams) AS sugar_grams,
+          COUNT(sugar_grams) AS sugar_known_count,
+          SUM(sodium_milligrams) AS sodium_milligrams,
+          COUNT(sodium_milligrams) AS sodium_known_count
         FROM nutrition_consumption_entry
         WHERE local_calendar_date BETWEEN ? AND ?
         GROUP BY local_calendar_date
@@ -60,8 +72,14 @@ function mapRow(row: Row): NutritionProgressDay {
     energyKilojoules: nonnegative(row.energy_kilojoules),
     entryCount,
     fat: nutrient(row.fat_grams, row.fat_known_count, entryCount),
+    fiber: nutrient(row.fiber_grams, row.fiber_known_count, entryCount),
     localCalendarDate: row.local_calendar_date,
     protein: nutrient(row.protein_grams, row.protein_known_count, entryCount),
+    // Sodium is the one nutrient recorded in milligrams. It passes through the
+    // same mapper because the mapper never interprets the unit; the caller that
+    // renders the value supplies it.
+    sodium: nutrient(row.sodium_milligrams, row.sodium_known_count, entryCount),
+    sugar: nutrient(row.sugar_grams, row.sugar_known_count, entryCount),
   });
 }
 

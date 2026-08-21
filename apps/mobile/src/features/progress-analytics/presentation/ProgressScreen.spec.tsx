@@ -251,8 +251,11 @@ const summary: ProgressSummary = {
         energyKilojoules: 4_184,
         entryCount: 1,
         fat: { total: 10 },
+        fiber: { total: 6 },
         localCalendarDate: '2026-08-02',
         protein: { total: null },
+        sodium: { total: 450 },
+        sugar: { total: 9 },
       },
       workout: {
         actualSetCount: 1,

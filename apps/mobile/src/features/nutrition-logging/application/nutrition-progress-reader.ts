@@ -16,8 +16,11 @@ export type NutritionProgressDay = Readonly<{
   energyKilojoules: number;
   entryCount: number;
   fat: NutrientProgressValue;
+  fiber: NutrientProgressValue;
   localCalendarDate: string;
   protein: NutrientProgressValue;
+  sodium: NutrientProgressValue;
+  sugar: NutrientProgressValue;
 }>;
 
 export interface NutritionProgressReader {
