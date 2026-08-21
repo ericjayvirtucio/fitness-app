@@ -102,3 +102,16 @@ Backend services, synchronization, external analytics, telemetry, AI insights,
 coaching, charts, persisted analytics, target-adherence history, weight/BMI
 trends, planner adherence, universal scores, streaks, notifications, export,
 and a second QA runner or CLI are excluded.
+
+## Amendment: the presented values match the promised ones
+
+The nutrient totals/averages and the hydration other-fluid total and averages
+enumerated above were computed on every load, typed on the read model, and
+rendered nowhere. Progress now presents an average per logged day for protein,
+carbohydrate, and fat, the period's other fluid, and an average plain water per
+logged day, so the screen states everything this specification promised. Each
+average is labelled by the value it averages, an unknown average reads as its
+unknown total already did, and no stored value, SQL statement, reader contract,
+query, or total changed. See
+[Specification 0038](0038-progress-states-everything-it-counted.md) and
+[ADR 0028](../docs/decisions/0028-a-summary-states-every-value-it-computes.md).

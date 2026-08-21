@@ -1,0 +1,97 @@
+appId: com.fitnessapp.dev
+---
+# Callers must pass CARBOHYDRATE, ENERGY, FAT, NAME, and PROTEIN. This flow
+# declares no env defaults because a default here would win over the value
+# supplied by runFlow.
+#
+# Synthetic values only. Every nutrient is supplied, which is what makes the
+# period's nutrient totals and averages complete rather than Incomplete.
+#
+# This flow records to today. A period spanning two logged days cannot be built
+# end to end without falling outside the selected week on a Sunday, so the
+# average's denominator is pinned by the use case tests instead.
+#
+# The numeric fields are filled BOTTOM-UP: consumed amount, fat, carbohydrate,
+# protein, energy, reference amount. Every tap after the first therefore aims at
+# a field ABOVE the one just typed into, which the number pad cannot cover, and
+# every scroll actually moves — which is what makes centerElement take effect.
+# Filling downwards fails here: protein sits immediately below energy, so once
+# the pad is up scrollUntilVisible reports protein visible, scrolls zero times,
+# and the tap lands on a key while focus stays on energy.
+- tapOn:
+    id: tab-nutrition
+- assertVisible: Nutrition
+- tapOn: Add food or beverage
+- tapOn: Enter one-time item
+- assertVisible: Add food or beverage
+- tapOn:
+    id: nutrition-description-input-touch-target
+- inputText: ${NAME}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-consumed-amount-input-touch-target
+    direction: DOWN
+- tapOn:
+    id: nutrition-consumed-amount-input-touch-target
+- inputText: '100'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-fat-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-fat-input-touch-target
+- inputText: ${FAT}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-carbohydrate-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-carbohydrate-input-touch-target
+- inputText: ${CARBOHYDRATE}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-protein-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-protein-input-touch-target
+- inputText: ${PROTEIN}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-energy-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-energy-input-touch-target
+- inputText: ${ENERGY}
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      id: nutrition-reference-amount-input-touch-target
+    direction: UP
+- tapOn:
+    id: nutrition-reference-amount-input-touch-target
+- inputText: '100'
+# The number pad exposes no dismiss action, so a short drag in the content area
+# dismisses it through keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%,55%
+    end: 50%,10%
+    duration: 500
+# The Date and Time fields keep the day the diary was showing. Save now sits
+# well below the fold, because this flow ends near the top of the form.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Save entry
+    direction: DOWN
+- tapOn: Save entry
+- assertVisible: Add nutrition
+- swipe:
+    start: 1%,50%
+    end: 95%,50%
+    duration: 300
+- assertVisible: Nutrition

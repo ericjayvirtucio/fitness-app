@@ -163,6 +163,13 @@ export function ProgressScreen({
 
 function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.nutrition;
+  // An unknown nutrient total is what incompleteness looks like on this model,
+  // so the sentence below is conditioned on the absence itself.
+  const hasIncompleteNutrient = [
+    value.protein,
+    value.carbohydrate,
+    value.fat,
+  ].some((item) => item.totalGrams === null);
   return (
     <Card variant="elevated">
       <SectionHeader title="Nutrition" />
@@ -174,29 +181,53 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Energy"
             value={formatProgressEnergy(value.energyKilojoules)}
           />
-          <Metric
-            label="Average per logged day"
-            value={formatProgressEnergy(
-              value.averageEnergyKilojoulesPerLoggedDay ?? 0,
-            )}
-          />
+          {/*
+           * An average is unknown only when the period logged no day, which
+           * this branch has already excluded. The line is omitted rather than
+           * defaulted so an unknown can never be displayed as a zero.
+           */}
+          {value.averageEnergyKilojoulesPerLoggedDay === null ? null : (
+            <Metric
+              label="Average energy per logged day"
+              value={formatProgressEnergy(
+                value.averageEnergyKilojoulesPerLoggedDay,
+              )}
+            />
+          )}
           <Metric label="Logged days" value={String(value.loggedDayCount)} />
           <Metric label="Entries" value={String(value.entryCount)} />
           <Metric
             label="Protein"
             value={formatProgressMass(value.protein.totalGrams)}
           />
+          {/*
+           * A nutrient's total and its average are unknown together, so both
+           * read Incomplete for the same reason and the card keeps one height
+           * whatever the period contains.
+           */}
+          <Metric
+            label="Average protein per logged day"
+            value={formatProgressMass(value.protein.averageGramsPerLoggedDay)}
+          />
           <Metric
             label="Carbohydrate"
             value={formatProgressMass(value.carbohydrate.totalGrams)}
           />
           <Metric
+            label="Average carbohydrate per logged day"
+            value={formatProgressMass(
+              value.carbohydrate.averageGramsPerLoggedDay,
+            )}
+          />
+          <Metric
             label="Fat"
             value={formatProgressMass(value.fat.totalGrams)}
           />
-          {![value.protein, value.carbohydrate, value.fat].every(
-            (item) => item.isComplete,
-          ) ? (
+          <Metric
+            label="Average fat per logged day"
+            value={formatProgressMass(value.fat.averageGramsPerLoggedDay)}
+          />
+          {hasIncompleteNutrient ? (
             <AppText color="secondary" variant="bodySmall">
               Incomplete means one or more entries did not include that
               nutrient.
@@ -225,12 +256,31 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Plain water"
             value={formatProgressVolume(value.plainWaterMilliliters)}
           />
+          {/*
+           * Every stored fluid is plain water or another fluid, so these two
+           * lines are exhaustive over the total above them and neither needs
+           * to state what it leaves out.
+           */}
           <Metric
-            label="Average per logged day"
-            value={formatProgressVolume(
-              value.averageFluidMillilitersPerLoggedDay ?? 0,
-            )}
+            label="Other fluids"
+            value={formatProgressVolume(value.otherFluidMilliliters)}
           />
+          {value.averageFluidMillilitersPerLoggedDay === null ? null : (
+            <Metric
+              label="Average fluid per logged day"
+              value={formatProgressVolume(
+                value.averageFluidMillilitersPerLoggedDay,
+              )}
+            />
+          )}
+          {value.averagePlainWaterMillilitersPerLoggedDay === null ? null : (
+            <Metric
+              label="Average plain water per logged day"
+              value={formatProgressVolume(
+                value.averagePlainWaterMillilitersPerLoggedDay,
+              )}
+            />
+          )}
           <Metric label="Logged days" value={String(value.loggedDayCount)} />
           <Metric label="Entries" value={String(value.entryCount)} />
         </>

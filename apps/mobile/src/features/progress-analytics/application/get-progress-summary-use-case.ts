@@ -105,7 +105,6 @@ function summarizeNutrient(
       totalGrams === null || values.length === 0
         ? null
         : totalGrams / values.length,
-    isComplete,
     totalGrams,
   });
 }

@@ -34,12 +34,35 @@ snapshots, and body weight check-ins are authoritative. Current catalog
 definitions, planner intent, active sessions, the current profile weight,
 goals, and hydration target are not.
 
+## What the summary states
+
+Every value the summary computes is a value the screen states. The Nutrition
+card renders energy, its average per logged day, the logged day and entry
+counts, and a total and an average per logged day for protein, carbohydrate,
+and fat. The Hydration card renders the total fluid, its plain water and other
+fluid components, an average per logged day for each of the first two, and the
+logged day and entry counts. Each average is labelled by the value it averages,
+because four averages share one card.
+
+An average's denominator is logged days — the days holding at least one entry of
+that kind — which is the count the card names on its own `Logged days` line.
+Neither average divides by days in the period.
+
+[ADR 0028](../decisions/0028-a-summary-states-every-value-it-computes.md) records
+the rule and its boundary with
+[ADR 0023](../decisions/0023-displayed-totals-state-their-coverage.md): a value
+whose rendered text carries its own coverage needs no separate unconditional
+sentence, so the explanation of the word `Incomplete` renders only when that word
+is on screen.
+
 ## Missing and incomplete data
 
 A logged day contains at least one source entry. Unlogged days do not contribute
 zero to averages. Nutrition energy is required and therefore complete, including
 a legitimate known zero. Each optional nutrient carries explicit completeness:
-if one entry is unknown, its period total and average are not claimed as exact.
+if one entry is unknown, its period total and average are not claimed as exact,
+and both read `Incomplete` for the same reason. An average that cannot be
+computed is omitted rather than rendered as zero.
 
 Hydration history reports intake only. Workout history reports completed actual
 performance only and retains logging-mode-specific units.

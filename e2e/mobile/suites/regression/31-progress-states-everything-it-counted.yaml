@@ -1,0 +1,38 @@
+appId: com.fitnessapp.dev
+name: Progress states everything it counted
+---
+# The sprint suite proves each claim in detail. This scenario proves the lines
+# survive from a clean state beside every other standing scenario, and that one
+# period can carry a complete nutrient and a mixed fluid intake at once.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../flows/nutrition/log-entry-with-nutrients.yaml
+    env:
+      CARBOHYDRATE: '40'
+      ENERGY: '100'
+      FAT: '12'
+      NAME: E2E Complete Meal
+      PROTEIN: '30'
+- runFlow:
+    file: ../../flows/hydration/log-other-fluid.yaml
+    env:
+      VOLUME: '250'
+- tapOn:
+    id: tab-progress
+- assertVisible: 'Energy, 100 kcal'
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Average protein per logged day, 30 g'
+    direction: DOWN
+- assertVisible: 'Average protein per logged day, 30 g'
+# Total fluid, plain water, and other fluids render as three adjacent lines, so
+# centring the first brings the two beneath it into the same viewport.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 'Total fluid, 250 mL'
+    direction: DOWN
+- assertVisible: 'Plain water, 0 mL'
+- assertVisible: 'Other fluids, 250 mL'

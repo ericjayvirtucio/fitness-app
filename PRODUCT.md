@@ -138,6 +138,21 @@ recorded moved, no total was recalculated, and correcting an entry's day is stil
 the same editable field it always was — what changed is that the application now
 defaults to the day the person is actually looking at.
 
+Reading caught up with counting after that. The Progress tab read five values
+out of storage or derived them on every load — an average per logged day for
+protein, carbohydrate, and fat, the part of a period's fluid that was not plain
+water, and an average plain water per logged day — typed all five, and displayed
+none of them. Somebody tracking protein saw a period total, the question almost
+nobody asks, while the daily average they actually track against was computed
+and thrown away. Somebody who drinks coffee and water saw a total and a water
+figure and had to subtract to learn the third number the daily hydration screen
+names outright. Progress now states everything it counted. Each average says
+which value it averages and divides by the days that were logged, the count
+shown beside it; an unknown average reads exactly as an unknown total already
+did; and a value the application cannot compute is left unsaid rather than
+shown as a zero. Nothing recorded changed: no entry, amount, total, target, or
+export.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

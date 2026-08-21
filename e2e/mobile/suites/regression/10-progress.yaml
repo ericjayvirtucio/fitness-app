@@ -8,7 +8,10 @@ name: Offline progress analytics
 - tapOn:
     id: tab-progress
 - assertVisible: 'Energy, 89 kcal'
+# The Hydration card sits five lines lower than it used to, and Total fluid is
+# its first line, so the scroll centres what it stops on.
 - scrollUntilVisible:
+    centerElement: true
     element:
       text: 'Total fluid, 500 mL'
     direction: DOWN

@@ -32,7 +32,30 @@ describe('ProgressScreen', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
     );
-    expect(screen.getAllByText('Incomplete')).toHaveLength(1);
+    // Protein is unknown in this fixture, so its total and its average both
+    // read Incomplete for the same reason.
+    expect(screen.getAllByText('Incomplete')).toHaveLength(2);
+    expect(
+      screen.getByLabelText('Average protein per logged day, Incomplete'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average carbohydrate per logged day, 30 g'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fat per logged day, 10 g'),
+    ).toBeOnTheScreen();
+    // Four averages share one card, so each names the value it averages.
+    expect(
+      screen.getByLabelText('Average energy per logged day, 1000 kcal'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average fluid per logged day, 500 mL'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Other fluids, 0 mL')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average plain water per logged day, 500 mL'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByLabelText(/^Average per logged day/)).toBeNull();
     expect(screen.getByLabelText('Completed workouts, 1')).toBeOnTheScreen();
     expect(
       screen.getByLabelText(
@@ -64,6 +87,8 @@ describe('ProgressScreen', () => {
     expect(
       screen.getByText('No completed workouts in this period.'),
     ).toBeOnTheScreen();
+    // A period with nothing logged states that in words and claims no average.
+    expect(screen.queryByLabelText(/Average /)).toBeNull();
   });
 
   it('describes recorded body weight without claiming a trend', async () => {
@@ -154,6 +179,41 @@ describe('ProgressScreen', () => {
     );
   });
 
+  it('omits an unknown average rather than showing it as zero', async () => {
+    // The read model permits an unknown average beside a logged day even
+    // though the reader cannot produce one. The guard is what keeps that
+    // combination unrenderable instead of rendering it as a false zero.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  hydration: {
+                    ...summary.hydration,
+                    averageFluidMillilitersPerLoggedDay: null,
+                  },
+                  nutrition: {
+                    ...summary.nutrition,
+                    averageEnergyKilojoulesPerLoggedDay: null,
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Energy, 1000 kcal')).toBeOnTheScreen(),
+    );
+    expect(screen.queryByLabelText(/Average energy per logged day/)).toBeNull();
+    expect(screen.queryByLabelText(/Average fluid per logged day/)).toBeNull();
+  });
+
   it('offers retry after a loading failure', async () => {
     await render(
       <ProgressScreen
@@ -213,20 +273,12 @@ const summary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: 4_184,
-    carbohydrate: {
-      averageGramsPerLoggedDay: 30,
-      isComplete: true,
-      totalGrams: 30,
-    },
+    carbohydrate: { averageGramsPerLoggedDay: 30, totalGrams: 30 },
     energyKilojoules: 4_184,
     entryCount: 1,
-    fat: { averageGramsPerLoggedDay: 10, isComplete: true, totalGrams: 10 },
+    fat: { averageGramsPerLoggedDay: 10, totalGrams: 10 },
     loggedDayCount: 1,
-    protein: {
-      averageGramsPerLoggedDay: null,
-      isComplete: false,
-      totalGrams: null,
-    },
+    protein: { averageGramsPerLoggedDay: null, totalGrams: null },
   },
   preferredUnitSystem: 'metric',
   range: {
@@ -259,20 +311,12 @@ const emptySummary: ProgressSummary = {
   },
   nutrition: {
     averageEnergyKilojoulesPerLoggedDay: null,
-    carbohydrate: {
-      averageGramsPerLoggedDay: null,
-      isComplete: true,
-      totalGrams: 0,
-    },
+    carbohydrate: { averageGramsPerLoggedDay: null, totalGrams: 0 },
     energyKilojoules: 0,
     entryCount: 0,
-    fat: { averageGramsPerLoggedDay: null, isComplete: true, totalGrams: 0 },
+    fat: { averageGramsPerLoggedDay: null, totalGrams: 0 },
     loggedDayCount: 0,
-    protein: {
-      averageGramsPerLoggedDay: null,
-      isComplete: true,
-      totalGrams: 0,
-    },
+    protein: { averageGramsPerLoggedDay: null, totalGrams: 0 },
   },
   preferredUnitSystem: 'metric',
   range: {
