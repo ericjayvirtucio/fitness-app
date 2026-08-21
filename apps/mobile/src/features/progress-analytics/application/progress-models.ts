@@ -28,8 +28,11 @@ export type ProgressNutritionSummary = Readonly<{
   energyKilojoules: number;
   entryCount: number;
   fat: ProgressNutrientSummary;
+  fiber: ProgressNutrientSummary;
   loggedDayCount: number;
   protein: ProgressNutrientSummary;
+  sodium: ProgressNutrientSummary;
+  sugar: ProgressNutrientSummary;
 }>;
 
 export type ProgressHydrationSummary = Readonly<{

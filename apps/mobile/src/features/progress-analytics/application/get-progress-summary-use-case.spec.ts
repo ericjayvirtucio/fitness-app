@@ -38,8 +38,11 @@ describe('GetProgressSummaryUseCase', () => {
       energyKilojoules: 1_000,
       entryCount: 2,
       fat: { averagePerLoggedDay: 8, total: 8 },
+      fiber: { averagePerLoggedDay: 5, total: 5 },
       loggedDayCount: 1,
       protein: { averagePerLoggedDay: 12, total: 12 },
+      sodium: { averagePerLoggedDay: 450, total: 450 },
+      sugar: { averagePerLoggedDay: 9, total: 9 },
     });
     expect(summary.hydration.averageFluidMillilitersPerLoggedDay).toBe(500);
   });
@@ -103,6 +106,69 @@ describe('GetProgressSummaryUseCase', () => {
     expect(summary.nutrition.fat).toEqual({
       averagePerLoggedDay: 5,
       total: 10,
+    });
+    expect(summary.nutrition.fiber).toEqual({
+      averagePerLoggedDay: 6,
+      total: 12,
+    });
+    expect(summary.nutrition.sugar).toEqual({
+      averagePerLoggedDay: 9,
+      total: 18,
+    });
+    // Sodium's milligrams are summed and divided exactly as the gram nutrients
+    // are. The use case never converts a unit; it never learns one.
+    expect(summary.nutrition.sodium).toEqual({
+      averagePerLoggedDay: 450,
+      total: 900,
+    });
+  });
+
+  it('reports an omitted new nutrient in the same null shape the macronutrients use', async () => {
+    const summary = await createUseCase({
+      nutritionComplete: true,
+      nutritionDays: [
+        {
+          carbohydrate: { total: 40 },
+          energyKilojoules: 600,
+          entryCount: 1,
+          fat: { total: 6 },
+          fiber: { total: 8 },
+          localCalendarDate: '2026-08-01',
+          protein: { total: 20 },
+          sodium: { total: 600 },
+          sugar: { total: 12 },
+        },
+        {
+          carbohydrate: { total: 20 },
+          energyKilojoules: 400,
+          entryCount: 1,
+          fat: { total: 4 },
+          fiber: { total: 4 },
+          localCalendarDate: '2026-08-03',
+          protein: { total: 10 },
+          // One day omitted sodium, so the whole period's sodium is unknown.
+          sodium: { total: null },
+          sugar: { total: 6 },
+        },
+      ],
+    }).execute({
+      endLocalCalendarDate: '2026-08-03',
+      startLocalCalendarDate: '2026-08-01',
+    });
+
+    expect(summary.nutrition.sodium).toEqual({
+      averagePerLoggedDay: null,
+      total: null,
+    });
+    // Every other nutrient stays exact. One unknown nutrient nullifies itself
+    // and nothing beside it.
+    expect(summary.nutrition.fiber).toEqual({
+      averagePerLoggedDay: 6,
+      total: 12,
+    });
+    expect(summary.nutrition.protein).toEqual({
+      averagePerLoggedDay: 15,
+      total: 30,
     });
   });
 

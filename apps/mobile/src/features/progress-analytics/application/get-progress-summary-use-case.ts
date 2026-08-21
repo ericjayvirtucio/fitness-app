@@ -88,8 +88,11 @@ function summarizeNutrition(
     energyKilojoules,
     entryCount: sum(days.map((day) => day.entryCount)),
     fat: summarizeNutrient(days.map((day) => day.fat)),
+    fiber: summarizeNutrient(days.map((day) => day.fiber)),
     loggedDayCount,
     protein: summarizeNutrient(days.map((day) => day.protein)),
+    sodium: summarizeNutrient(days.map((day) => day.sodium)),
+    sugar: summarizeNutrient(days.map((day) => day.sugar)),
   });
 }
 

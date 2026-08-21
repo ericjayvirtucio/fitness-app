@@ -280,8 +280,11 @@ const summary: ProgressSummary = {
     energyKilojoules: 4_184,
     entryCount: 1,
     fat: { averagePerLoggedDay: 10, total: 10 },
+    fiber: { averagePerLoggedDay: 6, total: 6 },
     loggedDayCount: 1,
     protein: { averagePerLoggedDay: null, total: null },
+    sodium: { averagePerLoggedDay: 450, total: 450 },
+    sugar: { averagePerLoggedDay: 9, total: 9 },
   },
   preferredUnitSystem: 'metric',
   range: {
@@ -318,8 +321,11 @@ const emptySummary: ProgressSummary = {
     energyKilojoules: 0,
     entryCount: 0,
     fat: { averagePerLoggedDay: null, total: 0 },
+    fiber: { averagePerLoggedDay: null, total: 0 },
     loggedDayCount: 0,
     protein: { averagePerLoggedDay: null, total: 0 },
+    sodium: { averagePerLoggedDay: null, total: 0 },
+    sugar: { averagePerLoggedDay: null, total: 0 },
   },
   preferredUnitSystem: 'metric',
   range: {
