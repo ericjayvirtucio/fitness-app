@@ -123,12 +123,12 @@ renders, in order:
 | `Average energy per logged day`                                       | `1000 kcal` |
 | `Logged days`                                                         | `1`         |
 | `Entries`                                                             | `1`         |
-| `Protein`                                                             | `30.0 g`    |
-| `Average protein per logged day`                                      | `30.0 g`    |
-| `Carbohydrate`                                                        | `30.0 g`    |
-| `Average carbohydrate per logged day`                                 | `30.0 g`    |
-| `Fat`                                                                 | `10.0 g`    |
-| `Average fat per logged day`                                          | `10.0 g`    |
+| `Protein`                                                             | `30 g`      |
+| `Average protein per logged day`                                      | `30 g`      |
+| `Carbohydrate`                                                        | `30 g`      |
+| `Average carbohydrate per logged day`                                 | `30 g`      |
+| `Fat`                                                                 | `10 g`      |
+| `Average fat per logged day`                                          | `10 g`      |
 | `Incomplete means one or more entries did not include that nutrient.` | conditional |
 
 A period holding no logged nutrition day renders
@@ -340,9 +340,9 @@ unchanged across all nineteen labelled cards.
 
 Accessible names added:
 
-- `Average protein per logged day, 30.0 g`
-- `Average carbohydrate per logged day, 30.0 g`
-- `Average fat per logged day, 10.0 g`
+- `Average protein per logged day, 30 g`
+- `Average carbohydrate per logged day, 30 g`
+- `Average fat per logged day, 10 g`
 - `Other fluids, 250 mL`
 - `Average plain water per logged day, 500 mL`
 
