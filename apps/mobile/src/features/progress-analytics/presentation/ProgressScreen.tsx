@@ -256,11 +256,28 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Plain water"
             value={formatProgressVolume(value.plainWaterMilliliters)}
           />
+          {/*
+           * Every stored fluid is plain water or another fluid, so these two
+           * lines are exhaustive over the total above them and neither needs
+           * to state what it leaves out.
+           */}
+          <Metric
+            label="Other fluids"
+            value={formatProgressVolume(value.otherFluidMilliliters)}
+          />
           {value.averageFluidMillilitersPerLoggedDay === null ? null : (
             <Metric
               label="Average fluid per logged day"
               value={formatProgressVolume(
                 value.averageFluidMillilitersPerLoggedDay,
+              )}
+            />
+          )}
+          {value.averagePlainWaterMillilitersPerLoggedDay === null ? null : (
+            <Metric
+              label="Average plain water per logged day"
+              value={formatProgressVolume(
+                value.averagePlainWaterMillilitersPerLoggedDay,
               )}
             />
           )}

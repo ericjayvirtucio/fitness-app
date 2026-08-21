@@ -51,6 +51,10 @@ describe('ProgressScreen', () => {
     expect(
       screen.getByLabelText('Average fluid per logged day, 500 mL'),
     ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Other fluids, 0 mL')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Average plain water per logged day, 500 mL'),
+    ).toBeOnTheScreen();
     expect(screen.queryByLabelText(/^Average per logged day/)).toBeNull();
     expect(screen.getByLabelText('Completed workouts, 1')).toBeOnTheScreen();
     expect(

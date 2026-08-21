@@ -94,6 +94,41 @@ describe('GetProgressSummaryUseCase', () => {
     });
   });
 
+  it('separates plain water from other fluids and averages both over logged days', async () => {
+    const summary = await createUseCase({
+      hydrationDays: [
+        {
+          entryCount: 2,
+          localCalendarDate: '2026-08-01',
+          otherFluidMilliliters: 250,
+          plainWaterMilliliters: 500,
+          totalFluidMilliliters: 750,
+        },
+        {
+          entryCount: 1,
+          localCalendarDate: '2026-08-03',
+          otherFluidMilliliters: 0,
+          plainWaterMilliliters: 300,
+          totalFluidMilliliters: 300,
+        },
+      ],
+      nutritionComplete: true,
+    }).execute({
+      endLocalCalendarDate: '2026-08-03',
+      startLocalCalendarDate: '2026-08-01',
+    });
+
+    expect(summary.hydration).toEqual({
+      averageFluidMillilitersPerLoggedDay: 525,
+      averagePlainWaterMillilitersPerLoggedDay: 400,
+      entryCount: 3,
+      loggedDayCount: 2,
+      otherFluidMilliliters: 250,
+      plainWaterMilliliters: 800,
+      totalFluidMilliliters: 1_050,
+    });
+  });
+
   it('rejects invalid ranges before reading any capability', async () => {
     const useCase = createUseCase({ nutritionComplete: true });
     await expect(
