@@ -57,6 +57,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 37 --platform ios
 ./scripts/qa.sh sprint 38 --platform ios
 ./scripts/qa.sh sprint 39 --platform ios
+./scripts/qa.sh sprint 40 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -92,7 +93,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–38. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–40. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -443,16 +444,28 @@ month whenever it happens on the first. That denominator is pinned in
 `suites/sprint-38/01` proves only what a single logged day can prove: that the
 line renders and states a real number.
 
-**Progress gained five lines, and the Nutrition card grew by three.** Since
-Sprint 38 the Nutrition card renders ten metrics whenever the period holds a
-logged day, and the Hydration card seven. Nothing above the Nutrition card
-moved, so `Energy, …` is still assertable from the first viewport, but the
-completeness sentence at the bottom of that card moved three lines down and
-`suites/sprint-16/02` now scrolls to it rather than asserting it where it used
-to sit. Every Progress metric is its own accessible element announcing
-`label, value` — the summary cards deliberately carry no `accessibilityLabel` —
-so a line is asserted by its whole name and neither of its two texts can be
-asserted alone.
+**Every Progress summary card has grown, and each growth moved something.**
+Sprint 38 added five lines, Sprint 39 six more, and Sprint 40 three. The
+Nutrition card now renders sixteen metrics whenever the period holds a logged
+day, the Hydration card seven, and the Workouts card up to seven metrics and one
+sentence. Nothing above the Nutrition card moved, so `Energy, …` is still
+assertable from the first viewport, but the completeness sentence at the bottom
+of that card moved nine lines down in total and `suites/sprint-16/02` scrolls to
+it rather than asserting it where it used to sit. Every Progress metric is its
+own accessible element announcing `label, value` — the summary cards
+deliberately carry no `accessibilityLabel` — so a line is asserted by its whole
+name and neither of its two texts can be asserted alone.
+
+**The Progress Workouts card is where these three values are assertable, and
+Workout History is not.** Performed duration, performed distance, and recorded
+load volume all sit inside `Workout progress summary` on Workout History, a card
+carrying an `accessibilityLabel`, so no line inside it can be matched and only
+the composed card name is reachable. Since Sprint 40 the same three are stated
+on Progress, where the summary cards carry no label, so each is matched as
+itself — `Performed duration, 30 min 0 sec`, `Performed distance, 5 km`, and
+`160 kg-reps recorded load volume from weighted sets`. Prove one of these
+through Progress and the card name through Workout History; do not try it the
+other way round.
 
 Body-measurement flows keep the prefilled local date so a check-in is never
 recorded in the future or outside the selected Progress period. When two
@@ -583,6 +596,33 @@ scrolls to `Average sodium per logged day, 450 mg`, the line that is actually
 last before the sentence, and asserts from there. **When a section grows, re-audit
 every negative assertion beneath it, not only the positive ones — a positive
 assertion that moved off-screen fails loudly, and a negative one goes quiet.**
+
+**The Workouts card grew three lines, and only one of them has a fixed
+presence.** Sprint 40 appended a performed duration, a performed distance, and a
+recorded load volume sentence beneath `Repetitions`. Two of the three are
+conditional on what the period recorded, exactly as `Repetitions` already was,
+so the card is now four to seven metrics plus zero or one sentence and the Body
+weight card and Daily activity sit lower by that much. The load volume sentence
+is the one line whose presence does not vary with the data: it renders in one
+form or the other for every period holding a set, which is Sprint 33's
+both-directions wording arriving on a second screen.
+
+Everything was appended **below** the card's former last line, deliberately.
+Four scenarios — `suites/sprint-25/04`, `suites/sprint-26/04`,
+`regression/19`, and `regression/20` — anchor with `scrollUntilVisible` on
+`Performed exercises, N` and then assert `Actual sets`, `Completed workouts`, and
+`Repetitions` as siblings from that viewport. Appending below the anchor leaves
+every one of those offsets identical; inserting the new lines higher up the card
+would have rewritten all four. Verify that on a run rather than trusting the
+reasoning, which is what the finding below is about.
+
+`suites/sprint-24/04` was rewritten for that finding rather than merely
+re-verified. It asserted `Completed workouts, 2` absent from the viewport it
+reached by scrolling to `Repetitions, 12` — then the card's last line, now four
+lines from the bottom. The subject sits above the anchor so the assertion still
+passed, but it passed on a scroll offset rather than on the screen's contents.
+It now scrolls back to `Completed workouts, 1`, asserts it, and asserts the
+absence from there.
 
 **Removing height invalidates assertions the same way adding it does.** Sprint 30
 put twenty-five filter chips away behind one button, which moved the Exercise

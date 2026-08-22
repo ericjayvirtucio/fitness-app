@@ -1,0 +1,33 @@
+appId: com.fitnessapp.dev
+name: A period states the duration and the distance it recorded
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-distance-and-duration-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-distance-and-duration-workout.yaml
+    env:
+      DISTANCE: '5'
+      DURATION: '1800'
+- tapOn:
+    id: tab-progress
+# Every Progress metric is its own accessible element announcing "label, value",
+# so each line is asserted by its whole name and neither of its two texts can be
+# asserted alone.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Performed duration, 30 min 0 sec
+    direction: DOWN
+- assertVisible: Performed duration, 30 min 0 sec
+- assertVisible: Performed distance, 5 km
+# Wall-clock session length is a different value from the work that was
+# performed, and both are stated. This is the line the performed one exists to
+# be told apart from.
+- assertVisible: 'Workout time,.*'
+# This mode records no repetitions, so that line is absent while the two below
+# it are present — the conditional rule working in the direction the other
+# scenarios cannot show. Asserted from the viewport where it would render,
+# directly above the performed duration centred here.
+- assertNotVisible: 'Repetitions,.*'
+- assertVisible: No recorded load volume from weighted sets
