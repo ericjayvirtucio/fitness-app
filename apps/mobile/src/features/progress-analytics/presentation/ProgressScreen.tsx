@@ -395,7 +395,7 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * completed workout holding no set says nothing, because the counts
            * above already do.
            */}
-          <RecordedLoadVolume summary={value} unitSystem={unitSystem} />
+          <RecordedLoadVolume unitSystem={unitSystem} workout={value} />
         </>
       )}
     </Card>
@@ -403,22 +403,22 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
 }
 
 function RecordedLoadVolume({
-  summary,
+  workout,
   unitSystem,
 }: Readonly<{
-  summary: ProgressSummary['workout'];
   unitSystem: UnitSystem;
+  workout: ProgressSummary['workout'];
 }>) {
-  if (summary.recordedLoadVolumeGramRepetitions !== null)
+  if (workout.recordedLoadVolumeGramRepetitions !== null)
     return (
       <AppText color="secondary" variant="bodySmall">
         {formatRecordedLoadVolumeSummary(
-          summary.recordedLoadVolumeGramRepetitions,
+          workout.recordedLoadVolumeGramRepetitions,
           unitSystem,
         )}
       </AppText>
     );
-  if (summary.actualSetCount === 0) return null;
+  if (workout.actualSetCount === 0) return null;
   return (
     <AppText color="secondary" variant="bodySmall">
       {absentRecordedLoadVolumeMessage}
