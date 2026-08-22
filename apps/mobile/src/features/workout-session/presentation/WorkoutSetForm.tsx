@@ -100,11 +100,19 @@ export function WorkoutSetForm({
           value={repetitions}
         />
       ) : null}
+      {/*
+       * Both fields carry an identifier for the same reason the two above them
+       * do: `TextField` renders its label as text and puts the same string on
+       * the input's accessible name, so "Duration (seconds)" matches two
+       * elements and choosing one would be a coincidence rather than a
+       * selector.
+       */}
       {hasDuration ? (
         <TextField
           keyboardType="decimal-pad"
           label="Duration (seconds)"
           onChangeText={setDuration}
+          testID="workout-set-duration-input"
           value={duration}
         />
       ) : null}
@@ -113,6 +121,7 @@ export function WorkoutSetForm({
           keyboardType="decimal-pad"
           label={`Distance (${unitSystem === 'metric' ? 'km' : 'mi'})`}
           onChangeText={setDistance}
+          testID="workout-set-distance-input"
           value={distance}
         />
       ) : null}
