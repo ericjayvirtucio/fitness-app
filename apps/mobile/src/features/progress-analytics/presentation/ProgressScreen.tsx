@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { View } from 'react-native';
+import type { UnitSystem } from '@fitness/domain';
 import { createProgressAnalyticsUseCases } from '../../../composition/progress-analytics';
 import {
   formatLocalCalendarDate,
@@ -34,6 +35,11 @@ import {
   formatProgressVolume,
 } from './progress-formatting';
 import { formatDuration } from '../../workout-session/presentation/workout-result-formatting';
+import {
+  absentRecordedLoadVolumeMessage,
+  formatRecordedDistance,
+  formatRecordedLoadVolumeSummary,
+} from '../../workout-history/presentation/workout-history-formatting';
 
 type UseCases = Awaited<ReturnType<typeof createProgressAnalyticsUseCases>>;
 
@@ -324,6 +330,7 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
 
 function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
   const value = summary.workout;
+  const unitSystem = summary.preferredUnitSystem;
   return (
     <Card variant="outlined">
       <SectionHeader title="Workouts" />
@@ -342,16 +349,80 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             label="Performed exercises"
             value={String(value.performedExerciseCount)}
           />
+          {/*
+           * Elapsed wall-clock session length, not performed work. The line
+           * below it is the performed one, and the contrast is what tells the
+           * two apart until somebody renames this one. See
+           * Specification 0040.
+           */}
           <Metric
             label="Workout time"
             value={formatDuration(value.elapsedWorkoutSeconds)}
           />
+          {/*
+           * A dimension the period did not record is absent rather than zero:
+           * "0 km performed distance" is a false claim about a week of
+           * deadlifts. Each of these three totals covers every recorded thing
+           * of its own dimension, so none of them states a coverage.
+           */}
           {value.repetitions === null ? null : (
             <Metric label="Repetitions" value={String(value.repetitions)} />
           )}
+          {value.durationSeconds === null ? null : (
+            <Metric
+              label="Performed duration"
+              value={formatDuration(value.durationSeconds)}
+            />
+          )}
+          {value.distanceMillimeters === null ? null : (
+            <Metric
+              label="Performed distance"
+              value={formatRecordedDistance(
+                value.distanceMillimeters,
+                unitSystem,
+              )}
+            />
+          )}
+          {/*
+           * Recorded load volume is the one total here that excludes recorded
+           * work, so ADR 0023 requires its coverage to travel in the sentence
+           * carrying the number rather than in a caption beside it. Both
+           * sentences come from the functions Workout History already uses,
+           * because the same coverage worded twice is two claims.
+           *
+           * Stated in both directions whenever the period recorded a set, so
+           * this line's presence stops depending on what was recorded. A
+           * completed workout holding no set says nothing, because the counts
+           * above already do.
+           */}
+          <RecordedLoadVolume summary={value} unitSystem={unitSystem} />
         </>
       )}
     </Card>
+  );
+}
+
+function RecordedLoadVolume({
+  summary,
+  unitSystem,
+}: Readonly<{
+  summary: ProgressSummary['workout'];
+  unitSystem: UnitSystem;
+}>) {
+  if (summary.recordedLoadVolumeGramRepetitions !== null)
+    return (
+      <AppText color="secondary" variant="bodySmall">
+        {formatRecordedLoadVolumeSummary(
+          summary.recordedLoadVolumeGramRepetitions,
+          unitSystem,
+        )}
+      </AppText>
+    );
+  if (summary.actualSetCount === 0) return null;
+  return (
+    <AppText color="secondary" variant="bodySmall">
+      {absentRecordedLoadVolumeMessage}
+    </AppText>
   );
 }
 
