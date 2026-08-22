@@ -137,3 +137,33 @@ One SQL projection widened over columns that already existed. No stored value,
 entry, daily total, migration, index, query plan, or export format changed. See
 [Specification 0039](0039-progress-counts-every-nutrient-you-logged.md) and
 [ADR 0029](../docs/decisions/0029-a-captured-value-is-a-value-a-summary-can-state.md).
+
+## Amendment: the Workouts card states every result total this document promised
+
+The analytics behavior above promises that the selected period presents
+"Completed workout count, performed exercise count, actual set count, elapsed
+session time, and logging-mode-eligible result totals". There are four such
+totals — repetitions, performed duration, performed distance, and recorded load
+volume — and the Progress Workouts card presented one of them. All four were
+summed by the statement the card's use case already ran and typed on the model
+the card already read, and three were rendered only on Workout History.
+
+Somebody whose training is running, rowing, cycling, or a timed hold therefore
+opened Progress and read a session count, a set count, an exercise count, and a
+wall-clock elapsed time, none of which says how far or how long they worked.
+Somebody lifting read no volume at all on the tab named Progress.
+
+The selected period now presents **performed duration, performed distance, and
+recorded load volume** beside the counts, in the order and the words Workout
+History already uses. Each of the first two renders only when the period
+recorded that dimension, by the rule repetitions already obeyed. Recorded load
+volume is the one total here that excludes recorded work, so it carries the
+coverage sentence [Specification 0033](0033-summary-total-coverage.md) shipped,
+reused verbatim in both directions, and states its absence for every period
+holding a set.
+
+Two visible strings were added, both labels. No visible string changed. No
+stored value, session, set, record, migration, index, query, reader contract,
+model, use case, or export format changed. See
+[Specification 0040](0040-the-workouts-card-states-what-it-recorded.md) and
+[ADR 0030](../docs/decisions/0030-a-value-is-stated-by-every-screen-that-computes-it.md).
