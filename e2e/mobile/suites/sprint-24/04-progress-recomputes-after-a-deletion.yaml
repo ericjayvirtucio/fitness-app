@@ -35,14 +35,21 @@ name: Progress recomputes from the workouts that remain
     id: tab-progress
 - scrollUntilVisible:
     element:
-      text: Completed workouts, 1
-    direction: DOWN
-- scrollUntilVisible:
-    element:
       text: Actual sets, 1
     direction: DOWN
 - scrollUntilVisible:
     element:
       text: Repetitions, 12
     direction: DOWN
+# The absence is asserted from the viewport where the count itself renders,
+# paired with the positive that proves this is that viewport. Asserted from the
+# repetitions line it happened to pass, and would have kept passing had the
+# count moved off screen instead of changing — the shape Sprint 39 lost a
+# negative assertion to.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Completed workouts, 1
+    direction: UP
+- assertVisible: Completed workouts, 1
 - assertNotVisible: Completed workouts, 2
