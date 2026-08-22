@@ -13,6 +13,7 @@ import type {
   NutritionProgressDay,
   NutritionProgressReader,
 } from '../../nutrition-logging/application/nutrition-progress-reader';
+import type { WorkoutProgressSummary } from '../../workout-history/application/workout-history-models';
 import {
   GetProgressSummaryUseCase,
   type ProgressWorkoutReader,
@@ -45,6 +46,30 @@ describe('GetProgressSummaryUseCase', () => {
       sugar: { averagePerLoggedDay: 9, total: 9 },
     });
     expect(summary.hydration.averageFluidMillilitersPerLoggedDay).toBe(500);
+  });
+
+  it('passes the workout summary through field for field', async () => {
+    // A pin. The use case already spread the reader's object with no
+    // projection, so this passes against the previous commit; it exists so a
+    // future narrowing fails here rather than by silently dropping a line the
+    // Progress card now states.
+    const workoutSummary = {
+      actualSetCount: 9,
+      completedWorkoutCount: 3,
+      distanceMillimeters: 12_500_000,
+      durationSeconds: 2_700,
+      elapsedWorkoutSeconds: 8_100,
+      performedExerciseCount: 4,
+      recordedLoadVolumeGramRepetitions: 160_000,
+      repetitions: 96,
+    };
+
+    const summary = await createUseCase({
+      nutritionComplete: true,
+      workoutSummary,
+    }).execute(range);
+
+    expect(summary.workout).toEqual(workoutSummary);
   });
 
   it('does not expose partial nutrient totals or averages as exact', async () => {
@@ -279,12 +304,14 @@ function createUseCase({
   nutritionComplete,
   nutritionDays,
   preferredUnitSystem,
+  workoutSummary,
 }: {
   bodyWeight?: BodyWeightProgressSummary | null;
   hydrationDays?: readonly HydrationProgressDay[];
   nutritionComplete: boolean;
   nutritionDays?: readonly NutritionProgressDay[];
   preferredUnitSystem?: 'imperial' | 'metric';
+  workoutSummary?: WorkoutProgressSummary;
 }) {
   const nutrition: NutritionProgressReader = {
     summarizeRange: () =>
@@ -321,16 +348,18 @@ function createUseCase({
   const workout: ProgressWorkoutReader = {
     summarizeCompletedByDay: () => Promise.resolve([]),
     summarizeCompletedRange: () =>
-      Promise.resolve({
-        actualSetCount: 0,
-        completedWorkoutCount: 0,
-        distanceMillimeters: null,
-        durationSeconds: null,
-        elapsedWorkoutSeconds: 0,
-        performedExerciseCount: 0,
-        recordedLoadVolumeGramRepetitions: null,
-        repetitions: null,
-      }),
+      Promise.resolve(
+        workoutSummary ?? {
+          actualSetCount: 0,
+          completedWorkoutCount: 0,
+          distanceMillimeters: null,
+          durationSeconds: null,
+          elapsedWorkoutSeconds: 0,
+          performedExerciseCount: 0,
+          recordedLoadVolumeGramRepetitions: null,
+          repetitions: null,
+        },
+      ),
   };
   const bodyWeight: BodyWeightProgressReader = {
     summarizeRange: () => Promise.resolve(bodyWeightSummary),
