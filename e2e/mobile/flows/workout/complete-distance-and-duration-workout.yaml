@@ -1,0 +1,82 @@
+appId: com.fitnessapp.dev
+---
+# Completes one workout with a single recorded distance-and-duration set,
+# through the same public screens a person uses. It mirrors
+# `complete-added-load-workout.yaml` step for step, because the two exist to be
+# compared: a period built from this flow states a performed distance and a
+# performed duration and no load volume, and a period built from that one states
+# a load volume and neither of the other two.
+#
+# DISTANCE and DURATION are deliberately required rather than defaulted. A
+# flow's own `env` block is applied after the caller's `runFlow` env and
+# overrides it, so a default silently replaces every value a suite passes in and
+# the flow's own assertions still pass because they interpolate the default.
+#
+# DISTANCE is in the profile's display unit, kilometres on a metric profile.
+# DURATION is in seconds, which is what the field itself asks for.
+- tapOn:
+    id: tab-workout
+- tapOn: Start Empty Workout
+- assertVisible: Workout
+- tapOn: Add Exercise
+# The picker lists recently performed exercises first as soon as one completed
+# workout exists, and falls back to the whole catalog only before that. This
+# flow is composed both ways — alone in the Sprint 40 suite, and after another
+# workout in regression — and an exercise that has never been performed is
+# absent from the recents list, so it is searched for rather than scrolled to.
+- tapOn:
+    id: exercise-picker-search
+- inputText: E2E Row
+# Dismissed with the return key rather than with the short drag other flows use.
+# `keyboardDismissMode="on-drag"` fires on a scroll drag, and a picker filtered
+# down to one card has nothing left to scroll, so the drag is swallowed and the
+# keyboard stays up over the only result.
+- pressKey: Enter
+# The picker carries a filter control between its search field and its cards, so
+# the first card sits lower than an unfiltered list would suggest.
+- scrollUntilVisible:
+    element:
+      text: Add E2E Row
+    direction: DOWN
+    centerElement: true
+- tapOn: Add E2E Row
+- tapOn: Add Set for E2E Row
+# Filled bottom-up, and that is not a style choice. This mode renders duration
+# above distance, so filling top-down leaves the number pad covering the
+# distance field: the tap meant for it lands on a key instead, and the digit is
+# appended to the duration field that still has focus. Reaching the higher field
+# second means the pad is never between a tap and its target.
+#
+# Both fields are reached by identifier rather than by text, because a
+# TextField's visible label and its input's accessible name are the same string.
+- tapOn:
+    id: workout-set-distance-input
+- inputText: ${DISTANCE}
+- tapOn:
+    id: workout-set-duration-input
+- inputText: ${DURATION}
+# The number pad covers the save control, and scrolling with it open drags
+# across the keys and appends digits to the field. `hideKeyboard` cannot help:
+# the iOS number pad exposes no dismiss action. A short drag in the content area
+# does, because the screen sets keyboardDismissMode="on-drag".
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- tapOn: Save Set
+# The active session states the same two dimensions the period summary will, so
+# a scenario that also opens Progress proves the wording twice without a second
+# recording.
+- assertVisible: 'Set 1: ${DISTANCE} km in .*'
+# The active workout carries a naming control under its heading, so every
+# control below it sits one row lower than it did. Scroll to the finish control
+# rather than tapping where it used to be; this is a no-op when it is already
+# visible.
+- scrollUntilVisible:
+    element:
+      text: Finish Workout
+    direction: DOWN
+    centerElement: true
+- tapOn: Finish Workout
+- tapOn:
+    text: Finish Workout
+    index: 0
