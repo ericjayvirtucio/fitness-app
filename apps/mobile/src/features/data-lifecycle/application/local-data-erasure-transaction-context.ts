@@ -11,6 +11,8 @@ import type { StoredDataProbe } from '../../../application/persistence/stored-da
  * issues no SQL of its own.
  */
 export type LocalDataErasureTransactionContext = Readonly<{
+  /** Clears every queued local-change record; see `clearOutbox`. */
+  clearOutbox: () => Promise<void>;
   /** Ordered so that referencing rows are removed before what they reference. */
   erasers: readonly StoredDataEraser[];
   /** One per capability, so "empty" cannot quietly mean "no profile". */

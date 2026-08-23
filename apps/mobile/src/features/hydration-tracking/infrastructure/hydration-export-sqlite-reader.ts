@@ -35,7 +35,8 @@ export class HydrationExportSqliteReader implements HydrationExportReader {
       const rows = await this.database.getAll<HydrationEntryRow>(
         `SELECT ${hydrationEntryColumns}
          FROM hydration_entry
-         ${keyset.sql === '' ? '' : `WHERE ${keyset.sql}`}
+         WHERE deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY local_calendar_date ASC, occurred_at_epoch_ms ASC, id ASC
          LIMIT ?`,
         [...keyset.parameters, query.limit + 1],

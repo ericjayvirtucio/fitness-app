@@ -101,3 +101,9 @@ and the calculated daily calorie target reached no screen reader at all. See
   energy expenditure.
 - Pregnancy, breastfeeding, medical conditions, older-adult equations, target
   weight, and historical correctness are not modeled.
+
+`goal_configuration` carries the synchronization-readiness metadata described
+in [Schema synchronization readiness](schema-synchronization-readiness.md).
+There is no person-initiated delete path for it, so its deletion tombstone is
+currently unreachable; it exists for schema uniformity. No synchronization
+exists yet.

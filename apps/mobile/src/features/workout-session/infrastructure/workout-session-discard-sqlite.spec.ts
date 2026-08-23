@@ -103,7 +103,11 @@ describe('Discarding an active workout on a real database', () => {
       new SqliteTransactionRunner<WorkoutSessionTransactionContext>(
         failing,
         (transaction) => ({
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            'device-a',
+            () => new Date(),
+          ),
         }),
       ),
     );
@@ -145,6 +149,8 @@ describe('Discarding an active workout on a real database', () => {
     );
     const active = await new WorkoutSessionSqliteRepository(
       database,
+      'device-a',
+      () => new Date(),
     ).getActive();
     const completed = await database.getFirst<{ id: string }>(
       `SELECT id FROM workout_session WHERE status = 'completed'`,
@@ -175,7 +181,11 @@ describe('Discarding an active workout on a real database', () => {
     );
     expect(sets?.count).toBe(2);
     await expect(
-      new WorkoutSessionSqliteRepository(database).getActive(),
+      new WorkoutSessionSqliteRepository(
+        database,
+        'device-a',
+        () => new Date(),
+      ).getActive(),
     ).resolves.toBeNull();
   });
 
@@ -186,7 +196,11 @@ describe('Discarding an active workout on a real database', () => {
   ])('restores the whole workout when %s fails', async (_label, statement) => {
     const before = await snapshot(database);
     const original = performedWork(
-      await new WorkoutSessionSqliteRepository(database).getActive(),
+      await new WorkoutSessionSqliteRepository(
+        database,
+        'device-a',
+        () => new Date(),
+      ).getActive(),
     );
     failing.failOnStatement = statement;
 
@@ -196,7 +210,11 @@ describe('Discarding an active workout on a real database', () => {
     expect(await snapshot(database)).toEqual(before);
     expect(
       performedWork(
-        await new WorkoutSessionSqliteRepository(database).getActive(),
+        await new WorkoutSessionSqliteRepository(
+          database,
+          'device-a',
+          () => new Date(),
+        ).getActive(),
       ),
     ).toEqual(original);
   });

@@ -59,6 +59,7 @@ export class EraseLocalDataUseCase {
         for (const eraser of context.erasers) {
           await eraser.eraseStoredRecords();
         }
+        await context.clearOutbox();
 
         if (await holdsStoredData(context.probes)) {
           hasFailedVerification = true;

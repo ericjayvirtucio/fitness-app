@@ -300,3 +300,9 @@ the documentation.
   synthetic export.
 - An export is a copy the user controls, not an automatic backup, and nothing
   here recovers data from a cloud service.
+- Since migration 12, every written row gets fresh synchronization metadata —
+  revision 1, no tombstone, this device as origin — and a queued outbox entry;
+  none of it is read from the file. See
+  [Schema synchronization readiness](schema-synchronization-readiness.md).
+  The empty-installation probe stays unfiltered by tombstones, so it is
+  unaffected by this migration.

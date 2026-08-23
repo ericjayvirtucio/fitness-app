@@ -12,6 +12,9 @@ import {
 } from '../application/workout-session-use-cases';
 import { WorkoutSessionSqliteRepository } from './workout-session-sqlite-repository';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 type SessionRow = {
   completed_at_epoch_ms: number | null;
   display_name: string;
@@ -83,9 +86,12 @@ class CompletionPathDatabase implements DatabaseConnection {
       );
     }
     if (statement.includes('UPDATE workout_session SET status')) {
+      // Parameters are [status, completedAtEpochMs, updatedAtEpochMs, id,
+      // expectedStatus] — the synchronization metadata columns add
+      // `updatedAtEpochMs` ahead of the lifecycle guard's own bound values.
       const row = this.sessions.find(
         (candidate) =>
-          candidate.id === parameters[2] && candidate.status === parameters[3],
+          candidate.id === parameters[3] && candidate.status === parameters[4],
       );
       if (row) {
         row.status = requiredString(parameters[0]);
@@ -125,7 +131,11 @@ class CompletionPathDatabase implements DatabaseConnection {
 describe('Workout session completion through SQLite transaction repositories', () => {
   it('completes a reloaded session without rewriting historical children', async () => {
     const database = new CompletionPathDatabase();
-    const beforeRestart = new WorkoutSessionSqliteRepository(database);
+    const beforeRestart = new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     const reloaded = await beforeRestart.getActive();
     expect(reloaded).toMatchObject({
       exercises: [
@@ -149,7 +159,11 @@ describe('Workout session completion through SQLite transaction repositories', (
       value: { status: 'completed' },
     });
 
-    const afterRestart = new WorkoutSessionSqliteRepository(database);
+    const afterRestart = new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await expect(afterRestart.getActive()).resolves.toBeNull();
     await expect(afterRestart.getById(reloaded!.id)).resolves.toMatchObject({
       completedAtEpochMilliseconds: completedAt,
@@ -184,7 +198,7 @@ describe('Workout session completion through SQLite transaction repositories', (
       isSuccess: false,
     });
     await expect(
-      new WorkoutSessionSqliteRepository(database).getActive(),
+      new WorkoutSessionSqliteRepository(database, deviceId, now).getActive(),
     ).resolves.toMatchObject({ status: 'active' });
     expect(database.childRewriteCount).toBe(0);
   });
@@ -194,9 +208,9 @@ function transactionRunner(database: DatabaseConnection) {
   return new SqliteTransactionRunner<WorkoutSessionContext>(
     database,
     (transaction) => ({
-      catalog: new ExerciseCatalogSqliteRepository(transaction),
-      planner: new WorkoutPlannerSqliteRepository(transaction),
-      sessions: new WorkoutSessionSqliteRepository(transaction),
+      catalog: new ExerciseCatalogSqliteRepository(transaction, deviceId, now),
+      planner: new WorkoutPlannerSqliteRepository(transaction, deviceId, now),
+      sessions: new WorkoutSessionSqliteRepository(transaction, deviceId, now),
     }),
   );
 }

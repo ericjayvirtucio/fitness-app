@@ -12,18 +12,20 @@ import {
 import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infrastructure/workout-planner-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
 import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createWorkoutPlannerUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const planner = new WorkoutPlannerSqliteRepository(database);
-  const catalog = new ExerciseCatalogSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const planner = new WorkoutPlannerSqliteRepository(database, deviceId, now);
+  const catalog = new ExerciseCatalogSqliteRepository(database, deviceId, now);
   const transactionRunner = new SqliteTransactionRunner(
     database,
     (transaction) => ({
-      catalog: new ExerciseCatalogSqliteRepository(transaction),
-      planner: new WorkoutPlannerSqliteRepository(transaction),
+      catalog: new ExerciseCatalogSqliteRepository(transaction, deviceId, now),
+      planner: new WorkoutPlannerSqliteRepository(transaction, deviceId, now),
     }),
   );
   return Object.freeze({
@@ -34,7 +36,7 @@ export async function createWorkoutPlannerUseCases() {
     ),
     get: new GetPlannedWorkoutUseCase(planner),
     getProfile: new GetProfileUseCase(
-      new PersonalProfileSqliteRepository(database),
+      new PersonalProfileSqliteRepository(database, deviceId, now),
     ),
     getWeekly: new GetWeeklyPlanUseCase(planner),
     save: new SavePlannedWorkoutUseCase(transactionRunner),

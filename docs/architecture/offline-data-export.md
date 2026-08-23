@@ -334,3 +334,8 @@ never treats a presentation-formatted Progress summary as export data.
 - Selecting capabilities or a date range is not supported; an export is always
   complete.
 - Writes are blocked for the duration of the export transaction.
+- Since migration 12, a tombstoned record — one a person deleted — is excluded
+  from export exactly as a hard-deleted one always was, and the synchronization
+  metadata described in
+  [Schema synchronization readiness](schema-synchronization-readiness.md) is
+  never read into the file; the contract and `formatVersion` are unchanged.

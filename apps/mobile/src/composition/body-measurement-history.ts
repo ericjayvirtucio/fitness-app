@@ -11,12 +11,18 @@ import { BodyWeightEntrySqliteRepository } from '../features/body-measurement-hi
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createBodyMeasurementHistoryUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const entryRepository = new BodyWeightEntrySqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const entryRepository = new BodyWeightEntrySqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
   // A check-in that also updates the profile weight composes both capability
   // repositories from the same transaction.
   const transactionRunner =
@@ -25,9 +31,13 @@ export async function createBodyMeasurementHistoryUseCases() {
       (transaction) => ({
         bodyWeightEntryRepository: new BodyWeightEntrySqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
         personalProfileRepository: new PersonalProfileSqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
       }),
     );
@@ -41,7 +51,7 @@ export async function createBodyMeasurementHistoryUseCases() {
     deleteEntry: new DeleteBodyWeightEntryUseCase(entryRepository),
     getEntry: new GetBodyWeightEntryUseCase(entryRepository),
     getProfile: new GetProfileUseCase(
-      new PersonalProfileSqliteRepository(database),
+      new PersonalProfileSqliteRepository(database, deviceId, now),
     ),
     listHistory: new ListBodyWeightHistoryUseCase(entryRepository),
     updateEntry: new UpdateBodyWeightEntryUseCase(entryRepository, () =>

@@ -181,3 +181,8 @@ container labels for the same reason.
 - A check-in recorded in the first minute of a local day cannot be preceded by
   the `00:01` synthetic time the Maestro flows use; the suite assumes it is not
   run in that minute.
+
+`body_weight_entry` carries the synchronization-readiness metadata described
+in [Schema synchronization readiness](schema-synchronization-readiness.md).
+Deleting a check-in tombstones the row rather than removing it; every read
+here already excludes a tombstoned row. No synchronization exists yet.

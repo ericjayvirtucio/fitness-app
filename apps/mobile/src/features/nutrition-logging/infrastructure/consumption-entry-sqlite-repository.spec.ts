@@ -5,6 +5,9 @@ import type {
 import { buildConsumptionEntry } from '../application/build-consumption-entry';
 import { ConsumptionEntrySqliteRepository } from './consumption-entry-sqlite-repository';
 
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-02T00:00:00.000Z');
+
 class FakeDatabase implements DatabaseConnection {
   rows: readonly unknown[] = [];
   firstRow: unknown = null;
@@ -58,6 +61,8 @@ describe('ConsumptionEntrySqliteRepository', () => {
     database.rows = [storedRow];
     const entries = await new ConsumptionEntrySqliteRepository(
       database,
+      deviceId,
+      now,
     ).listByLocalDate('2026-08-02');
     expect(entries[0]?.facts.nutrients.fiberGrams).toBeNull();
     expect(entries[0]?.facts.nutrients.sodiumMilligrams).toBe(0);
@@ -67,9 +72,11 @@ describe('ConsumptionEntrySqliteRepository', () => {
     const database = new FakeDatabase();
     database.rows = [{ ...storedRow, reference_kind: 'serving' }];
     await expect(
-      new ConsumptionEntrySqliteRepository(database).listByLocalDate(
-        '2026-08-02',
-      ),
+      new ConsumptionEntrySqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).listByLocalDate('2026-08-02'),
     ).rejects.toMatchObject({ code: 'operation-failed' });
   });
 
@@ -97,7 +104,9 @@ describe('ConsumptionEntrySqliteRepository', () => {
       storedRow.occurred_at_epoch_ms,
     );
     if (!entry.isSuccess) throw new Error('Invalid fixture.');
-    await new ConsumptionEntrySqliteRepository(database).insert(entry.value);
+    await new ConsumptionEntrySqliteRepository(database, deviceId, now).insert(
+      entry.value,
+    );
     expect(database.runs[0]?.statement).toContain(
       'INSERT INTO nutrition_consumption_entry',
     );
@@ -119,6 +128,8 @@ describe('ConsumptionEntrySqliteRepository', () => {
       storedRow.occurred_at_epoch_ms,
       '2026-08-02',
       480,
+      now().getTime(),
+      deviceId,
     ]);
   });
 });

@@ -14,17 +14,31 @@ import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infr
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 
 export async function createWorkoutSessionUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const sessions = new WorkoutSessionSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const nowDate = () => new Date();
+  const sessions = new WorkoutSessionSqliteRepository(
+    database,
+    deviceId,
+    nowDate,
+  );
   const runner = new SqliteTransactionRunner(database, (transaction) => ({
-    catalog: new ExerciseCatalogSqliteRepository(transaction),
-    planner: new WorkoutPlannerSqliteRepository(transaction),
-    sessions: new WorkoutSessionSqliteRepository(transaction),
+    catalog: new ExerciseCatalogSqliteRepository(
+      transaction,
+      deviceId,
+      nowDate,
+    ),
+    planner: new WorkoutPlannerSqliteRepository(transaction, deviceId, nowDate),
+    sessions: new WorkoutSessionSqliteRepository(
+      transaction,
+      deviceId,
+      nowDate,
+    ),
   }));
   // Discarding needs the session repository and nothing else, so it gets its
   // own exclusive transaction rather than one carrying a Catalog and a Planner
@@ -33,20 +47,24 @@ export async function createWorkoutSessionUseCases() {
     new SqliteTransactionRunner<WorkoutSessionTransactionContext>(
       database,
       (transaction) => ({
-        sessions: new WorkoutSessionSqliteRepository(transaction),
+        sessions: new WorkoutSessionSqliteRepository(
+          transaction,
+          deviceId,
+          nowDate,
+        ),
       }),
     );
   const now = () => Date.now();
   return Object.freeze({
     browseExercises: new BrowseExercisesUseCase(
-      new ExerciseCatalogSqliteRepository(database),
+      new ExerciseCatalogSqliteRepository(database, deviceId, nowDate),
       new WorkoutHistorySqliteRepository(database),
     ),
     discard: new DiscardWorkoutSessionUseCase(discardRunner),
     finish: new FinishWorkoutSessionUseCase(runner, now),
     getActive: new GetActiveWorkoutSessionUseCase(sessions),
     getProfile: new GetProfileUseCase(
-      new PersonalProfileSqliteRepository(database),
+      new PersonalProfileSqliteRepository(database, deviceId, nowDate),
     ),
     mutations: new WorkoutSessionMutationUseCases(runner, randomUUID),
     start: new StartWorkoutSessionUseCase(runner, randomUUID, now),

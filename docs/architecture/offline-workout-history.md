@@ -159,3 +159,10 @@ All data remains in the operating-system application sandbox. There is no networ
 telemetry, account, permission, external service, AI, cache, background worker, or
 new dependency. Encryption, export, backup, retention, and synchronization remain
 future reviewed capabilities.
+
+This capability owns no table of its own; it reads `workout_session` and its
+children. Every history, summary, and personal-record query now excludes a
+tombstoned session, per
+[Schema synchronization readiness](schema-synchronization-readiness.md) — a
+deleted completed workout disappears from history exactly as it always did,
+even though the row itself now survives as a tombstone.

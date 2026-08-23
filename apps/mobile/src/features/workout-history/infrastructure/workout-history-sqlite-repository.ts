@@ -74,7 +74,13 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
   private readonly sessions: WorkoutSessionSqliteRepository;
 
   constructor(private readonly database: DatabaseConnection) {
-    this.sessions = new WorkoutSessionSqliteRepository(database);
+    // Read-only: this composition never writes through `sessions`, so the
+    // device id and clock it would need for a write are never touched.
+    this.sessions = new WorkoutSessionSqliteRepository(
+      database,
+      'unused-read-only-device-id',
+      () => new Date(),
+    );
   }
 
   async getCompletedById(id: DomainId) {
@@ -138,7 +144,8 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
               ON exercise.id = actual.workout_session_exercise_id
             WHERE exercise.workout_session_id = session.id) AS actual_set_count
         FROM workout_session session
-        WHERE session.status = ? ${rangeClause} ${cursorClause}
+        WHERE session.status = ? AND session.deleted_at_epoch_ms IS NULL
+          ${rangeClause} ${cursorClause}
         ORDER BY session.started_local_calendar_date DESC,
           session.started_at_epoch_ms DESC, session.id DESC
         LIMIT ?`,
@@ -164,6 +171,7 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
           SELECT id, started_at_epoch_ms, completed_at_epoch_ms
           FROM workout_session
           WHERE status = 'completed'
+            AND deleted_at_epoch_ms IS NULL
             AND started_local_calendar_date BETWEEN ? AND ?
         ), performed_exercises AS (
           SELECT COUNT(*) AS count
@@ -238,6 +246,7 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
         LEFT JOIN workout_set actual
           ON actual.workout_session_exercise_id = exercise.id
         WHERE session.status = 'completed'
+          AND session.deleted_at_epoch_ms IS NULL
           AND session.started_local_calendar_date BETWEEN ? AND ?
         GROUP BY session.started_local_calendar_date
         ORDER BY session.started_local_calendar_date ASC`,
@@ -309,7 +318,8 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
         JOIN workout_set actual
           ON actual.workout_session_exercise_id = exercise.id
         WHERE exercise.source_exercise_definition_id = ?
-          AND session.status = ? ${cursorClause}
+          AND session.status = ? AND session.deleted_at_epoch_ms IS NULL
+          ${cursorClause}
         GROUP BY exercise.id
         ORDER BY session.started_local_calendar_date DESC,
           session.started_at_epoch_ms DESC, exercise.id DESC
@@ -351,6 +361,7 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
           JOIN workout_session session
             ON session.id = exercise.workout_session_id
           WHERE session.status = 'completed'
+            AND session.deleted_at_epoch_ms IS NULL
             AND EXISTS (
               SELECT 1 FROM workout_set actual
               WHERE actual.workout_session_exercise_id = exercise.id
@@ -376,6 +387,7 @@ export class WorkoutHistorySqliteRepository implements WorkoutHistoryRepository 
         JOIN workout_set actual
           ON actual.workout_session_exercise_id = exercise.id
         WHERE session.status = 'completed'
+          AND session.deleted_at_epoch_ms IS NULL
         GROUP BY exercise.source_exercise_definition_id
         ORDER BY MAX(session.started_at_epoch_ms) DESC,
           exercise.source_exercise_definition_id ASC

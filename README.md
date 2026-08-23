@@ -167,23 +167,30 @@ file cleanup, and the honest limits of what deletion guarantees are documented i
 Validation before destruction, the atomic replacement transaction, the recovery
 copy and its retention, verification, and the rollback guarantee are documented in
 [docs/architecture/safe-replacement-restore.md](docs/architecture/safe-replacement-restore.md).
+What migration 12 adds to every table a person owns, deletion versus
+discard, the local-change outbox, device identity, and why they are invisible
+to export, restore, and replacement are documented in
+[docs/architecture/schema-synchronization-readiness.md](docs/architecture/schema-synchronization-readiness.md).
 
 ## Current status
 
-Sprint 21: Safe Replacement Restore. Data controls now offers a fourth
-operation: replacing everything stored on the device with a validated export.
-The incoming file is read, parsed, domain-checked, and referentially validated
-before any destructive control exists at all, so nothing is ever erased to
-discover whether the replacement file is usable. A copy of the current
-information is prominently offered and can be declined with its own separate
-acknowledgement; it is created before the replacement begins, so it can contain
-nothing incoming, and it deliberately survives the replacement because the app
-cannot tell whether a share sheet saved it anywhere. The database change is one
-exclusive transaction that erases every capability children first, proves the
-result is empty, writes the validated dataset through the same repositories
-empty-installation restore uses, and verifies every capability before it
-commits. Any failure before that commit rolls back to the previous dataset,
-which is asserted against a real SQLite engine rather than a fake. Export,
-restore into an empty installation, and deletion remain separately available and
-unchanged. Merge import, synchronization, cloud backup, selective or scheduled
-replacement, and database-file swapping remain out of scope.
+Sprint 42: Schema Synchronization Readiness. Every table a person owns —
+profile, goals, nutrition entries and catalog, hydration entries and target,
+the exercise catalog, planned workouts, completed and active workout
+sessions, and body-weight history — now carries an update time, a deletion
+tombstone, a revision, and the device that created the row. A durable
+`sync_outbox` records local changes not yet sent anywhere, upserted one row
+per changed record rather than one per edit, and a random per-installation
+device identifier is generated once and never exported. No synchronization is
+built and nothing leaves the device: the export file format is unchanged and
+carries none of the new metadata, restore and replacement write fresh
+metadata through the same repositories they already used, and erase-all
+clears the outbox while leaving device identity untouched. A person's
+deletion becomes a tombstone only where a future device would need to learn
+about it; abandoning a workout that was never completed remains an
+unconditional hard delete, exactly as before. Every read that lists,
+searches, or matches against a person's records now excludes a tombstoned
+one, and the indexes those reads depend on stay index-covered as partial
+indexes over live rows. Authentication, an API endpoint, conflict
+resolution, background sync, and account services remain entirely out of
+scope.

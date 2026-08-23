@@ -6,6 +6,9 @@ import type {
 import { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import { ExerciseCatalogSqliteRepository } from './exercise-catalog-sqlite-repository';
 
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-02T00:00:00.000Z');
+
 class FakeDatabase implements DatabaseConnection {
   row: unknown = null;
   rows: readonly unknown[] = [];
@@ -76,7 +79,11 @@ describe('ExerciseCatalogSqliteRepository', () => {
     const database = new FakeDatabase();
     database.row = row;
     database.rows = [row];
-    const repository = new ExerciseCatalogSqliteRepository(database);
+    const repository = new ExerciseCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await expect(
       repository.getById(item().definition.id),
     ).resolves.toMatchObject({ definition: { name: 'Bench Press' } });
@@ -99,21 +106,37 @@ describe('ExerciseCatalogSqliteRepository', () => {
       'external-load-and-repetitions',
       null,
       0,
+      now().getTime(),
+      deviceId,
     ]);
-    expect(database.runs.some((run) => run.statement.includes('DELETE'))).toBe(
-      true,
-    );
+    expect(
+      database.runs.some((run) => run.statement.startsWith('DELETE FROM')),
+    ).toBe(false);
+    expect(
+      database.runs.some(
+        (run) =>
+          run.statement.includes('UPDATE exercise_catalog_item') &&
+          run.statement.includes('deleted_at_epoch_ms = ?'),
+      ),
+    ).toBe(true);
   });
 
   it('escapes wildcard search and uses deterministic ordering', async () => {
     const database = new FakeDatabase();
-    await new ExerciseCatalogSqliteRepository(database).search('100%_\\', 50);
+    await new ExerciseCatalogSqliteRepository(database, deviceId, now).search(
+      '100%_\\',
+      50,
+    );
     expect(database.rows).toEqual([]);
   });
 
   it('issues the statements it always has when nothing is narrowed', async () => {
     const database = new FakeDatabase();
-    const repository = new ExerciseCatalogSqliteRepository(database);
+    const repository = new ExerciseCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await repository.listAll(100);
     await repository.search('bench', 50);
 
@@ -131,7 +154,11 @@ describe('ExerciseCatalogSqliteRepository', () => {
 
   it('binds every narrowed value and interpolates none of them', async () => {
     const database = new FakeDatabase();
-    const repository = new ExerciseCatalogSqliteRepository(database);
+    const repository = new ExerciseCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await repository.listAll(100, {
       equipment: 'dumbbell',
       primaryMuscleGroup: 'chest',
@@ -160,10 +187,13 @@ describe('ExerciseCatalogSqliteRepository', () => {
   it('narrows in one query rather than reading and filtering afterwards', async () => {
     const database = new FakeDatabase();
     database.rows = [row];
-    await new ExerciseCatalogSqliteRepository(database).listAll(100, {
-      equipment: 'barbell',
-      primaryMuscleGroup: 'chest',
-    });
+    await new ExerciseCatalogSqliteRepository(database, deviceId, now).listAll(
+      100,
+      {
+        equipment: 'barbell',
+        primaryMuscleGroup: 'chest',
+      },
+    );
     expect(database.reads).toHaveLength(1);
     expect(database.runs).toEqual([]);
   });
@@ -177,7 +207,7 @@ describe('ExerciseCatalogSqliteRepository', () => {
     const database = new FakeDatabase();
     database.row = invalidRow;
     await expect(
-      new ExerciseCatalogSqliteRepository(database).getById(
+      new ExerciseCatalogSqliteRepository(database, deviceId, now).getById(
         item().definition.id,
       ),
     ).rejects.toMatchObject({ code: 'operation-failed' });
@@ -187,7 +217,9 @@ describe('ExerciseCatalogSqliteRepository', () => {
     const database = new FakeDatabase();
     database.error = new Error('sensitive exercise name and SQL');
     await expect(
-      new ExerciseCatalogSqliteRepository(database).insert(item()),
+      new ExerciseCatalogSqliteRepository(database, deviceId, now).insert(
+        item(),
+      ),
     ).rejects.toMatchObject({
       code: 'operation-failed',
       message: 'The local storage operation failed.',

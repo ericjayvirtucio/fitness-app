@@ -15,12 +15,17 @@ class FakeDatabase implements DatabaseConnection {
   row: unknown = null;
   rows: readonly unknown[] = [];
   error: Error | undefined;
+  revisionAfterWrite = 1;
   readonly runs: { parameters: DatabaseParameters; statement: string }[] = [];
+  readonly getFirstStatements: string[] = [];
   exec(): Promise<void> {
     return Promise.resolve();
   }
-  getFirst<TResult>(): Promise<TResult | null> {
+  getFirst<TResult>(statement: string): Promise<TResult | null> {
     if (this.error) return Promise.reject(this.error);
+    this.getFirstStatements.push(statement);
+    if (statement.includes('SELECT revision'))
+      return Promise.resolve({ revision: this.revisionAfterWrite } as TResult);
     return Promise.resolve(this.row as TResult | null);
   }
   getAll<TResult>(): Promise<readonly TResult[]> {
@@ -41,6 +46,9 @@ class FakeDatabase implements DatabaseConnection {
     return operation(this);
   }
 }
+
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-04T00:00:00.000Z');
 
 const row = {
   description: null,
@@ -74,7 +82,11 @@ describe('Hydration SQLite repositories', () => {
     const database = new FakeDatabase();
     database.row = row;
     database.rows = [row];
-    const repository = new HydrationEntrySqliteRepository(database);
+    const repository = new HydrationEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await expect(repository.getById(entry().id)).resolves.toMatchObject({
       fluidType: 'plain-water',
     });
@@ -92,16 +104,43 @@ describe('Hydration SQLite repositories', () => {
       row.occurred_at_epoch_ms,
       '2026-08-04',
       480,
+      now().getTime(),
+      deviceId,
     ]);
-    expect(database.runs.some((run) => run.statement.includes('DELETE'))).toBe(
-      true,
+    expect(
+      database.runs.some((run) =>
+        run.statement.includes('deleted_at_epoch_ms = ?'),
+      ),
+    ).toBe(true);
+    expect(
+      database.runs.some((run) => run.statement.startsWith('DELETE FROM')),
+    ).toBe(false);
+  });
+
+  it('excludes tombstoned entries from reads', async () => {
+    const database = new FakeDatabase();
+    const repository = new HydrationEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
     );
+    await repository.getById(entry().id);
+    await repository.listByLocalDate('2026-08-04');
+    expect(
+      database.getFirstStatements.every((s) =>
+        s.includes('deleted_at_epoch_ms IS NULL'),
+      ),
+    ).toBe(true);
   });
 
   it('rejects corrupt rows and translates driver errors safely', async () => {
     const database = new FakeDatabase();
     database.row = { ...row, volume_milliliters: -1 };
-    const repository = new HydrationEntrySqliteRepository(database);
+    const repository = new HydrationEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await expect(repository.getById(entry().id)).rejects.toMatchObject({
       code: 'operation-failed',
     });
@@ -114,7 +153,11 @@ describe('Hydration SQLite repositories', () => {
 
   it('reads and upserts the singleton target', async () => {
     const database = new FakeDatabase();
-    const repository = new HydrationTargetSqliteRepository(database);
+    const repository = new HydrationTargetSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await expect(repository.get()).resolves.toBeNull();
     database.row = { target_milliliters: 3_000 };
     await expect(repository.get()).resolves.toMatchObject({
@@ -125,7 +168,12 @@ describe('Hydration SQLite repositories', () => {
     const target = HydrationTarget.create(volume.value);
     if (!target.isSuccess) throw new Error('Invalid fixture');
     await repository.save(target.value);
-    expect(database.runs[0]?.parameters).toEqual([1, 3_000]);
+    expect(database.runs[0]?.parameters).toEqual([
+      1,
+      3_000,
+      now().getTime(),
+      deviceId,
+    ]);
     expect(database.runs[0]?.statement).toContain('ON CONFLICT');
   });
 
@@ -133,7 +181,7 @@ describe('Hydration SQLite repositories', () => {
     const database = new FakeDatabase();
     database.row = { target_milliliters: 0 };
     await expect(
-      new HydrationTargetSqliteRepository(database).get(),
+      new HydrationTargetSqliteRepository(database, deviceId, now).get(),
     ).rejects.toMatchObject({ code: 'operation-failed' });
   });
 });

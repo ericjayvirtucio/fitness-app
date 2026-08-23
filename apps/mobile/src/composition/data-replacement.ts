@@ -29,9 +29,10 @@ import { WorkoutSessionSqliteRepository } from '../features/workout-session/infr
 import { WorkoutSessionStoredDataProbe } from '../features/workout-session/infrastructure/workout-session-stored-data-probe';
 import { SqliteStorageCompactor } from '../infrastructure/persistence/sqlite-storage-compactor';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
+import { clearOutbox } from '../infrastructure/persistence/sync-outbox';
 import { createDataExportUseCases } from './data-export';
 import { createDataRestoreUseCases } from './data-restore';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 /**
  * Replacement is the existing export, restore, and erasure mechanisms under one
@@ -46,11 +47,13 @@ import { getDatabase, initializePersistence } from './persistence';
  */
 export async function createDataReplacementUseCases() {
   await initializePersistence();
-  const [database, exports, restores] = await Promise.all([
+  const [database, deviceId, exports, restores] = await Promise.all([
     getDatabase(),
+    getDeviceId(),
     createDataExportUseCases(),
     createDataRestoreUseCases(),
   ]);
+  const now = () => new Date();
 
   const transactionRunner =
     new SqliteTransactionRunner<LocalDataReplacementTransactionContext>(
@@ -68,6 +71,7 @@ export async function createDataReplacementUseCases() {
         };
 
         return {
+          clearOutbox: () => clearOutbox(transaction),
           // Ordered so a referencing row is always gone before what it
           // references: sets before session exercises before sessions, planned
           // exercises before both their workout and the catalog definition they
@@ -84,14 +88,42 @@ export async function createDataReplacementUseCases() {
           ],
           presence: probes,
           target: {
-            bodyWeight: new BodyWeightEntrySqliteRepository(transaction),
-            exerciseCatalog: new ExerciseCatalogSqliteRepository(transaction),
-            goals: new GoalSqliteRepository(transaction),
-            hydrationEntries: new HydrationEntrySqliteRepository(transaction),
-            hydrationTarget: new HydrationTargetSqliteRepository(transaction),
-            nutritionCatalog: new NutritionCatalogSqliteRepository(transaction),
-            nutritionEntries: new ConsumptionEntrySqliteRepository(transaction),
-            planner: new WorkoutPlannerSqliteRepository(transaction),
+            bodyWeight: new BodyWeightEntrySqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            exerciseCatalog: new ExerciseCatalogSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            goals: new GoalSqliteRepository(transaction, deviceId, now),
+            hydrationEntries: new HydrationEntrySqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            hydrationTarget: new HydrationTargetSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            nutritionCatalog: new NutritionCatalogSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            nutritionEntries: new ConsumptionEntrySqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            planner: new WorkoutPlannerSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
             probes: [
               probes.personalProfile,
               probes.goal,
@@ -102,8 +134,16 @@ export async function createDataReplacementUseCases() {
               probes.workoutSession,
               probes.bodyWeight,
             ],
-            profile: new PersonalProfileSqliteRepository(transaction),
-            sessions: new WorkoutSessionSqliteRepository(transaction),
+            profile: new PersonalProfileSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
+            sessions: new WorkoutSessionSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
           },
         };
       },

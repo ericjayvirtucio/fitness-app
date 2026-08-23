@@ -4,18 +4,20 @@ import { HydrationProgressSqliteReader } from '../features/hydration-tracking/in
 import { NutritionProgressSqliteReader } from '../features/nutrition-logging/infrastructure/nutrition-progress-sqlite-reader';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createProgressAnalyticsUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
   return Object.freeze({
     getSummary: new GetProgressSummaryUseCase(
       new NutritionProgressSqliteReader(database),
       new HydrationProgressSqliteReader(database),
       new WorkoutHistorySqliteRepository(database),
       new BodyWeightProgressSqliteReader(database),
-      new PersonalProfileSqliteRepository(database),
+      new PersonalProfileSqliteRepository(database, deviceId, now),
     ),
   });
 }

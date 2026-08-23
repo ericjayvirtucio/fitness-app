@@ -251,3 +251,7 @@ trigger, or view is added or removed, and no dependency changed.
   exported and saved elsewhere is outside the application's reach by design.
 - Erasure cannot be undone in the application. That is the intent, and it is why
   exporting is offered first.
+- Since migration 12, erasure also clears `sync_outbox` as an infrastructure
+  step alongside the eight capability erasers, so no queued entry outlives the
+  rows it referenced; `device_identity` is untouched. See
+  [Schema synchronization readiness](schema-synchronization-readiness.md).

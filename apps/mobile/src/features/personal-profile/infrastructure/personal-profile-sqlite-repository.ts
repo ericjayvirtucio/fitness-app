@@ -5,6 +5,9 @@ import {
   PersistenceError,
   toPersistenceError,
 } from '../../../infrastructure/persistence/persistence-error';
+import { queueOutboxEntry } from '../../../infrastructure/persistence/sync-outbox';
+
+const tableName = 'personal_profile';
 
 type PersonalProfileRow = Readonly<{
   activity_level: string;
@@ -16,14 +19,19 @@ type PersonalProfileRow = Readonly<{
 }>;
 
 export class PersonalProfileSqliteRepository implements PersonalProfileRepository {
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(
+    private readonly database: DatabaseConnection,
+    private readonly deviceId: string,
+    private readonly now: () => Date,
+  ) {}
 
   async get(): Promise<UserProfile | null> {
     try {
       const row = await this.database.getFirst<PersonalProfileRow>(
         `SELECT height_millimeters, weight_grams, biological_sex,
                 date_of_birth, activity_level, preferred_unit_system
-         FROM personal_profile WHERE singleton_id = ?`,
+         FROM personal_profile
+         WHERE singleton_id = ? AND deleted_at_epoch_ms IS NULL`,
         [1],
       );
       if (row === null) return null;
@@ -48,18 +56,24 @@ export class PersonalProfileSqliteRepository implements PersonalProfileRepositor
 
   async save(profile: UserProfile): Promise<void> {
     try {
+      const nowEpochMs = this.now().getTime();
       await this.database.run(
         `INSERT INTO personal_profile (
            singleton_id, height_millimeters, weight_grams, biological_sex,
-           date_of_birth, activity_level, preferred_unit_system
-         ) VALUES (?, ?, ?, ?, ?, ?, ?)
+           date_of_birth, activity_level, preferred_unit_system,
+           updated_at_epoch_ms, deleted_at_epoch_ms, revision,
+           originating_device_id
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 1, ?)
          ON CONFLICT(singleton_id) DO UPDATE SET
            height_millimeters = excluded.height_millimeters,
            weight_grams = excluded.weight_grams,
            biological_sex = excluded.biological_sex,
            date_of_birth = excluded.date_of_birth,
            activity_level = excluded.activity_level,
-           preferred_unit_system = excluded.preferred_unit_system`,
+           preferred_unit_system = excluded.preferred_unit_system,
+           updated_at_epoch_ms = excluded.updated_at_epoch_ms,
+           deleted_at_epoch_ms = NULL,
+           revision = personal_profile.revision + 1`,
         [
           1,
           profile.height.millimeters,
@@ -68,7 +82,20 @@ export class PersonalProfileSqliteRepository implements PersonalProfileRepositor
           profile.dateOfBirth,
           profile.activityLevel,
           profile.preferredUnitSystem,
+          nowEpochMs,
+          this.deviceId,
         ],
+      );
+      const stored = await this.database.getFirst<{ revision: number }>(
+        'SELECT revision FROM personal_profile WHERE singleton_id = 1',
+      );
+      await queueOutboxEntry(
+        this.database,
+        tableName,
+        '1',
+        'upsert',
+        stored?.revision ?? 1,
+        nowEpochMs,
       );
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');

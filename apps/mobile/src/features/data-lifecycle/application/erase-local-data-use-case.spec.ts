@@ -65,6 +65,7 @@ class FakeTransactionRunner implements TransactionRunner<LocalDataErasureTransac
 
     try {
       const result = await operation({
+        clearOutbox: () => Promise.resolve(),
         erasers: erasureOrder.map((capability) => ({
           eraseStoredRecords: () => {
             this.erasedCapabilities.push(capability);

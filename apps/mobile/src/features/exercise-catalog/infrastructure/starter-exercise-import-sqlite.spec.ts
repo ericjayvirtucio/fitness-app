@@ -20,6 +20,9 @@ import { ExerciseCatalogExportSqliteReader } from './exercise-catalog-export-sql
 import { ExerciseCatalogSqliteRepository } from './exercise-catalog-sqlite-repository';
 import { ExerciseCatalogStoredDataProbe } from './exercise-catalog-stored-data-probe';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * The import's promises are engine properties, not orchestration properties.
  * Only a real engine can show that a forced failure leaves the catalog exactly
@@ -33,6 +36,7 @@ import { ExerciseCatalogStoredDataProbe } from './exercise-catalog-stored-data-p
  */
 
 type CatalogRow = Readonly<{
+  deleted_at_epoch_ms: number | null;
   display_name: string;
   equipment: string;
   id: string;
@@ -111,12 +115,16 @@ describe('Starter exercise import on a real database', () => {
     database = new NodeSqliteDatabase();
     await initializeDatabase(database, migrations);
     observed = new ObservedDatabase(database);
-    catalog = new ExerciseCatalogSqliteRepository(database);
+    catalog = new ExerciseCatalogSqliteRepository(database, deviceId, now);
     useCase = new AddStarterExercisesUseCase(
       new SqliteTransactionRunner<StarterExerciseImportContext>(
         observed,
         (transaction) => ({
-          catalog: new ExerciseCatalogSqliteRepository(transaction),
+          catalog: new ExerciseCatalogSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         }),
       ),
     );
@@ -175,7 +183,7 @@ describe('Starter exercise import on a real database', () => {
     );
 
     for (const entry of starterExercises) {
-      expect(stored.get(entry.id)).toEqual({
+      expect(stored.get(entry.id)).toMatchObject({
         display_name: entry.name,
         equipment: entry.equipment,
         id: entry.id,
@@ -273,7 +281,8 @@ describe('Starter exercise import on a real database', () => {
 
     expect(updated.status).toBe('saved');
     expect(deleted).toEqual({ status: 'deleted' });
-    expect((await rows()).some((row) => row.id === entry.id)).toBe(false);
+    const stored = (await rows()).find((row) => row.id === entry.id);
+    expect(stored?.deleted_at_epoch_ms).not.toBeNull();
   });
 
   it('keeps a session snapshot after the imported definition is deleted', async () => {
@@ -284,12 +293,18 @@ describe('Starter exercise import on a real database', () => {
     try {
       const historyCatalog = new ExerciseCatalogSqliteRepository(
         history.database,
+        deviceId,
+        now,
       );
       await new AddStarterExercisesUseCase(
         new SqliteTransactionRunner<StarterExerciseImportContext>(
           history.database,
           (transaction) => ({
-            catalog: new ExerciseCatalogSqliteRepository(transaction),
+            catalog: new ExerciseCatalogSqliteRepository(
+              transaction,
+              deviceId,
+              now,
+            ),
           }),
         ),
       ).execute();

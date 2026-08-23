@@ -3,7 +3,7 @@ import type { WorkoutSessionRenameContext } from '../features/workout-session/ap
 import { GetWorkoutSessionUseCase } from '../features/workout-session/application/workout-session-use-cases';
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 /**
  * Naming reaches a workout of either status, so it composes the session
@@ -15,15 +15,17 @@ import { getDatabase, initializePersistence } from './persistence';
 export async function createWorkoutNameUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
   const runner = new SqliteTransactionRunner<WorkoutSessionRenameContext>(
     database,
     (transaction) => ({
-      sessions: new WorkoutSessionSqliteRepository(transaction),
+      sessions: new WorkoutSessionSqliteRepository(transaction, deviceId, now),
     }),
   );
   return Object.freeze({
     getSession: new GetWorkoutSessionUseCase(
-      new WorkoutSessionSqliteRepository(database),
+      new WorkoutSessionSqliteRepository(database, deviceId, now),
     ),
     rename: new RenameWorkoutSessionUseCase(runner),
   });

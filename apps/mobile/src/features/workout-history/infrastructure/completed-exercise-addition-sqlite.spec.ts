@@ -29,6 +29,9 @@ import {
   unwrap,
 } from './synthetic-workout-history.spec-helper';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * Adding a session exercise to a completed workout appends authoritative rows
  * and captures a snapshot from the live catalog, so these run against a real
@@ -45,14 +48,18 @@ const chinUpDefinitionId = '33333333-3333-4333-8333-333333333333';
 
 type SessionRow = Readonly<{
   completed_at_epoch_ms: number | null;
+  deleted_at_epoch_ms: number | null;
   display_name: string;
   id: string;
+  originating_device_id: string;
+  revision: number;
   source_planned_workout_id: string | null;
   source_weekday: number | null;
   started_at_epoch_ms: number;
   started_local_calendar_date: string;
   started_utc_offset_minutes: number;
   status: string;
+  updated_at_epoch_ms: number;
 }>;
 
 type ExerciseRow = Readonly<{
@@ -150,14 +157,22 @@ describe('Completed session exercise addition on a real database', () => {
     history = await SyntheticWorkoutHistory.create();
     database = history.database;
     observed = new ObservedDatabase(database);
-    catalog = new ExerciseCatalogSqliteRepository(database);
+    catalog = new ExerciseCatalogSqliteRepository(database, deviceId, now);
     generated = 0;
     useCase = new AddCompletedWorkoutExerciseUseCase(
       new SqliteTransactionRunner<CompletedExerciseAdditionContext>(
         observed,
         (transaction) => ({
-          catalog: new ExerciseCatalogSqliteRepository(transaction),
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          catalog: new ExerciseCatalogSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         }),
       ),
       () => {
@@ -350,12 +365,18 @@ describe('Completed session exercise addition on a real database', () => {
 
     added((await addChinUp()).outcome);
 
-    expect(
-      await database.getFirst<SessionRow>(
-        'SELECT * FROM workout_session WHERE id = ?',
-        [mixed.id],
-      ),
-    ).toEqual(mixed);
+    const after = await database.getFirst<SessionRow>(
+      'SELECT * FROM workout_session WHERE id = ?',
+      [mixed.id],
+    );
+    // Adding an exercise leaves every lifecycle instant and recorded fact
+    // alone, but it is still a real change to the aggregate, so the parent
+    // row's revision and update time advance.
+    expect(after).toEqual({
+      ...mixed,
+      revision: mixed.revision + 1,
+      updated_at_epoch_ms: after?.updated_at_epoch_ms,
+    });
   });
 
   it('leaves every other workout structurally unchanged', async () => {
@@ -389,9 +410,13 @@ describe('Completed session exercise addition on a real database', () => {
     expect(setDelete).toBeGreaterThanOrEqual(0);
     expect(exerciseDelete).toBeGreaterThan(setDelete);
     expect(firstInsert).toBeGreaterThan(exerciseDelete);
-    expect(order.some((sql) => sql.includes('UPDATE workout_session '))).toBe(
-      false,
+    // The parent row's own revision still advances after its children are
+    // rewritten, since adding an exercise is a real change to the aggregate,
+    // but the parent row is updated in place — never deleted or recreated.
+    const parentUpdate = order.findIndex((sql) =>
+      sql.includes('UPDATE workout_session SET'),
     );
+    expect(parentUpdate).toBeGreaterThan(firstInsert);
     expect(
       order.some((sql) => sql.includes('DELETE FROM workout_session ')),
     ).toBe(false);

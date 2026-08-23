@@ -19,6 +19,9 @@ import {
   unwrap,
 } from './synthetic-workout-history.spec-helper';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * Deleting completed history removes authoritative rows, so these run against a
  * real SQLite engine with the repository's own migrations rather than against a
@@ -27,6 +30,7 @@ import {
 
 type SessionRow = Readonly<{
   completed_at_epoch_ms: number | null;
+  deleted_at_epoch_ms: number | null;
   display_name: string;
   id: string;
   source_planned_workout_id: string | null;
@@ -105,7 +109,11 @@ describe('Completed workout deletion on a real database', () => {
       new SqliteTransactionRunner<CompletedWorkoutDeletionContext>(
         failing,
         (transaction) => ({
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         }),
       ),
     );
@@ -212,13 +220,13 @@ describe('Completed workout deletion on a real database', () => {
       throw new Error(`Expected a deletion, got ${outcome.reason}`);
   }
 
-  it('removes the selected workout with every row it owns', async () => {
+  it('tombstones the selected workout and hard-deletes every row it owns', async () => {
     const { doomed, expected } = await targets();
 
     deleted(await useCase.execute({ expected, sessionId: doomed.id }));
 
     const gone = await snapshot(doomed.id);
-    expect(gone.session).toBeNull();
+    expect(gone.session?.deleted_at_epoch_ms).not.toBeNull();
     expect(gone.exercises).toEqual([]);
     expect(gone.sets).toEqual([]);
   });
@@ -253,10 +261,10 @@ describe('Completed workout deletion on a real database', () => {
     expect(await orphanCount()).toBe(0);
   });
 
-  it('restores the whole aggregate when the parent delete fails', async () => {
+  it('restores the whole aggregate when the parent tombstone write fails', async () => {
     const { doomed, expected } = await targets();
     const before = await snapshot(doomed.id);
-    failing.failOnStatement = 'DELETE FROM workout_session WHERE';
+    failing.failOnStatement = 'UPDATE workout_session SET deleted_at_epoch_ms';
 
     await expect(
       useCase.execute({ expected, sessionId: doomed.id }),

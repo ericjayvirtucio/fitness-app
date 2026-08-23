@@ -13,17 +13,27 @@ import { ExerciseCatalogSqliteRepository } from '../features/exercise-catalog/in
 import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infrastructure/workout-planner-sqlite-repository';
 import { WorkoutHistorySqliteRepository } from '../features/workout-history/infrastructure/workout-history-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createExerciseCatalogUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const repository = new ExerciseCatalogSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const repository = new ExerciseCatalogSqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
   const mutationRunner = new SqliteTransactionRunner(
     database,
     (transaction) => ({
-      catalog: new ExerciseCatalogSqliteRepository(transaction),
-      references: new WorkoutPlannerSqliteRepository(transaction),
+      catalog: new ExerciseCatalogSqliteRepository(transaction, deviceId, now),
+      references: new WorkoutPlannerSqliteRepository(
+        transaction,
+        deviceId,
+        now,
+      ),
     }),
   );
   // The starter import only ever adds, so no plan can reference what it writes
@@ -33,7 +43,11 @@ export async function createExerciseCatalogUseCases() {
     new SqliteTransactionRunner<StarterExerciseImportContext>(
       database,
       (transaction) => ({
-        catalog: new ExerciseCatalogSqliteRepository(transaction),
+        catalog: new ExerciseCatalogSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
       }),
     );
 

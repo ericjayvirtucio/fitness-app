@@ -16,11 +16,13 @@ import { WorkoutPlannerSqliteRepository } from '../features/workout-planner/infr
 import { WorkoutSessionExportSqliteReader } from '../features/workout-history/infrastructure/workout-session-export-sqlite-reader';
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createDataExportUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
   const fileWriter = new ExpoDataExportFileWriter();
   // Every capability reader is built from the same exclusive transaction so
   // one export cannot mix records written at different moments.
@@ -30,14 +32,26 @@ export async function createDataExportUseCases() {
       (transaction) => ({
         bodyWeight: new BodyWeightExportSqliteReader(transaction),
         exerciseCatalog: new ExerciseCatalogExportSqliteReader(transaction),
-        goals: new GoalSqliteRepository(transaction),
+        goals: new GoalSqliteRepository(transaction, deviceId, now),
         hydrationEntries: new HydrationExportSqliteReader(transaction),
-        hydrationTarget: new HydrationTargetSqliteRepository(transaction),
+        hydrationTarget: new HydrationTargetSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
         nutrition: new NutritionExportSqliteReader(transaction),
-        planner: new WorkoutPlannerSqliteRepository(transaction),
-        profile: new PersonalProfileSqliteRepository(transaction),
+        planner: new WorkoutPlannerSqliteRepository(transaction, deviceId, now),
+        profile: new PersonalProfileSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
         workoutHistory: new WorkoutSessionExportSqliteReader(transaction),
-        workoutSessions: new WorkoutSessionSqliteRepository(transaction),
+        workoutSessions: new WorkoutSessionSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
       }),
     );
 
