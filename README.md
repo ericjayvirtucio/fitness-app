@@ -112,6 +112,9 @@ Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.m
 Which third-party code, data, and media this product may use, which it may not, and what each obligation costs are recorded in [docs/third-party-material.md](docs/third-party-material.md). No third-party material ships today; the phase that imports any creates the notices its terms require in the same change.
 
 Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
+The design-system token boundary, the contrast contract that proves the palette,
+the card-variant rule, and what may enter the system are documented in
+[docs/architecture/design-system.md](docs/architecture/design-system.md).
 Native E2E suite ownership, state behavior, and artifacts are documented in the
 [mobile E2E guide](e2e/mobile/README.md).
 Domain boundaries, value-object conventions, and extension guidance are documented

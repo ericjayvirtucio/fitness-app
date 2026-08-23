@@ -1,9 +1,11 @@
 # Mobile design system
 
-The mobile design system defines the application's calm, professional visual
-language and the accessible building blocks used by product features. Its
-public API is `index.ts`; code outside this directory should import from that
-boundary rather than component or theme implementation files.
+The mobile design system defines the application's visual identity — one
+saturated green that marks active state, progress, and success, on a true black
+page in dark appearance and a near-white one in light — and the accessible
+building blocks used by product features. Its public API is `index.ts`; code
+outside this directory should import from that boundary rather than component or
+theme implementation files.
 
 ## Theme architecture
 
@@ -20,6 +22,13 @@ The public token scales cover typography, spacing, radius, elevation, opacity,
 border width, icon size, motion, and minimum touch targets. Choose the closest
 existing semantic value before adding one. A new token requires a repeated,
 reviewed need rather than a one-off visual preference.
+
+`typography.hero` is the top of the type scale and is reserved for one derived
+value per screen — the number that screen exists to state. Pass `isSingleLine` to
+`AppText` with it: at the largest accessibility size a hero numeral reaches 112px,
+and shrinking is what keeps it fully visible instead of wrapping or clipping. A
+sentence never opts in, because shrinking prose defeats the setting that asked for
+larger text.
 
 ## Components
 
@@ -96,11 +105,23 @@ containers. Do not use color alone for errors, loading, selection, or status.
 Meaningful standalone icons require labels; icons accompanying labeled controls
 remain decorative. Prefer native focus order and interaction behavior.
 
-Component tests verify semantic roles, names, state, and behavior. Before
-shipping a screen, also inspect light and dark appearance, large text, keyboard
-behavior, VoiceOver on iOS, and TalkBack on Android. Automated component tests
-cannot prove platform contrast, shadow rendering, or assistive-technology
-quality.
+Component tests verify semantic roles, names, state, and behavior, and
+`theme.spec.ts` proves the contrast of every token pair a component renders —
+4.5:1 for text and on-color pairs, 3:1 for boundaries and indicators — using
+`contrastRatio`. Adding a role, or a component that renders a new pair, means
+adding its assertion in the same change.
+
+That covers the values, not the device. Before shipping a screen, still inspect
+light and dark appearance, large text, keyboard behavior, VoiceOver on iOS, and
+TalkBack on Android. Automated component tests cannot prove rendered contrast
+after platform compositing and opacity, shadow rendering, or
+assistive-technology quality.
+
+One known gap: no single `focus` value clears 3:1 against both the page and every
+fill a focus ring can be drawn on, so a ring on a `primary` button separates from
+the page and not from the fill beneath it. Rings are drawn at a component's outer
+edge, whose adjacent color is the page, and that is the pair asserted. A two-tone
+indicator is the remedy when a change owns those components.
 
 ### Automation identifiers
 
@@ -123,3 +144,12 @@ Keep its API semantic and narrow, compose existing primitives, export it from
 `index.ts`, and add behavior-focused tests. Update this document when the public
 contract changes. Do not add catch-all style props, a second icon set, business
 rules, or feature-specific copy to the design system.
+
+Demonstrated means found in the screens, not in a proposal. `StatTile` entered
+because two feature slices had each already written it. Nine components were
+proposed together and eight did not enter: three had no consumer anywhere, two had
+no data to draw, one had a single consumer whose working surface it would have
+rewritten, one changed input semantics rather than appearance, and one belonged to
+a later product phase. A component with one consumer belongs in the feature that
+consumes it. Where a variant would otherwise become a style prop, give it a closed
+set of named variants instead, as `Card` and `StatTile` do.
