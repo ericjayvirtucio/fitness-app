@@ -180,7 +180,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
     value.sodium,
   ].some((item) => item.total === null);
   return (
-    <Card variant="elevated">
+    <Card variant="outlined">
       <SectionHeader title="Nutrition" />
       {value.loggedDayCount === 0 ? (
         <AppText color="secondary">No nutrition logged in this period.</AppText>

@@ -33,6 +33,8 @@ reviewed need rather than a one-off visual preference.
   native keyboard configuration. It does not perform business validation.
 - `Card` supports filled, outlined, and elevated presentation. Supplying
   `onPress` gives it button semantics; static cards do not imply interaction.
+  Choose the variant by what the card's edge must do, never by preference — see
+  the rule below.
 - `Surface` is a neutral themed container. Use `Card` when card semantics and
   variants are intended.
 - `Screen` owns safe-area padding and can be scrollable, centered, static, or
@@ -41,6 +43,26 @@ reviewed need rather than a one-off visual preference.
   named presentation consistently without adding feature behavior.
 - `SelectionField` presents a labeled set of mutually exclusive radio options,
   selected state, wrapping layout, and validation feedback.
+
+### Choosing a card variant
+
+The dark background is true black and a filled card separates from it by 1.21:1.
+That is a tonal hint rather than a boundary, and it is deliberate: the identity
+separates surfaces by lightness instead of by rules and shadows. `elevated` adds
+`elevations.raised`, whose shadow color is `overlay`, so a black shadow on a black
+page renders nothing and `elevated` separates no better than `filled` in dark
+appearance.
+
+A card's variant therefore states what its edge is for:
+
+- **`outlined`** when the edge carries meaning — the card is pressable, the card
+  holds a control or a destructive action, or the card sits directly beside a
+  sibling of the same kind and its contents would be ambiguous without a
+  boundary.
+- **`filled`** only for a card whose edge carries nothing, such as a standalone
+  non-interactive block of explanation.
+- **`elevated`** for emphasis in light appearance. It is never a boundary, and in
+  dark appearance it is a filled card.
 
 Example:
 

@@ -94,7 +94,7 @@ export function WorkoutPlannerScreen({
       </View>
       <View>
         {state.active ? (
-          <Card variant="elevated">
+          <Card variant="outlined">
             <AppText variant="heading">Active workout</AppText>
             <AppText>{state.active.name}</AppText>
             <AppText color="secondary">
@@ -103,7 +103,7 @@ export function WorkoutPlannerScreen({
             <AppButton label="Resume Workout" onPress={onOpenActive} />
           </Card>
         ) : (
-          <Card variant="elevated">
+          <Card variant="outlined">
             <AppText variant="heading">Start workout</AppText>
             <AppText color="secondary">
               Use today's plan or begin an empty workout.

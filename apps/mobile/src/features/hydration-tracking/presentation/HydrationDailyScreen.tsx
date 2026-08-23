@@ -178,7 +178,7 @@ export function HydrationDailyScreen({
            * with no way to change it. The lines below and the control announce
            * themselves, which is what they say on screen anyway.
            */
-          <Card variant="filled">
+          <Card variant="outlined">
             <AppText variant="heading">Daily fluid target</AppText>
             <AppText>
               {formatHydrationPercentage(summary.completionPercentage)} complete
@@ -195,7 +195,7 @@ export function HydrationDailyScreen({
             />
           </Card>
         ) : (
-          <Card variant="filled">
+          <Card variant="outlined">
             <AppText variant="heading">No daily target set</AppText>
             <AppText color="secondary">
               You can log fluids without a target or choose your own tracking
