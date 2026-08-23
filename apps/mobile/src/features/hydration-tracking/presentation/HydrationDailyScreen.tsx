@@ -153,7 +153,13 @@ export function HydrationDailyScreen({
         <AppText color="secondary" variant="label">
           Total fluid
         </AppText>
-        <AppText variant="display">
+        {/*
+         * The day's total fluid is what this screen exists to state, so it is
+         * the one value here rendered as a hero numeral. It shrinks rather than
+         * wrapping at the largest accessibility sizes; the string is unchanged,
+         * and the card's composed name still states it first.
+         */}
+        <AppText isSingleLine variant="hero">
           {formatHydrationVolume(summary.totalFluidVolume)}
         </AppText>
         <AppText>
