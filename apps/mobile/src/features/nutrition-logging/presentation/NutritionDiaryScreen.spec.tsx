@@ -1,4 +1,5 @@
 import { Energy, isOk, type DailyNutritionSummary } from '@fitness/domain';
+import { typography } from '../../../design-system';
 import {
   fireEvent,
   render,
@@ -93,6 +94,15 @@ describe('NutritionDiaryScreen', () => {
     );
 
     await waitFor(() => expect(screen.getByText('89 kcal')).toBeTruthy());
+    // The day's energy is the diary's subject, so it is stated as the screen's
+    // one hero numeral and shrinks rather than wrapping at large text sizes.
+    expect(screen.getByText('89 kcal')).toHaveStyle({
+      fontSize: typography.hero.fontSize,
+    });
+    expect(screen.getByText('89 kcal')).toHaveProp(
+      'adjustsFontSizeToFit',
+      true,
+    );
     expect(screen.getByText('1 entry')).toBeTruthy();
     expect(screen.getByText('Protein: 1.1 g')).toBeTruthy();
     expect(screen.getByText('Sodium: 1 mg')).toBeTruthy();
