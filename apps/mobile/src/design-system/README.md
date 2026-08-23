@@ -43,6 +43,10 @@ reviewed need rather than a one-off visual preference.
   named presentation consistently without adding feature behavior.
 - `SelectionField` presents a labeled set of mutually exclusive radio options,
   selected state, wrapping layout, and validation feedback.
+- `StatTile` presents one labeled derived value as a dense `row` or an emphasized
+  `stacked` block. It is a single accessibility element announcing
+  `label, value`, and `describeStatTile` composes that same sentence for a
+  labelled card that holds tiles.
 
 ### Choosing a card variant
 

@@ -18,6 +18,7 @@ import {
   SectionHeader,
   SelectionField,
   spacing,
+  StatTile,
 } from '../../../design-system';
 import {
   formatBodyWeight,
@@ -186,7 +187,7 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
         <AppText color="secondary">No nutrition logged in this period.</AppText>
       ) : (
         <>
-          <Metric
+          <StatTile
             label="Energy"
             value={formatProgressEnergy(value.energyKilojoules)}
           />
@@ -196,16 +197,16 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * defaulted so an unknown can never be displayed as a zero.
            */}
           {value.averageEnergyKilojoulesPerLoggedDay === null ? null : (
-            <Metric
+            <StatTile
               label="Average energy per logged day"
               value={formatProgressEnergy(
                 value.averageEnergyKilojoulesPerLoggedDay,
               )}
             />
           )}
-          <Metric label="Logged days" value={String(value.loggedDayCount)} />
-          <Metric label="Entries" value={String(value.entryCount)} />
-          <Metric
+          <StatTile label="Logged days" value={String(value.loggedDayCount)} />
+          <StatTile label="Entries" value={String(value.entryCount)} />
+          <StatTile
             label="Protein"
             value={formatProgressMass(value.protein.total, 'g')}
           />
@@ -214,42 +215,42 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * read Incomplete for the same reason and the card keeps one height
            * whatever the period contains.
            */}
-          <Metric
+          <StatTile
             label="Average protein per logged day"
             value={formatProgressMass(value.protein.averagePerLoggedDay, 'g')}
           />
-          <Metric
+          <StatTile
             label="Carbohydrate"
             value={formatProgressMass(value.carbohydrate.total, 'g')}
           />
-          <Metric
+          <StatTile
             label="Average carbohydrate per logged day"
             value={formatProgressMass(
               value.carbohydrate.averagePerLoggedDay,
               'g',
             )}
           />
-          <Metric
+          <StatTile
             label="Fat"
             value={formatProgressMass(value.fat.total, 'g')}
           />
-          <Metric
+          <StatTile
             label="Average fat per logged day"
             value={formatProgressMass(value.fat.averagePerLoggedDay, 'g')}
           />
-          <Metric
+          <StatTile
             label="Fiber"
             value={formatProgressMass(value.fiber.total, 'g')}
           />
-          <Metric
+          <StatTile
             label="Average fiber per logged day"
             value={formatProgressMass(value.fiber.averagePerLoggedDay, 'g')}
           />
-          <Metric
+          <StatTile
             label="Sugar"
             value={formatProgressMass(value.sugar.total, 'g')}
           />
-          <Metric
+          <StatTile
             label="Average sugar per logged day"
             value={formatProgressMass(value.sugar.averagePerLoggedDay, 'g')}
           />
@@ -258,11 +259,11 @@ function NutritionSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * pair that asks the formatter for a different unit. Nothing converts
            * it; the stored unit is the displayed unit, as it is on the diary.
            */}
-          <Metric
+          <StatTile
             label="Sodium"
             value={formatProgressMass(value.sodium.total, 'mg')}
           />
-          <Metric
+          <StatTile
             label="Average sodium per logged day"
             value={formatProgressMass(value.sodium.averagePerLoggedDay, 'mg')}
           />
@@ -287,11 +288,11 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
         <AppText color="secondary">No hydration logged in this period.</AppText>
       ) : (
         <>
-          <Metric
+          <StatTile
             label="Total fluid"
             value={formatProgressVolume(value.totalFluidMilliliters)}
           />
-          <Metric
+          <StatTile
             label="Plain water"
             value={formatProgressVolume(value.plainWaterMilliliters)}
           />
@@ -300,12 +301,12 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * lines are exhaustive over the total above them and neither needs
            * to state what it leaves out.
            */}
-          <Metric
+          <StatTile
             label="Other fluids"
             value={formatProgressVolume(value.otherFluidMilliliters)}
           />
           {value.averageFluidMillilitersPerLoggedDay === null ? null : (
-            <Metric
+            <StatTile
               label="Average fluid per logged day"
               value={formatProgressVolume(
                 value.averageFluidMillilitersPerLoggedDay,
@@ -313,15 +314,15 @@ function HydrationSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
             />
           )}
           {value.averagePlainWaterMillilitersPerLoggedDay === null ? null : (
-            <Metric
+            <StatTile
               label="Average plain water per logged day"
               value={formatProgressVolume(
                 value.averagePlainWaterMillilitersPerLoggedDay,
               )}
             />
           )}
-          <Metric label="Logged days" value={String(value.loggedDayCount)} />
-          <Metric label="Entries" value={String(value.entryCount)} />
+          <StatTile label="Logged days" value={String(value.loggedDayCount)} />
+          <StatTile label="Entries" value={String(value.entryCount)} />
         </>
       )}
     </Card>
@@ -340,12 +341,12 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
         </AppText>
       ) : (
         <>
-          <Metric
+          <StatTile
             label="Completed workouts"
             value={String(value.completedWorkoutCount)}
           />
-          <Metric label="Actual sets" value={String(value.actualSetCount)} />
-          <Metric
+          <StatTile label="Actual sets" value={String(value.actualSetCount)} />
+          <StatTile
             label="Performed exercises"
             value={String(value.performedExerciseCount)}
           />
@@ -355,7 +356,7 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * two apart until somebody renames this one. See
            * Specification 0040.
            */}
-          <Metric
+          <StatTile
             label="Workout time"
             value={formatDuration(value.elapsedWorkoutSeconds)}
           />
@@ -366,16 +367,16 @@ function WorkoutSummary({ summary }: Readonly<{ summary: ProgressSummary }>) {
            * of its own dimension, so none of them states a coverage.
            */}
           {value.repetitions === null ? null : (
-            <Metric label="Repetitions" value={String(value.repetitions)} />
+            <StatTile label="Repetitions" value={String(value.repetitions)} />
           )}
           {value.durationSeconds === null ? null : (
-            <Metric
+            <StatTile
               label="Performed duration"
               value={formatDuration(value.durationSeconds)}
             />
           )}
           {value.distanceMillimeters === null ? null : (
-            <Metric
+            <StatTile
               label="Performed distance"
               value={formatRecordedDistance(
                 value.distanceMillimeters,
@@ -445,21 +446,21 @@ function BodyWeightSummary({
   return (
     <Card testID="progress-body-weight" variant="outlined">
       <SectionHeader title="Body weight" />
-      <Metric
+      <StatTile
         label="First recorded"
         value={formatBodyWeight(value.firstGrams, unit)}
       />
-      <Metric
+      <StatTile
         label="Latest recorded"
         value={formatBodyWeight(value.latestGrams, unit)}
       />
       {value.changeGrams === null ? null : (
-        <Metric
+        <StatTile
           label="Recorded change"
           value={formatBodyWeightChange(value.changeGrams, unit)}
         />
       )}
-      <Metric label="Check-ins" value={String(value.entryCount)} />
+      <StatTile label="Check-ins" value={String(value.entryCount)} />
       {/*
        * The caption announces the sentence it displays. Each metric above is its
        * own accessibility element and has already been spoken, so a composed
@@ -471,24 +472,6 @@ function BodyWeightSummary({
           : 'This is the difference between your first and latest recorded check-ins, not a measured trend.'}
       </AppText>
     </Card>
-  );
-}
-
-function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${label}, ${value}`}
-      style={{
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: spacing.sm,
-        justifyContent: 'space-between',
-      }}
-    >
-      <AppText color="secondary">{label}</AppText>
-      <AppText variant="label">{value}</AppText>
-    </View>
   );
 }
 
