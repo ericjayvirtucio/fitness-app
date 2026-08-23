@@ -35,6 +35,7 @@ describe('design theme', () => {
     expect(typography.caption.fontSize).toBeLessThan(
       typography.display.fontSize,
     );
+    expect(typography.display.fontSize).toBeLessThan(typography.hero.fontSize);
     expect(minimumTouchTarget).toBeGreaterThanOrEqual(44);
     expect(borderWidths.strong).toBeGreaterThan(borderWidths.thin);
     expect(opacity.disabled).toBeLessThan(opacity.visible);

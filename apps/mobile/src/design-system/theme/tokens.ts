@@ -13,6 +13,21 @@ export const spacing = {
 } as const;
 
 export const typography = {
+  /**
+   * A hero numeral: the derived number a region exists to state, rather than a
+   * field within it. Reserved for one value per screen, so that promoting a
+   * second one is a visible decision rather than a drift.
+   *
+   * At the largest accessibility size this reaches 112px, which no card is wide
+   * enough to hold. `AppText`'s `isSingleLine` shrinks it to fit instead of
+   * wrapping or clipping, and every hero call site passes it.
+   */
+  hero: {
+    fontSize: 56,
+    fontWeight: '800',
+    letterSpacing: -1.2,
+    lineHeight: 62,
+  },
   display: {
     fontSize: 40,
     fontWeight: '700',
