@@ -1,0 +1,19 @@
+appId: com.fitnessapp.dev
+name: Today states its fluid total and its target control is still reachable
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/hydration/log-water-and-persist.yaml
+# The hero numeral sits inside a card carrying an accessibilityLabel, so it is
+# not assertable as text and the card's own name is the only thing announced.
+# Its size changed; the sentence it announces did not, which is the claim.
+- assertVisible: 'Daily fluid totals, total 500 mL, plain water 500 mL, other fluids 0 mL, 1 entry'
+# The target card became outlined this sprint because it holds a control. It is
+# still deliberately unlabelled, so its lines and its button each reach the
+# accessibility tree on their own. The flow above scrolled to reach them, so
+# these assert from the viewport it left.
+- assertVisible: '17% complete'
+- assertVisible: '2.5 L remaining of 3 L'
+- assertVisible: Change daily target
+- tapOn: Change daily target
+- assertVisible: Daily fluid target

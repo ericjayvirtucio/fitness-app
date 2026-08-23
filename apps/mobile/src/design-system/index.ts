@@ -19,9 +19,15 @@ export {
   type SelectionOption,
 } from './components/SelectionField';
 export { SectionHeader } from './components/SectionHeader';
+export {
+  describeStatTile,
+  StatTile,
+  type StatTileVariant,
+} from './components/StatTile';
 export { Surface } from './components/Surface';
 export { TextField } from './components/TextField';
 export { darkColors, lightColors, type SemanticColors } from './theme/colors';
+export { contrastRatio, relativeLuminance } from './theme/contrast';
 export {
   createElevations,
   type ElevationLevel,

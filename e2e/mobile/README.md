@@ -58,6 +58,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 38 --platform ios
 ./scripts/qa.sh sprint 39 --platform ios
 ./scripts/qa.sh sprint 40 --platform ios
+./scripts/qa.sh sprint 41 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -93,7 +94,7 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–40. Sprints 5, 7, and 14 deliberately return an unsupported-suite
+15–27, and 29–41. Sprints 5, 7, and 14 deliberately return an unsupported-suite
 error because no product manual QA specification exists for them. Sprint 28
 does too: it changed no screen and added no suite.
 
@@ -799,6 +800,35 @@ alert's confirm button. Sprint 35 moved the button roughly one row lower, the sa
 tap landed on the backdrop instead, and the workout survived the discard. **A
 positional selector that happens to overlap the right target is not a working
 selector; it is a coincidence waiting for a layout change.**
+
+**A change that repaints every screen moves no selector and still moves every
+offset.** Sprint 41 replaced both color palettes, and the palette itself edited no
+screen — the token boundary meant one file reached all of them. What did move was
+height, in two ways that look nothing alike. Five cards changed variant, and an
+outlined card is a border taller than a filled one, so five screens each gained a
+couple of pixels in a place no assertion names. And two values were promoted to a
+56px hero numeral, which grew the first card on Today and on the Nutrition diary
+by roughly twenty points each.
+
+The second kind is the safer one, and the reason is worth keeping: both heroes sit
+in the first card on their screen, **above** everything any scenario scrolls to.
+Growth above every anchor shifts the whole page down uniformly, and every
+`scrollUntilVisible` simply finds its target a little further along. Growth in the
+middle is what rewrites offsets — which is why Sprint 40 appended below its
+anchors on purpose. When you add height, ask where it lands relative to the
+anchors, not how much of it there is.
+
+Neither kind fails loudly, so neither is evidence until a run says so. Every
+negative assertion on a repainted screen was re-checked against a run rather than
+against the reasoning above: `sprint-38/01`, `sprint-39/01`, `sprint-39/02`,
+`sprint-40/01`, `sprint-40/02`, `sprint-40/03`, and `sprint-24/04` on Progress;
+`sprint-16/02` on Today, whose target card changed variant; and `sprint-37/01` and
+`sprint-37/04` on the Nutrition diary, which sit below the card the hero grew.
+
+**A palette change is also the cheapest possible test of whether a test asserts a
+color.** The full mobile suite passed unmodified against the new values, which is
+the evidence that none of them did. Had one failed, the finding would have been
+the test, not the palette.
 
 **A destructive alert's title contains its action's own words.** "Delete
 Workout?" and the "Delete Workout" button differ by one character, so tap the

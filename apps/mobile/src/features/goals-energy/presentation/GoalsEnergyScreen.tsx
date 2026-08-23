@@ -13,6 +13,8 @@ import {
   Screen,
   SectionHeader,
   spacing,
+  StatTile,
+  describeStatTile,
 } from '../../../design-system';
 import type {
   EnergySummary,
@@ -53,28 +55,13 @@ type GoalsEnergyScreenProps = Readonly<{
 type MetricLine = Readonly<{ label: string; value: string }>;
 
 /**
- * The one sentence a metric is read and announced by. A labelled card is one
- * accessibility element, so a metric nested inside one never reaches the
- * accessibility tree on its own; composing the card's name from the same list
- * the metrics are rendered from is what keeps these numbers audible.
+ * A labelled card is one accessibility element, so a stat nested inside one never
+ * reaches the accessibility tree on its own. Composing the card's name from the
+ * same list the stats are rendered from is what keeps these numbers audible, and
+ * `describeStatTile` is the sentence both use.
  */
 function describeMetric({ label, value }: MetricLine): string {
-  return `${label}, ${value}`;
-}
-
-function Metric({ label, value }: MetricLine) {
-  return (
-    <View
-      accessible
-      accessibilityLabel={describeMetric({ label, value })}
-      style={{ gap: spacing.xs }}
-    >
-      <AppText color="secondary" variant="label">
-        {label}
-      </AppText>
-      <AppText variant="heading">{value}</AppText>
-    </View>
-  );
+  return describeStatTile(label, value);
 }
 
 function BmiScreeningCard({ bmi }: Readonly<{ bmi: BmiResult }>) {
@@ -91,7 +78,7 @@ function BmiScreeningCard({ bmi }: Readonly<{ bmi: BmiResult }>) {
       variant="outlined"
     >
       {metrics.map((metric) => (
-        <Metric key={metric.label} {...metric} />
+        <StatTile key={metric.label} variant="stacked" {...metric} />
       ))}
     </Card>
   );
@@ -123,11 +110,11 @@ function EnergyEstimatesCard({
       variant="outlined"
     >
       {screening.map((metric) => (
-        <Metric key={metric.label} {...metric} />
+        <StatTile key={metric.label} variant="stacked" {...metric} />
       ))}
       <Divider />
       {estimates.map((metric) => (
-        <Metric key={metric.label} {...metric} />
+        <StatTile key={metric.label} variant="stacked" {...metric} />
       ))}
     </Card>
   );

@@ -56,8 +56,25 @@ Components consume the active theme instead of repeating visual values.
 
 The application follows the device light or dark setting. There is no stored manual override. Verify both appearances in the simulator and check that larger accessibility text remains readable.
 
-Usage, accessibility guidance, and extension rules are documented in the
-[mobile design-system guide](../apps/mobile/src/design-system/README.md).
+Because no feature file holds a color literal, replacing a palette is one file and
+reaches every screen without a screen being edited. That boundary is load-bearing
+rather than tidy, so verify it rather than trusting it:
+
+```bash
+grep -rInE "#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(" apps/mobile/src apps/mobile/app \
+  --include="*.ts" --include="*.tsx" | grep -v "design-system/theme/"
+```
+
+`theme/contrast.ts` computes a WCAG ratio and `theme/theme.spec.ts` asserts every
+pair a component renders, so a proposed color that fails its threshold is caught
+before it is committed. Adding a role, or a component that renders a new pair,
+means adding its assertion in the same change.
+
+Usage, accessibility guidance, the card-variant rule, and extension rules are
+documented in the
+[mobile design-system guide](../apps/mobile/src/design-system/README.md);
+the boundary, the contrast contract, and what may enter the system are described
+in [the design-system architecture](architecture/design-system.md).
 
 ## Checks
 

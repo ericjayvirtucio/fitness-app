@@ -1,4 +1,5 @@
 import { Volume } from '@fitness/domain';
+import { typography } from '../../../design-system';
 import {
   fireEvent,
   render,
@@ -128,6 +129,12 @@ describe('HydrationDailyScreen', () => {
         'Daily fluid totals, total 4 L, plain water 4 L, other fluids 0 mL, 1 entry',
       ),
     ).toBeTruthy();
+    // The day's total fluid is this screen's subject, so it is stated as its one
+    // hero numeral and shrinks rather than wrapping at large text sizes.
+    expect(screen.getByText('4 L')).toHaveStyle({
+      fontSize: typography.hero.fontSize,
+    });
+    expect(screen.getByText('4 L')).toHaveProp('adjustsFontSizeToFit', true);
     expect(screen.getByText('Daily fluid target')).toBeTruthy();
     expect(screen.getByText(/Target reached/)).toBeTruthy();
   });

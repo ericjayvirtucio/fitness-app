@@ -181,7 +181,15 @@ export function NutritionDiaryScreen({
         )}
         variant="outlined"
       >
-        <AppText variant="heading">{energyLine}</AppText>
+        {/*
+         * The day's energy is what the diary exists to state, so it is the one
+         * value on this screen rendered as a hero numeral. It shrinks rather
+         * than wrapping at the largest accessibility sizes; the string is
+         * unchanged, and the card's composed name still states it first.
+         */}
+        <AppText isSingleLine variant="hero">
+          {energyLine}
+        </AppText>
         <AppText color="secondary">{entryCountLine}</AppText>
         <View style={{ gap: spacing.xs }}>
           {nutrientLines.map((line) => (
