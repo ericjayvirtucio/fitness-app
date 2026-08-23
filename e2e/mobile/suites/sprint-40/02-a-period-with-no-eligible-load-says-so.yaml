@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: A period that recorded sets and no weighted ones says there is no load volume
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-repetition-workout.yaml
+    env:
+      REPETITIONS: '12'
+- tapOn:
+    id: tab-progress
+# The covered sentence with the number removed, never a zero: zero would be a
+# false claim about the work this period did record.
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: No recorded load volume from weighted sets
+    direction: DOWN
+- assertVisible: No recorded load volume from weighted sets
+- assertNotVisible: 0 kg-reps recorded load volume from weighted sets
+# A reps-only period recorded no duration and no distance, so neither line
+# exists. Both negatives are made from this viewport and only from this
+# viewport: the two lines would render between "Repetitions, 12" and the
+# sentence above, which is centred here, so an absence proven here is an
+# absence rather than something that scrolled away.
+- assertVisible: Repetitions, 12
+- assertNotVisible: 'Performed duration,.*'
+- assertNotVisible: 'Performed distance,.*'

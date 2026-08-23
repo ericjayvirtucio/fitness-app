@@ -106,6 +106,13 @@ describe('ProgressScreen', () => {
     ).toBeOnTheScreen();
     // A period with nothing logged states that in words and claims no average.
     expect(screen.queryByLabelText(/Average /)).toBeNull();
+    // Nor does it account for a dimension. The empty sentence already says
+    // there was nothing to account for.
+    expect(
+      screen.queryByText(/recorded load volume from weighted sets/),
+    ).toBeNull();
+    expect(screen.queryByLabelText(/^Performed duration,/)).toBeNull();
+    expect(screen.queryByLabelText(/^Performed distance,/)).toBeNull();
   });
 
   it('states an unknown fiber, sugar, and sodium exactly as an unknown macronutrient', async () => {
@@ -315,6 +322,185 @@ describe('ProgressScreen', () => {
     expect(screen.queryByLabelText(/Average fluid per logged day/)).toBeNull();
   });
 
+  it('states every dimension a period recorded, once each', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({ ...summary, workout: everyDimension }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Performed duration, 45 min 0 sec'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByLabelText('Performed distance, 12.5 km'),
+    ).toBeOnTheScreen();
+    // Recorded load volume is the one total here that excludes recorded work,
+    // so its coverage travels in the sentence carrying the number rather than
+    // in a caption beside it.
+    expect(
+      screen.getByText('160 kg-reps recorded load volume from weighted sets'),
+    ).toBeOnTheScreen();
+    // Seven metrics and one sentence. Counted rather than listed, so an
+    // accidental eighth line fails here instead of on a device.
+    expect(screen.getAllByLabelText(workoutMetricPattern)).toHaveLength(7);
+    // The counts and the elapsed time the card already stated are untouched.
+    expect(screen.getByLabelText('Completed workouts, 3')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Actual sets, 9')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Performed exercises, 4')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Workout time, 2 hr 15 min'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Repetitions, 96')).toBeOnTheScreen();
+  });
+
+  it('writes a recorded distance and load volume in the profile display unit', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  preferredUnitSystem: 'imperial' as const,
+                  workout: everyDimension,
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Performed distance, 7.77 mi'),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText(
+        '352.74 lb-reps recorded load volume from weighted sets',
+      ),
+    ).toBeOnTheScreen();
+    // A duration carries no unit system, so it reads identically in both.
+    expect(
+      screen.getByLabelText('Performed duration, 45 min 0 sec'),
+    ).toBeOnTheScreen();
+  });
+
+  it('states an absent load volume when a period recorded sets and none of them counted', async () => {
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  workout: {
+                    ...everyDimension,
+                    recordedLoadVolumeGramRepetitions: null,
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('No recorded load volume from weighted sets'),
+      ).toBeOnTheScreen(),
+    );
+    // The absent sentence is the covered one with the number removed, never a
+    // zero: zero would be a false claim about the work that was recorded.
+    expect(screen.queryByText(/0 kg-reps/)).toBeNull();
+    expect(screen.queryByLabelText(/Recorded load volume/)).toBeNull();
+  });
+
+  it('omits a dimension a period did not record rather than showing it as zero', async () => {
+    // The two negatives below are pins: nothing rendered those lines before
+    // this card stated them, so they pass against the previous commit too and
+    // exist to keep the omission deliberate. The absent-load sentence at the
+    // end is real evidence and is what makes this case red without the change.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: { execute: jest.fn(() => Promise.resolve(summary)) },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Completed workouts, 1')).toBeOnTheScreen(),
+    );
+    expect(screen.queryByLabelText(/^Performed duration,/)).toBeNull();
+    expect(screen.queryByLabelText(/^Performed distance,/)).toBeNull();
+    expect(screen.queryByText(/0 km/)).toBeNull();
+    // The fixture records one set and no eligible load, so the dimension is
+    // accounted for in the direction that has a sentence.
+    expect(
+      screen.getByText('No recorded load volume from weighted sets'),
+    ).toBeOnTheScreen();
+  });
+
+  it('says nothing about load volume when a completed workout recorded no set', async () => {
+    // A completed workout can hold no performed set, which is history without
+    // being performed work. The counts above already say so, so the dimension
+    // stays silent rather than claiming an absence about nothing.
+    await render(
+      <ProgressScreen
+        loadUseCases={() =>
+          Promise.resolve({
+            getSummary: {
+              execute: jest.fn(() =>
+                Promise.resolve({
+                  ...summary,
+                  workout: {
+                    actualSetCount: 0,
+                    completedWorkoutCount: 1,
+                    distanceMillimeters: null,
+                    durationSeconds: null,
+                    elapsedWorkoutSeconds: 300,
+                    performedExerciseCount: 0,
+                    recordedLoadVolumeGramRepetitions: null,
+                    repetitions: null,
+                  },
+                }),
+              ),
+            },
+          } as never)
+        }
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Actual sets, 0')).toBeOnTheScreen(),
+    );
+    expect(screen.getAllByLabelText(workoutMetricPattern)).toHaveLength(4);
+    expect(
+      screen.queryByText('No recorded load volume from weighted sets'),
+    ).toBeNull();
+    expect(
+      screen.queryByText(/recorded load volume from weighted sets/),
+    ).toBeNull();
+  });
+
   it('offers retry after a loading failure', async () => {
     await render(
       <ProgressScreen
@@ -327,6 +513,27 @@ describe('ProgressScreen', () => {
     expect(screen.getByLabelText('Try Again')).toBeOnTheScreen();
   });
 });
+
+/**
+ * Every line the Workouts card can render as a metric, and nothing else on the
+ * screen. Matching by accessible name is the only way to count them, because
+ * `Metric` composes `label, value` into one element whose two texts are
+ * unreachable individually.
+ */
+const workoutMetricPattern =
+  /^(Completed workouts|Actual sets|Performed exercises|Workout time|Repetitions|Performed duration|Performed distance), /;
+
+/** One period recording all four dimensions of work at once. */
+const everyDimension: ProgressSummary['workout'] = {
+  actualSetCount: 9,
+  completedWorkoutCount: 3,
+  distanceMillimeters: 12_500_000,
+  durationSeconds: 2_700,
+  elapsedWorkoutSeconds: 8_100,
+  performedExerciseCount: 4,
+  recordedLoadVolumeGramRepetitions: 160_000,
+  repetitions: 96,
+};
 
 const summary: ProgressSummary = {
   bodyWeight: {

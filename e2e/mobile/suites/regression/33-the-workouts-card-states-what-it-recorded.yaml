@@ -1,0 +1,42 @@
+appId: com.fitnessapp.dev
+name: The workouts card states what it recorded
+---
+# The sprint suite proves each dimension in isolation against a fixture shaped
+# for it, so it never renders this card at full height. This scenario is the
+# only place a period holds all four dimensions at once, which is the case where
+# the card is seven metrics and a sentence tall and where a line inserted in the
+# wrong order would show.
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/create-distance-and-duration-exercise.yaml
+- runFlow: ../../flows/exercise/create-added-load-exercise.yaml
+- runFlow:
+    file: ../../flows/workout/complete-distance-and-duration-workout.yaml
+    env:
+      DISTANCE: '5'
+      DURATION: '1800'
+- runFlow:
+    file: ../../flows/workout/complete-added-load-workout.yaml
+    env:
+      ADDED_WEIGHT: '20'
+      REPETITIONS: '8'
+- tapOn:
+    id: tab-progress
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: Repetitions, 8
+    direction: DOWN
+- assertVisible: Repetitions, 8
+- assertVisible: Performed duration, 30 min 0 sec
+- assertVisible: Performed distance, 5 km
+# Two workouts, one set each, and only one of the two sets is load-eligible —
+# which is why the total that excludes recorded work is the one that says so.
+- assertVisible: Completed workouts, 2
+- assertVisible: Actual sets, 2
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: 160 kg-reps recorded load volume from weighted sets
+    direction: DOWN
+- assertVisible: 160 kg-reps recorded load volume from weighted sets

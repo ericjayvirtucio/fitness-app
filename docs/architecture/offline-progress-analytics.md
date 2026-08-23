@@ -36,8 +36,9 @@ goals, and hydration target are not.
 
 ## What the summary states
 
-Every value the summary computes is a value the screen states, and every
-nutrient the application captures is a value the summary computes. The Nutrition
+Every value the summary computes is a value the screen states, on the screen
+that computes it, and every nutrient the application captures is a value the
+summary computes. The Nutrition
 card renders energy, its average per logged day, the logged day and entry
 counts, and a total and an average per logged day for all six stored
 nutrients — protein, carbohydrate, fat, fiber, sugar, and sodium — in the order
@@ -46,6 +47,26 @@ the total fluid, its plain water and other fluid components, an average per
 logged day for each of the first two, and the logged day and entry counts. Each
 average is labelled by the value it averages, because several averages share one
 card.
+
+The Workouts card renders the completed workout, actual set, and performed
+exercise counts, the elapsed session time it labels `Workout time`, and one line
+for each dimension of work the period recorded: repetitions, performed duration,
+performed distance, and recorded load volume. The first four are always present.
+Repetitions, performed duration, and performed distance render only when the
+period recorded that dimension, because an absent dimension has never been
+rendered as zero. Recorded load volume is the one total here that excludes
+recorded work, so it is stated as the sentence carrying its coverage rather than
+as a labelled value, and it appears in the covered form or in that form with the
+number removed for every period holding a set — which makes it the one line
+whose presence does not vary with what was recorded. All eight
+values, their order, and their wording come from Workout History, which states
+the same period through the same formatters inside one labelled card.
+
+`Workout time` is elapsed wall-clock session length and `Performed duration` is
+the sum of recorded set durations. The two read alike and are not the same
+value; the contrast between the labels is what distinguishes them, and
+[Specification 0040](../../specs/0040-the-workouts-card-states-what-it-recorded.md)
+records the rename that would remove the ambiguity outright.
 
 A nutrient's period values are carried in the unit that nutrient is recorded in:
 grams for five of the six, milligrams for sodium. Nothing converts a unit
@@ -61,6 +82,10 @@ Neither average divides by days in the period.
 records that a value the application asks a person to record and already
 aggregates for a day is a value it aggregates for a period, and that no nutrient
 is exempt from carrying both a total and an average.
+[ADR 0030](../decisions/0030-a-value-is-stated-by-every-screen-that-computes-it.md)
+records that a value is stated by every screen that computes it rather than by
+one screen somewhere, which is why the three workout dimensions Workout History
+already rendered are stated here too.
 [ADR 0028](../decisions/0028-a-summary-states-every-value-it-computes.md) records
 the rule and its boundary with
 [ADR 0023](../decisions/0023-displayed-totals-state-their-coverage.md): a value
@@ -97,8 +122,10 @@ holding a count and two bounded boundary sub-selects. Summaries are not
 persisted. A schema or index change requires measurement and a separate
 migration review.
 
-The nutrition period statement aggregates six nutrients over the rows it already
-scanned. Its only predicate and its only grouping key are `local_calendar_date`,
+The completed-workout period statement already sums every dimension the Workouts
+card states, so stating three more of them added no query, no projection, and no
+plan. The nutrition period statement aggregates six nutrients over the rows it
+already scanned. Its only predicate and its only grouping key are `local_calendar_date`,
 the leading column of `nutrition_consumption_entry_local_date_occurred_at`, which
 serves the range seek, the grouping, and the ordering without a sorter. That
 index does not carry the nutrient columns, so a rowid lookup per matching row

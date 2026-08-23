@@ -168,6 +168,22 @@ substantially taller for it, which is the accepted price of not making a person
 guess which nutrients the application will hand back. Nothing recorded changed:
 no entry, amount, daily total, target, or export.
 
+The same audit reached the workouts beside it last. The Progress Workouts card
+read eight values out of a period and stated five. The three it kept quiet about
+were the three that say how much work was done — how long you actually worked,
+how far you went, and how much you lifted — and all three were already being
+counted on every load and shown on the Workout History screen instead. Somebody
+who runs, rows, cycles, or holds a plank opened the tab called Progress and found
+a workout count, a set count, an exercise count, and a clock reading of how long
+they were in the gym. Nothing about the running. A card can be honest about every
+number on it and still leave a person with no answer to the question they came
+with. The card now states each dimension the period recorded, in the order and
+the words the history screen already used, and each line appears only when there
+was something of that kind to report rather than claiming a zero nobody did. The
+one total that deliberately counts weighted sets and not assisted ones says so
+every time it appears, and says so when there was none. Nothing recorded
+changed: no workout, set, result, record, or export.
+
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
 ## Offline-first philosophy

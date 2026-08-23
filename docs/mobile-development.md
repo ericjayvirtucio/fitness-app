@@ -424,13 +424,26 @@ The Progress tab combines bounded, capability-owned Nutrition, Hydration, and
 completed-workout readers. It derives Today, Sunday-to-Saturday week, and calendar
 month summaries from captured local dates without persisted rollups.
 
-Every value the summary computes is displayed, and every nutrient the entry form
-captures is summarized over a period as well as over a day. The Nutrition card
-carries sixteen metrics: energy, its average, the logged day and entry counts,
-and a total and an average per logged day for protein, carbohydrate, fat, fiber,
-sugar, and sodium. Each average is labelled by the value it averages and divides
-by logged days, the count the card names beside it; an average that cannot be
-computed is omitted rather than rendered as zero.
+Every value the summary computes is displayed by the screen that computes it,
+and every nutrient the entry form captures is summarized over a period as well as
+over a day. The Nutrition card carries sixteen metrics: energy, its average, the
+logged day and entry counts, and a total and an average per logged day for
+protein, carbohydrate, fat, fiber, sugar, and sodium. Each average is labelled by
+the value it averages and divides by logged days, the count the card names beside
+it; an average that cannot be computed is omitted rather than rendered as zero.
+
+The Workouts card carries up to seven metrics and one sentence. The completed
+workout, actual set, and performed exercise counts and the elapsed `Workout time`
+are always present; repetitions, performed duration, and performed distance
+render only when the period recorded that dimension. Recorded load volume is the
+one total on either card that excludes recorded work, so it is the sentence
+carrying its own coverage rather than a labelled value, stated in the covered
+form or in that form with the number removed for every period holding a set.
+Nothing here is formatted twice: `formatDuration`, `formatRecordedDistance`,
+`formatRecordedLoadVolumeSummary`, and `absentRecordedLoadVolumeMessage` are the
+functions Workout History already uses, so the two screens state the same period
+in the same words. `Workout time` is elapsed wall-clock session length and is not
+the performed duration beside it; the labels are what tell them apart.
 
 A nutrient's period value stays in the unit it was recorded in — sodium in
 milligrams, the other five in grams — and `formatProgressMass` takes that unit as
@@ -441,11 +454,14 @@ metric stays its own accessible element announcing `label, value`. See the
 [offline Progress architecture](architecture/offline-progress-analytics.md),
 [Specification 0038](../specs/0038-progress-states-everything-it-counted.md),
 [Specification 0039](../specs/0039-progress-counts-every-nutrient-you-logged.md),
+[Specification 0040](../specs/0040-the-workouts-card-states-what-it-recorded.md),
 [ADR 0028](decisions/0028-a-summary-states-every-value-it-computes.md),
 [ADR 0029](decisions/0029-a-captured-value-is-a-value-a-summary-can-state.md),
+[ADR 0030](decisions/0030-a-value-is-stated-by-every-screen-that-computes-it.md),
 the [Sprint 16 manual checklist](manual-testing/sprint-16-progress-analytics.md),
 the [Sprint 38 manual checklist](manual-testing/sprint-38-progress-states-everything-it-counted.md),
 the [Sprint 39 manual checklist](manual-testing/sprint-39-progress-counts-every-nutrient-you-logged.md),
+the [Sprint 40 manual checklist](manual-testing/sprint-40-the-workouts-card-states-what-it-recorded.md),
 and the [Progress troubleshooting guide](troubleshooting/offline-progress-analytics.md).
 
 ## Offline data export

@@ -108,6 +108,15 @@ The same repository also groups completed workout, performed exercise, and
 actual-set counts by captured local date for the cross-capability Progress daily
 breakdown. Planner intent and active sessions remain excluded.
 
+`summarizeCompletedRange` serves two screens from one statement, and both now
+state all eight of its values. History states them as sentences inside one
+labelled summary card; Progress states them as individually navigable metrics
+plus the load volume coverage sentence, in the same order, through the same
+formatters. Neither reworded the other's vocabulary, because the same total said
+two ways is two claims. See
+[Specification 0040](../../specs/0040-the-workouts-card-states-what-it-recorded.md)
+and [ADR 0030](../decisions/0030-a-value-is-stated-by-every-screen-that-computes-it.md).
+
 ## Performed exercise recents
 
 Recent exercises derive the latest completed performed occurrence per source Exercise
