@@ -60,10 +60,18 @@ const testMigrations: readonly Migration[] = [
 
 describe('initializeDatabase', () => {
   it('includes the forward-only personal profile migration', () => {
-    expect(migrations).toHaveLength(11);
+    expect(migrations).toHaveLength(12);
     expect(migrations[1]).toMatchObject({
       description: 'Add the single personal profile record.',
       version: 2,
+    });
+  });
+
+  it('includes the synchronization-readiness migration', () => {
+    expect(migrations.at(-1)).toMatchObject({
+      description:
+        'Add synchronization-readiness metadata to every person-owned table, plus a local-change outbox and device identity.',
+      version: 12,
     });
   });
 
@@ -78,8 +86,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain('CREATE TABLE workout_set');
     expect(statements).toContain('workout_session_single_active');
     expect(statements).not.toContain('REFERENCES exercise_catalog_item');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(3);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(4);
   });
 
   it('upgrades schema version 7 with the recurring workout planner', async () => {
@@ -94,8 +102,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain(
       'prevent_referenced_exercise_logging_mode_change',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(4);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(5);
   });
 
   it('upgrades schema version 6 with the exercise catalog', async () => {
@@ -107,9 +115,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain('CREATE TABLE exercise_catalog_item');
     expect(statements).toContain('exercise_catalog_item_normalized_name');
     expect(statements).toContain('exercise_catalog_item_favorites');
-    expect(statements).not.toContain('last_used_at');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(5);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(6);
   });
 
   it('upgrades schema version 5 with hydration entries and target', async () => {
@@ -121,9 +128,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain('CREATE TABLE hydration_entry');
     expect(statements).toContain('hydration_entry_local_date_occurred_at');
     expect(statements).toContain('CREATE TABLE hydration_target');
-    expect(statements).not.toContain('ALTER TABLE nutrition');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(6);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(7);
   });
 
   it('upgrades schema version 4 with reusable nutrition catalog items', async () => {
@@ -136,8 +142,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain('nutrition_catalog_item_normalized_name');
     expect(statements).toContain('nutrition_catalog_item_favorites');
     expect(statements).toContain('nutrition_catalog_item_recents');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(7);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(8);
   });
 
   it('upgrades schema version 3 with nutrition consumption entries', async () => {
@@ -151,8 +157,8 @@ describe('initializeDatabase', () => {
     expect(database.statements.join('\n')).toContain(
       'CREATE INDEX nutrition_consumption_entry_local_date_occurred_at',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(8);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(9);
   });
 
   it('upgrades schema version 2 by creating the goal configuration table', async () => {
@@ -163,8 +169,8 @@ describe('initializeDatabase', () => {
     expect(database.statements.join('\n')).toContain(
       'CREATE TABLE goal_configuration',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(9);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(10);
   });
 
   it('upgrades schema version 1 by creating the personal profile table', async () => {
@@ -175,8 +181,8 @@ describe('initializeDatabase', () => {
     expect(database.statements.join('\n')).toContain(
       'CREATE TABLE personal_profile',
     );
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(10);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(11);
   });
 
   it('upgrades schema version 9 with derived-history indexes only', async () => {
@@ -188,8 +194,8 @@ describe('initializeDatabase', () => {
     expect(statements).toContain('workout_session_completed_local_date');
     expect(statements).toContain('workout_session_exercise_source_history');
     expect(statements).not.toContain('CREATE TABLE workout_history');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
-    expect(database.transactionCount).toBe(2);
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(3);
   });
 
   it('upgrades schema version 10 with body weight history only', async () => {
@@ -200,8 +206,25 @@ describe('initializeDatabase', () => {
     const statements = database.statements.join('\n');
     expect(statements).toContain('CREATE TABLE body_weight_entry');
     expect(statements).toContain('body_weight_entry_local_date_occurred_at');
-    expect(statements).not.toContain('ALTER TABLE personal_profile');
-    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 11');
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
+    expect(database.transactionCount).toBe(2);
+  });
+
+  it('upgrades schema version 11 with synchronization-readiness metadata', async () => {
+    const database = new FakeDatabase(11);
+
+    await initializeDatabase(database, migrations);
+
+    const statements = database.statements.join('\n');
+    expect(statements).toContain(
+      'ALTER TABLE personal_profile ADD COLUMN updated_at_epoch_ms',
+    );
+    expect(statements).toContain(
+      'CREATE UNIQUE INDEX planned_workout_weekday_active',
+    );
+    expect(statements).toContain('CREATE TABLE sync_outbox');
+    expect(statements).toContain('CREATE TABLE device_identity');
+    expect(database.statements.at(-1)).toBe('PRAGMA user_version = 12');
     expect(database.transactionCount).toBe(1);
   });
 

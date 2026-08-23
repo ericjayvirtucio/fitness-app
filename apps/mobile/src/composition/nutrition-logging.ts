@@ -19,19 +19,31 @@ import {
 } from '../features/nutrition-logging/application/nutrition-catalog-use-cases';
 import { NutritionCatalogSqliteRepository } from '../features/nutrition-logging/infrastructure/nutrition-catalog-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createNutritionLoggingUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const repository = new ConsumptionEntrySqliteRepository(database);
-  const catalogRepository = new NutritionCatalogSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const repository = new ConsumptionEntrySqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
+  const catalogRepository = new NutritionCatalogSqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
   const transactionRunner =
     new SqliteTransactionRunner<ConsumptionEntryTransactionContext>(
       database,
       (transaction) => ({
         consumptionEntryRepository: new ConsumptionEntrySqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
       }),
     );
@@ -42,9 +54,13 @@ export async function createNutritionLoggingUseCases() {
       (transaction) => ({
         consumptionEntryRepository: new ConsumptionEntrySqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
         nutritionCatalogRepository: new NutritionCatalogSqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
       }),
     );

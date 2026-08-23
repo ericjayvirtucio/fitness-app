@@ -6,6 +6,9 @@ import type {
 import { NutritionCatalogItem } from '../application/nutrition-catalog-item';
 import { NutritionCatalogSqliteRepository } from './nutrition-catalog-sqlite-repository';
 
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-02T00:00:00.000Z');
+
 class FakeDatabase implements DatabaseConnection {
   rows: readonly unknown[] = [];
   firstRow: unknown = null;
@@ -98,6 +101,8 @@ describe('NutritionCatalogSqliteRepository', () => {
     database.rows = [storedRow];
     const items = await new NutritionCatalogSqliteRepository(
       database,
+      deviceId,
+      now,
     ).listRecent(10);
 
     expect(items[0]?.facts.nutrients.fiberGrams).toBeNull();
@@ -108,7 +113,11 @@ describe('NutritionCatalogSqliteRepository', () => {
 
   it('rejects corrupt dimension and normalized-name rows safely', async () => {
     const database = new FakeDatabase();
-    const repository = new NutritionCatalogSqliteRepository(database);
+    const repository = new NutritionCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     database.rows = [{ ...storedRow, reference_kind: 'volume' }];
     await expect(repository.listRecent(10)).rejects.toMatchObject({
       code: 'operation-failed',
@@ -122,7 +131,9 @@ describe('NutritionCatalogSqliteRepository', () => {
 
   it('inserts canonical values and normalized name with bound parameters', async () => {
     const database = new FakeDatabase();
-    await new NutritionCatalogSqliteRepository(database).insert(createItem());
+    await new NutritionCatalogSqliteRepository(database, deviceId, now).insert(
+      createItem(),
+    );
 
     expect(database.runs[0]?.statement).toContain(
       'INSERT INTO nutrition_catalog_item',
@@ -145,12 +156,18 @@ describe('NutritionCatalogSqliteRepository', () => {
       1,
       100,
       2,
+      now().getTime(),
+      deviceId,
     ]);
   });
 
   it('uses focused bounded search, favorite, recent, and exact queries', async () => {
     const database = new FakeDatabase();
-    const repository = new NutritionCatalogSqliteRepository(database);
+    const repository = new NutritionCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     await repository.search('100%_rice', 50);
     await repository.listFavorites(10);
     await repository.listRecent(10);
@@ -168,13 +185,27 @@ describe('NutritionCatalogSqliteRepository', () => {
   it('updates favorite and usage only for existing rows', async () => {
     const database = new FakeDatabase();
     database.firstRow = storedRow;
-    const repository = new NutritionCatalogSqliteRepository(database);
+    const repository = new NutritionCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
     const id = DomainId.create(storedRow.id);
     if (!isOk(id)) throw new Error('Invalid fixture.');
 
     await expect(repository.setFavorite(id.value, false)).resolves.toBe(true);
     await expect(repository.recordUsage(id.value, 200)).resolves.toBe(true);
-    expect(database.runs[0]?.parameters).toEqual([0, storedRow.id]);
-    expect(database.runs[1]?.parameters).toEqual([200, storedRow.id]);
+    expect(database.runs[0]?.parameters).toEqual([
+      0,
+      now().getTime(),
+      storedRow.id,
+    ]);
+    expect(database.runs[1]?.statement).toContain('sync_outbox');
+    expect(database.runs[2]?.parameters).toEqual([
+      200,
+      now().getTime(),
+      storedRow.id,
+    ]);
+    expect(database.runs[3]?.statement).toContain('sync_outbox');
   });
 });

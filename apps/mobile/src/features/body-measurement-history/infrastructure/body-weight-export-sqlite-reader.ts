@@ -35,7 +35,8 @@ export class BodyWeightExportSqliteReader implements BodyWeightExportReader {
       const rows = await this.database.getAll<BodyWeightEntryRow>(
         `SELECT ${bodyWeightEntryColumns}
          FROM body_weight_entry
-         ${keyset.sql === '' ? '' : `WHERE ${keyset.sql}`}
+         WHERE deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY local_calendar_date ASC, occurred_at_epoch_ms ASC, id ASC
          LIMIT ?`,
         [...keyset.parameters, query.limit + 1],

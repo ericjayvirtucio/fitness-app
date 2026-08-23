@@ -50,6 +50,7 @@ export class ReplaceLocalDataUseCase {
         for (const eraser of context.erasers) {
           await eraser.eraseStoredRecords();
         }
+        await context.clearOutbox();
 
         // Nothing is written until the previous dataset is provably gone, so a
         // failed or skipped eraser can never leave one record of it mixed into

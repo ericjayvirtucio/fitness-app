@@ -35,7 +35,8 @@ export class WorkoutSessionExportSqliteReader implements WorkoutSessionExportRea
     try {
       const sessionRows = await this.database.getAll<SessionRow>(
         `SELECT * FROM workout_session
-         WHERE status = ? ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
+         WHERE status = ? AND deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY started_local_calendar_date ASC, started_at_epoch_ms ASC, id ASC
          LIMIT ?`,
         ['completed', ...keyset.parameters, query.limit + 1],

@@ -608,4 +608,164 @@ export const migrations: readonly Migration[] = [
     },
     version: 11,
   },
+  {
+    description:
+      'Add synchronization-readiness metadata to every person-owned table, plus a local-change outbox and device identity.',
+    up: async (transaction) => {
+      const ownedTables = [
+        'personal_profile',
+        'goal_configuration',
+        'hydration_target',
+        'nutrition_consumption_entry',
+        'nutrition_catalog_item',
+        'hydration_entry',
+        'exercise_catalog_item',
+        'body_weight_entry',
+        'workout_session',
+      ];
+      for (const table of ownedTables) {
+        await transaction.exec(`
+          ALTER TABLE ${table} ADD COLUMN updated_at_epoch_ms INTEGER NOT NULL
+            DEFAULT 0 CHECK (updated_at_epoch_ms >= 0)
+        `);
+        await transaction.exec(`
+          ALTER TABLE ${table} ADD COLUMN deleted_at_epoch_ms INTEGER
+            CHECK (deleted_at_epoch_ms IS NULL OR deleted_at_epoch_ms >= 0)
+        `);
+        await transaction.exec(`
+          ALTER TABLE ${table} ADD COLUMN revision INTEGER NOT NULL
+            DEFAULT 1 CHECK (revision >= 1)
+        `);
+        await transaction.exec(`
+          ALTER TABLE ${table} ADD COLUMN originating_device_id TEXT NOT NULL
+            DEFAULT 'pre-sync-migration'
+        `);
+      }
+
+      // `planned_workout.weekday` carries an inline UNIQUE constraint that
+      // would permanently block re-planning a weekday once its previous plan
+      // is tombstoned rather than deleted. SQLite cannot drop a column-level
+      // constraint in place, so the table is rebuilt with the uniqueness
+      // moved to a partial index over live rows, matching the pattern
+      // `workout_session_single_active` already established.
+      await transaction.exec(`
+        CREATE TABLE planned_workout_v12 (
+          id TEXT PRIMARY KEY,
+          weekday INTEGER NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+          display_name TEXT NOT NULL CHECK (
+            length(trim(display_name)) BETWEEN 1 AND 80
+          ),
+          updated_at_epoch_ms INTEGER NOT NULL DEFAULT 0 CHECK (
+            updated_at_epoch_ms >= 0
+          ),
+          deleted_at_epoch_ms INTEGER CHECK (
+            deleted_at_epoch_ms IS NULL OR deleted_at_epoch_ms >= 0
+          ),
+          revision INTEGER NOT NULL DEFAULT 1 CHECK (revision >= 1),
+          originating_device_id TEXT NOT NULL DEFAULT 'pre-sync-migration'
+        )
+      `);
+      await transaction.exec(`
+        INSERT INTO planned_workout_v12 (id, weekday, display_name)
+        SELECT id, weekday, display_name FROM planned_workout
+      `);
+      await transaction.exec('DROP TABLE planned_workout');
+      await transaction.exec(
+        'ALTER TABLE planned_workout_v12 RENAME TO planned_workout',
+      );
+      await transaction.exec(`
+        CREATE UNIQUE INDEX planned_workout_weekday_active
+        ON planned_workout (weekday) WHERE deleted_at_epoch_ms IS NULL
+      `);
+
+      // Rebuild every index a tombstone-aware read relies on as a partial
+      // index over live rows, so a filtered query stays index-covered
+      // without widening its column list.
+      const partialIndexes: ReadonlyArray<{
+        readonly columns: string;
+        readonly name: string;
+        readonly table: string;
+      }> = [
+        {
+          columns: 'local_calendar_date, occurred_at_epoch_ms DESC, id',
+          name: 'nutrition_consumption_entry_local_date_occurred_at',
+          table: 'nutrition_consumption_entry',
+        },
+        {
+          columns: 'normalized_name, id',
+          name: 'nutrition_catalog_item_normalized_name',
+          table: 'nutrition_catalog_item',
+        },
+        {
+          columns: 'is_favorite, normalized_name, id',
+          name: 'nutrition_catalog_item_favorites',
+          table: 'nutrition_catalog_item',
+        },
+        {
+          columns:
+            'last_used_at_epoch_ms DESC, use_count DESC, normalized_name, id',
+          name: 'nutrition_catalog_item_recents',
+          table: 'nutrition_catalog_item',
+        },
+        {
+          columns: 'local_calendar_date, occurred_at_epoch_ms DESC, id',
+          name: 'hydration_entry_local_date_occurred_at',
+          table: 'hydration_entry',
+        },
+        {
+          columns: 'normalized_name, id',
+          name: 'exercise_catalog_item_normalized_name',
+          table: 'exercise_catalog_item',
+        },
+        {
+          columns: 'is_favorite, normalized_name, id',
+          name: 'exercise_catalog_item_favorites',
+          table: 'exercise_catalog_item',
+        },
+        {
+          columns: 'status, started_at_epoch_ms DESC, id',
+          name: 'workout_session_status_started',
+          table: 'workout_session',
+        },
+        {
+          columns:
+            'status, started_local_calendar_date DESC, started_at_epoch_ms DESC, id DESC',
+          name: 'workout_session_completed_local_date',
+          table: 'workout_session',
+        },
+        {
+          columns:
+            'local_calendar_date DESC, occurred_at_epoch_ms DESC, id DESC',
+          name: 'body_weight_entry_local_date_occurred_at',
+          table: 'body_weight_entry',
+        },
+      ];
+      for (const index of partialIndexes) {
+        await transaction.exec(`DROP INDEX ${index.name}`);
+        await transaction.exec(`
+          CREATE INDEX ${index.name} ON ${index.table} (${index.columns})
+          WHERE deleted_at_epoch_ms IS NULL
+        `);
+      }
+
+      await transaction.exec(`
+        CREATE TABLE sync_outbox (
+          table_name TEXT NOT NULL,
+          row_id TEXT NOT NULL,
+          operation TEXT NOT NULL CHECK (operation IN ('upsert', 'delete')),
+          revision INTEGER NOT NULL CHECK (revision >= 1),
+          queued_at_epoch_ms INTEGER NOT NULL CHECK (queued_at_epoch_ms >= 0),
+          PRIMARY KEY (table_name, row_id)
+        )
+      `);
+
+      await transaction.exec(`
+        CREATE TABLE device_identity (
+          singleton_id INTEGER PRIMARY KEY CHECK (singleton_id = 1),
+          device_id TEXT NOT NULL CHECK (length(device_id) > 0)
+        )
+      `);
+    },
+    version: 12,
+  },
 ];

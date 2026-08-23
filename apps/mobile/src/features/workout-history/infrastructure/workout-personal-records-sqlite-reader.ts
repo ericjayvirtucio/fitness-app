@@ -114,6 +114,7 @@ function recordBranch(descriptor: PersonalRecordDescriptor): string {
       ON actual.workout_session_exercise_id = exercise.id
     WHERE exercise.source_exercise_definition_id = ?
       AND session.status = 'completed'
+      AND session.deleted_at_epoch_ms IS NULL
       AND exercise.logging_mode_snapshot IN (${modePlaceholders})
       AND ${comparedColumn} IS NOT NULL
     ORDER BY ${comparedColumn} ${comparedOrder(descriptor)},
@@ -164,6 +165,7 @@ function loggingModeStatement(): string {
     JOIN workout_session session ON session.id = exercise.workout_session_id
     WHERE exercise.source_exercise_definition_id = ?
       AND session.status = 'completed'
+      AND session.deleted_at_epoch_ms IS NULL
       AND EXISTS (
         SELECT 1 FROM workout_set actual
         WHERE actual.workout_session_exercise_id = exercise.id

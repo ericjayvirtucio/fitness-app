@@ -6,6 +6,9 @@ import { buildExerciseCatalogItem } from '../application/build-exercise-catalog-
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
 import { ExerciseCatalogSqliteRepository } from './exercise-catalog-sqlite-repository';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * Narrowing is an engine property, not an orchestration one. Only a real engine
  * can show that one statement returns exactly the matching rows, that narrowing
@@ -54,7 +57,7 @@ describe('Narrowed exercise catalog reads on a real database', () => {
   beforeEach(async () => {
     database = new NodeSqliteDatabase();
     await initializeDatabase(database, migrations);
-    repository = new ExerciseCatalogSqliteRepository(database);
+    repository = new ExerciseCatalogSqliteRepository(database, deviceId, now);
     let index = 0;
     for (const [name, equipment, muscle] of catalogFixture) {
       await repository.insert(fixtureItem(index, name, equipment, muscle));
@@ -181,6 +184,6 @@ describe('Narrowed exercise catalog reads on a real database', () => {
         database.getAll<CountRow>(`SELECT COUNT(*) AS total FROM ${table}`),
       ).resolves.toEqual([{ total: 0 }]);
     }
-    await expect(database.getVersion()).resolves.toBe(11);
+    await expect(database.getVersion()).resolves.toBe(12);
   });
 });

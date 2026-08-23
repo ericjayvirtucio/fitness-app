@@ -8,6 +8,9 @@ import { PersistenceError } from '../../../infrastructure/persistence/persistenc
 import { BodyWeightEntrySqliteRepository } from './body-weight-entry-sqlite-repository';
 import { BodyWeightProgressSqliteReader } from './body-weight-progress-sqlite-reader';
 
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-04T00:00:00.000Z');
+
 class FakeDatabase implements DatabaseConnection {
   row: unknown = null;
   rows: readonly unknown[] = [];
@@ -91,7 +94,9 @@ function entry(): BodyWeightEntry {
 
 describe('body weight persistence', () => {
   it('creates the forward-only table and one ordered index', async () => {
-    const migration = migrations.at(-1);
+    // The synchronization-readiness migration is appended after this one, so
+    // this is the second-to-last migration rather than the last.
+    const migration = migrations.at(-2);
     if (!migration) throw new Error('Missing migration');
     expect(migration).toMatchObject({
       description: 'Add historical body weight check-ins.',
@@ -114,7 +119,11 @@ describe('body weight persistence', () => {
   it('reconstructs a stored row through the domain', async () => {
     const database = new FakeDatabase();
     database.row = row;
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     const found = await repository.getById(entry().id);
 
@@ -127,7 +136,11 @@ describe('body weight persistence', () => {
     const database = new FakeDatabase();
     database.row = row;
 
-    await new BodyWeightEntrySqliteRepository(database).getLatest();
+    await new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).getLatest();
 
     expect(database.queries[0]?.statement).toContain(
       'ORDER BY local_calendar_date DESC',
@@ -137,7 +150,11 @@ describe('body weight persistence', () => {
 
   it('writes canonical grams through bound parameters', async () => {
     const database = new FakeDatabase();
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     await repository.insert(entry());
 
@@ -151,12 +168,18 @@ describe('body weight persistence', () => {
       row.occurred_at_epoch_ms,
       '2026-08-04',
       480,
+      now().getTime(),
+      deviceId,
     ]);
   });
 
   it('updates and deletes only existing check-ins', async () => {
     const database = new FakeDatabase();
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     await expect(repository.update(entry())).resolves.toBe(false);
     await expect(repository.delete(entry().id)).resolves.toBe(false);
@@ -164,7 +187,15 @@ describe('body weight persistence', () => {
     database.row = row;
     await expect(repository.update(entry())).resolves.toBe(true);
     await expect(repository.delete(entry().id)).resolves.toBe(true);
-    expect(database.runs.at(-1)?.parameters).toEqual([row.id]);
+    const tombstone = database.runs.at(-2);
+    expect(tombstone?.statement).toContain('UPDATE body_weight_entry');
+    expect(tombstone?.statement).toContain('deleted_at_epoch_ms = ?');
+    expect(tombstone?.parameters).toEqual([
+      now().getTime(),
+      now().getTime(),
+      row.id,
+    ]);
+    expect(database.runs.at(-1)?.statement).toContain('sync_outbox');
   });
 
   it('pages history without loading lifetime rows', async () => {
@@ -174,7 +205,11 @@ describe('body weight persistence', () => {
       rowWith({ id: '223e4567-e89b-42d3-a456-426614174000' }),
       rowWith({ id: '323e4567-e89b-42d3-a456-426614174000' }),
     ];
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     const page = await repository.listPage({ limit: 2 });
 
@@ -190,7 +225,11 @@ describe('body weight persistence', () => {
   it('binds a keyset cursor and reports the final page', async () => {
     const database = new FakeDatabase();
     database.rows = [row];
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     const page = await repository.listPage({
       cursor: {
@@ -217,7 +256,11 @@ describe('body weight persistence', () => {
   it('rejects a corrupt row without leaking its values', async () => {
     const database = new FakeDatabase();
     database.row = { ...row, mass_grams: -5 };
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     await expect(repository.getById(entry().id)).rejects.toThrow(
       PersistenceError,
@@ -228,7 +271,11 @@ describe('body weight persistence', () => {
   it('translates database failures into safe persistence errors', async () => {
     const database = new FakeDatabase();
     database.error = new Error('disk image is malformed');
-    const repository = new BodyWeightEntrySqliteRepository(database);
+    const repository = new BodyWeightEntrySqliteRepository(
+      database,
+      deviceId,
+      now,
+    );
 
     await expect(repository.getById(entry().id)).rejects.toMatchObject({
       code: 'operation-failed',

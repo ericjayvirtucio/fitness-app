@@ -120,3 +120,11 @@ errors/logs exclude workout details. There is no network, telemetry, AI, or new
 permission. History and deterministic progress are described in
 [Offline Workout History](offline-workout-history.md). Encryption, charts,
 advanced analytics, advanced sets, timers, and synchronization remain deferred.
+
+`workout_session` carries the synchronization-readiness metadata described in
+[Schema synchronization readiness](schema-synchronization-readiness.md); its
+children do not. Deleting a completed workout tombstones the session row
+rather than removing it; abandoning a never-completed active session remains
+an unconditional hard delete, matching this document's own "Discard deletes
+the active aggregate" (ADR 0008) — a session is not queued for a future sync
+until it is completed. No synchronization exists yet.

@@ -29,6 +29,7 @@ import type { DatabaseConnection } from '../../../infrastructure/persistence/dat
 import { initializeDatabase } from '../../../infrastructure/persistence/database-initializer';
 import { migrations } from '../../../infrastructure/persistence/migrations';
 import { SqliteTransactionRunner } from '../../../infrastructure/persistence/sqlite-transaction-runner';
+import { clearOutbox } from '../../../infrastructure/persistence/sync-outbox';
 import { NodeSqliteDatabase } from '../../../infrastructure/persistence/testing/node-sqlite-database';
 import { parseDataExport } from '../../data-restore/application/parse-data-export';
 import type { RestoreData } from '../../data-restore/application/restore-data';
@@ -41,6 +42,9 @@ import {
 } from '../../data-restore/application/synthetic-data-export.spec-helper';
 import type { LocalDataReplacementTransactionContext } from './local-data-replacement-transaction-context';
 import { ReplaceLocalDataUseCase } from './replace-local-data-use-case';
+
+const deviceId = 'device-a';
+const now = () => new Date();
 
 /**
  * The rollback guarantee replacement rests on is a property of the engine, not
@@ -88,9 +92,14 @@ function buildRunner(database: DatabaseConnection, options: Options = {}) {
         workoutPlanner: new WorkoutPlannerStoredDataProbe(transaction),
         workoutSession: new WorkoutSessionStoredDataProbe(transaction),
       };
-      const bodyWeight = new BodyWeightEntrySqliteRepository(transaction);
+      const bodyWeight = new BodyWeightEntrySqliteRepository(
+        transaction,
+        deviceId,
+        now,
+      );
 
       return {
+        clearOutbox: () => clearOutbox(transaction),
         erasers: [
           new WorkoutSessionDataEraser(transaction),
           new WorkoutPlannerDataEraser(transaction),
@@ -108,13 +117,37 @@ function buildRunner(database: DatabaseConnection, options: Options = {}) {
           bodyWeight: options.failBodyWeightInsert
             ? withFailingInsert(bodyWeight)
             : bodyWeight,
-          exerciseCatalog: new ExerciseCatalogSqliteRepository(transaction),
-          goals: new GoalSqliteRepository(transaction),
-          hydrationEntries: new HydrationEntrySqliteRepository(transaction),
-          hydrationTarget: new HydrationTargetSqliteRepository(transaction),
-          nutritionCatalog: new NutritionCatalogSqliteRepository(transaction),
-          nutritionEntries: new ConsumptionEntrySqliteRepository(transaction),
-          planner: new WorkoutPlannerSqliteRepository(transaction),
+          exerciseCatalog: new ExerciseCatalogSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          goals: new GoalSqliteRepository(transaction, deviceId, now),
+          hydrationEntries: new HydrationEntrySqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          hydrationTarget: new HydrationTargetSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          nutritionCatalog: new NutritionCatalogSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          nutritionEntries: new ConsumptionEntrySqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          planner: new WorkoutPlannerSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
           probes: [
             probes.personalProfile,
             probes.goal,
@@ -125,8 +158,16 @@ function buildRunner(database: DatabaseConnection, options: Options = {}) {
             probes.workoutSession,
             probes.bodyWeight,
           ],
-          profile: new PersonalProfileSqliteRepository(transaction),
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          profile: new PersonalProfileSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         },
       };
     },

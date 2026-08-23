@@ -18,6 +18,7 @@ import {
   PersistenceError,
   toPersistenceError,
 } from '../../../infrastructure/persistence/persistence-error';
+import { queueOutboxEntry } from '../../../infrastructure/persistence/sync-outbox';
 import type { PlannedExerciseUsage } from '../../exercise-catalog/application/exercise-plan-reference-reader';
 import type {
   PlannedExerciseDetails,
@@ -68,10 +69,17 @@ const weeklyQuery = `
   LEFT JOIN planned_exercise planned ON planned.planned_workout_id = workout.id
   LEFT JOIN exercise_catalog_item exercise
     ON exercise.id = planned.exercise_definition_id
+  WHERE workout.deleted_at_epoch_ms IS NULL
   ORDER BY workout.weekday ASC, planned.position ASC`;
 
+const tableName = 'planned_workout';
+
 export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository {
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(
+    private readonly database: DatabaseConnection,
+    private readonly deviceId: string,
+    private readonly now: () => Date,
+  ) {}
 
   async getWeeklyWorkouts(): Promise<readonly PlannedWorkoutDetails[]> {
     try {
@@ -85,7 +93,7 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
     try {
       const rows = await this.database.getAll<PlannerRow>(
         `${weeklyQuery.replace('ORDER BY workout.weekday ASC, planned.position ASC', '')}
-         WHERE workout.weekday = ? ORDER BY planned.position ASC`,
+         AND workout.weekday = ? ORDER BY planned.position ASC`,
         [weekday.value],
       );
       return mapRows(rows)[0] ?? null;
@@ -94,13 +102,47 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
     }
   }
 
+  /**
+   * Preserves the parent row's identity across an edit. Earlier this always
+   * deleted and reinserted `planned_workout` itself, which was harmless before
+   * synchronization metadata existed. Recreating the row on every edit would
+   * now silently reset its revision and look like "delete this weekday's
+   * plan, create an unrelated new one" to a future sync consumer, so an edit
+   * of an existing id is a real `UPDATE`; only a genuinely new plan — a fresh
+   * id, because `deleteByWeekday` tombstoned the previous one or none ever
+   * existed — is inserted. Children have no independent identity to preserve
+   * and are still rewritten wholesale.
+   */
   async replace(workout: PlannedWorkout): Promise<void> {
     try {
-      await this.deleteWeekday(workout.weekday);
-      await this.database.run(
-        'INSERT INTO planned_workout (id, weekday, display_name) VALUES (?, ?, ?)',
-        [workout.id.value, workout.weekday.value, workout.name],
+      const nowEpochMs = this.now().getTime();
+      const existing = await this.database.getFirst<{ id: string }>(
+        'SELECT id FROM planned_workout WHERE id = ? AND deleted_at_epoch_ms IS NULL',
+        [workout.id.value],
       );
+      if (existing === null) {
+        await this.database.run(
+          `INSERT INTO planned_workout (
+            id, weekday, display_name, updated_at_epoch_ms,
+            deleted_at_epoch_ms, revision, originating_device_id
+          ) VALUES (?, ?, ?, ?, NULL, 1, ?)`,
+          [
+            workout.id.value,
+            workout.weekday.value,
+            workout.name,
+            nowEpochMs,
+            this.deviceId,
+          ],
+        );
+      } else {
+        await this.database.run(
+          `UPDATE planned_workout SET weekday = ?, display_name = ?,
+            updated_at_epoch_ms = ?, revision = revision + 1
+           WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
+          [workout.weekday.value, workout.name, nowEpochMs, workout.id.value],
+        );
+      }
+      await this.deleteChildren(workout.id.value);
       for (const exercise of workout.exercises) {
         await this.database.run(
           `INSERT INTO planned_exercise (
@@ -112,6 +154,7 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
           exerciseParameters(workout.id, exercise),
         );
       }
+      await this.queueRevision(workout.id.value, 'upsert', nowEpochMs);
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
     }
@@ -120,11 +163,19 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
   async deleteByWeekday(weekday: Weekday): Promise<boolean> {
     try {
       const existing = await this.database.getFirst<{ id: string }>(
-        'SELECT id FROM planned_workout WHERE weekday = ?',
+        'SELECT id FROM planned_workout WHERE weekday = ? AND deleted_at_epoch_ms IS NULL',
         [weekday.value],
       );
       if (existing === null) return false;
-      await this.deleteWeekday(weekday);
+      const nowEpochMs = this.now().getTime();
+      await this.deleteChildren(existing.id);
+      await this.database.run(
+        `UPDATE planned_workout SET deleted_at_epoch_ms = ?,
+          updated_at_epoch_ms = ?, revision = revision + 1
+         WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
+        [nowEpochMs, nowEpochMs, existing.id],
+      );
+      await this.queueRevision(existing.id, 'delete', nowEpochMs);
       return true;
     } catch (error: unknown) {
       throw toPersistenceError(error, 'operation-failed');
@@ -143,6 +194,7 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
          FROM planned_exercise planned
          JOIN planned_workout workout ON workout.id = planned.planned_workout_id
          WHERE planned.exercise_definition_id = ?
+           AND workout.deleted_at_epoch_ms IS NULL
          GROUP BY workout.id, workout.weekday, workout.display_name
          ORDER BY workout.weekday ASC`,
         [exerciseDefinitionId.value],
@@ -164,21 +216,34 @@ export class WorkoutPlannerSqliteRepository implements WorkoutPlannerRepository 
   }
 
   /**
-   * Removes a weekday's plan child-first. Expo opens an exclusive transaction
-   * on a connection of its own, where `PRAGMA foreign_keys` is off and cannot
-   * be turned on once the transaction has begun, so `ON DELETE CASCADE` would
-   * leave orphan `planned_exercise` rows that no read path can see.
+   * Removes a plan's exercises. Children have no independent sync identity
+   * and are always hard-deleted, whether the parent is about to be rewritten
+   * (`replace`) or tombstoned (`deleteByWeekday`).
    */
-  private async deleteWeekday(weekday: Weekday): Promise<void> {
+  private async deleteChildren(workoutId: string): Promise<void> {
     await this.database.run(
-      `DELETE FROM planned_exercise WHERE planned_workout_id IN (
-         SELECT id FROM planned_workout WHERE weekday = ?
-       )`,
-      [weekday.value],
+      'DELETE FROM planned_exercise WHERE planned_workout_id = ?',
+      [workoutId],
     );
-    await this.database.run('DELETE FROM planned_workout WHERE weekday = ?', [
-      weekday.value,
-    ]);
+  }
+
+  private async queueRevision(
+    id: string,
+    operation: 'delete' | 'upsert',
+    nowEpochMs: number,
+  ): Promise<void> {
+    const stored = await this.database.getFirst<{ revision: number }>(
+      'SELECT revision FROM planned_workout WHERE id = ?',
+      [id],
+    );
+    await queueOutboxEntry(
+      this.database,
+      tableName,
+      id,
+      operation,
+      stored?.revision ?? 1,
+      nowEpochMs,
+    );
   }
 }
 

@@ -113,3 +113,12 @@ and is neither logged nor transmitted.
 The capability has no household measure, density, meal category, hydration
 workflow, external provider, AI, authentication, synchronization, export, backup,
 bulk reset, or application-level SQLite encryption.
+
+`nutrition_consumption_entry` carries the synchronization-readiness metadata
+described in
+[Schema synchronization readiness](schema-synchronization-readiness.md).
+Deleting an entry tombstones the row rather than removing it; every read here
+already excludes a tombstoned row. `nutrition_catalog_item`'s equivalent note
+is in
+[Reusable nutrition catalog](reusable-nutrition-catalog.md). No
+synchronization exists yet.

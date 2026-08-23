@@ -112,3 +112,12 @@ Sprint 13 transactionally snapshots today's name, weekday, ordered exercises,
 logging modes, and prescriptions into an independent Workout Session. Later
 Planner replacement cannot rewrite execution. Completion and adherence remain
 absent from Planner.
+
+`planned_workout` carries the synchronization-readiness metadata described in
+[Schema synchronization readiness](schema-synchronization-readiness.md);
+`planned_exercise` does not, since it is always rewritten with its parent.
+Clearing a weekday's plan tombstones the `planned_workout` row rather than
+removing it, and its weekday uniqueness moved from an inline constraint to a
+partial index over live rows so a cleared weekday can be re-planned. Editing
+an existing plan now updates its row in place instead of recreating it, so
+its identity and revision survive the edit. No synchronization exists yet.

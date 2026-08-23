@@ -179,3 +179,9 @@ Exercise definitions remain private device-local data in the operating-system
 application sandbox. Names and notes are not logged. There is no network,
 analytics, telemetry, AI, external provider, or new permission. Encryption,
 export, backup, restore, reset, retention, and synchronization remain deferred.
+
+The table carries the synchronization-readiness metadata described in
+[Schema synchronization readiness](schema-synchronization-readiness.md).
+Deleting a definition tombstones the row rather than removing it; every read
+here, including the duplicate-name check and the Planner's referential usage
+check, already excludes a tombstoned row. No synchronization exists yet.

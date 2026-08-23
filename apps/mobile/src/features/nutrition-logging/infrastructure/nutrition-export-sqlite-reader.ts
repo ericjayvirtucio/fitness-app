@@ -41,7 +41,8 @@ export class NutritionExportSqliteReader implements NutritionExportReader {
       const rows = await this.database.getAll<ConsumptionEntryRow>(
         `SELECT ${consumptionEntryColumns}
          FROM nutrition_consumption_entry
-         ${keyset.sql === '' ? '' : `WHERE ${keyset.sql}`}
+         WHERE deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY local_calendar_date ASC, occurred_at_epoch_ms ASC, id ASC
          LIMIT ?`,
         [...keyset.parameters, query.limit + 1],
@@ -67,7 +68,8 @@ export class NutritionExportSqliteReader implements NutritionExportReader {
       const rows = await this.database.getAll<NutritionCatalogRow>(
         `SELECT ${nutritionCatalogColumns}
          FROM nutrition_catalog_item
-         ${keyset.sql === '' ? '' : `WHERE ${keyset.sql}`}
+         WHERE deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY normalized_name ASC, id ASC
          LIMIT ?`,
         [...keyset.parameters, query.limit + 1],

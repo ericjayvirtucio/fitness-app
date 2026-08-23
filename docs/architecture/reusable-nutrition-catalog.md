@@ -82,5 +82,12 @@ Data remains in the OS-protected application sandbox. Queries use bound
 parameters, stored rows are validated, and errors do not expose sensitive data.
 There is no networking, analytics, telemetry, or AI. Household quantities,
 density, recipes, hydration, external providers, targets, synchronization,
-encryption, export, backup, restore, and reset remain unavailable. Tombstones and
-deletion reconciliation must be designed with future synchronization.
+encryption, export, backup, restore, and reset remain unavailable.
+
+`nutrition_catalog_item` carries the synchronization-readiness metadata
+described in
+[Schema synchronization readiness](schema-synchronization-readiness.md).
+Deleting a catalog item tombstones the row rather than removing it; every
+read here, including the duplicate-name check, already excludes a
+tombstoned row. Full deletion reconciliation across devices remains a
+question for whatever design actually builds synchronization.

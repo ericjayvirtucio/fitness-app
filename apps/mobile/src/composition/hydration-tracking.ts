@@ -8,13 +8,23 @@ import { SaveHydrationTargetUseCase } from '../features/hydration-tracking/appli
 import { UpdateHydrationEntryUseCase } from '../features/hydration-tracking/application/update-hydration-entry-use-case';
 import { HydrationEntrySqliteRepository } from '../features/hydration-tracking/infrastructure/hydration-entry-sqlite-repository';
 import { HydrationTargetSqliteRepository } from '../features/hydration-tracking/infrastructure/hydration-target-sqlite-repository';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createHydrationTrackingUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const entryRepository = new HydrationEntrySqliteRepository(database);
-  const targetRepository = new HydrationTargetSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const entryRepository = new HydrationEntrySqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
+  const targetRepository = new HydrationTargetSqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
   const getCurrentTime = () => Date.now();
 
   return Object.freeze({

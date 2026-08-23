@@ -23,11 +23,13 @@ import { WorkoutPlannerStoredDataProbe } from '../features/workout-planner/infra
 import { WorkoutSessionSqliteRepository } from '../features/workout-session/infrastructure/workout-session-sqlite-repository';
 import { WorkoutSessionStoredDataProbe } from '../features/workout-session/infrastructure/workout-session-stored-data-probe';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createDataRestoreUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
   // Every probe and every repository is built from the same exclusive
   // transaction, so the emptiness check and the writes cannot disagree about
   // what the database held.
@@ -35,14 +37,38 @@ export async function createDataRestoreUseCases() {
     new SqliteTransactionRunner<DataRestoreTransactionContext>(
       database,
       (transaction) => ({
-        bodyWeight: new BodyWeightEntrySqliteRepository(transaction),
-        exerciseCatalog: new ExerciseCatalogSqliteRepository(transaction),
-        goals: new GoalSqliteRepository(transaction),
-        hydrationEntries: new HydrationEntrySqliteRepository(transaction),
-        hydrationTarget: new HydrationTargetSqliteRepository(transaction),
-        nutritionCatalog: new NutritionCatalogSqliteRepository(transaction),
-        nutritionEntries: new ConsumptionEntrySqliteRepository(transaction),
-        planner: new WorkoutPlannerSqliteRepository(transaction),
+        bodyWeight: new BodyWeightEntrySqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        exerciseCatalog: new ExerciseCatalogSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        goals: new GoalSqliteRepository(transaction, deviceId, now),
+        hydrationEntries: new HydrationEntrySqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        hydrationTarget: new HydrationTargetSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        nutritionCatalog: new NutritionCatalogSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        nutritionEntries: new ConsumptionEntrySqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        planner: new WorkoutPlannerSqliteRepository(transaction, deviceId, now),
         probes: [
           new PersonalProfileStoredDataProbe(transaction),
           new GoalStoredDataProbe(transaction),
@@ -53,8 +79,16 @@ export async function createDataRestoreUseCases() {
           new WorkoutSessionStoredDataProbe(transaction),
           new BodyWeightStoredDataProbe(transaction),
         ],
-        profile: new PersonalProfileSqliteRepository(transaction),
-        sessions: new WorkoutSessionSqliteRepository(transaction),
+        profile: new PersonalProfileSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+        sessions: new WorkoutSessionSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
       }),
     );
 

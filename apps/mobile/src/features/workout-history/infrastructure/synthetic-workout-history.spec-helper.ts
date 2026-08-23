@@ -66,7 +66,11 @@ export class SyntheticWorkoutHistory {
   }
 
   async store(...sessions: readonly SyntheticSession[]): Promise<void> {
-    const repository = new WorkoutSessionSqliteRepository(this.database);
+    const repository = new WorkoutSessionSqliteRepository(
+      this.database,
+      'synthetic-device',
+      () => new Date(),
+    );
     for (const session of sessions) {
       await repository.insert(this.buildSession(session));
     }

@@ -19,6 +19,9 @@ import {
   unwrap,
 } from './synthetic-workout-history.spec-helper';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * Removing a completed session exercise rewrites authoritative rows and
  * renumbers the survivors, so these run against a real SQLite engine with the
@@ -28,14 +31,18 @@ import {
 
 type SessionRow = Readonly<{
   completed_at_epoch_ms: number | null;
+  deleted_at_epoch_ms: number | null;
   display_name: string;
   id: string;
+  originating_device_id: string;
+  revision: number;
   source_planned_workout_id: string | null;
   source_weekday: number | null;
   started_at_epoch_ms: number;
   started_local_calendar_date: string;
   started_utc_offset_minutes: number;
   status: string;
+  updated_at_epoch_ms: number;
 }>;
 
 type ExerciseRow = Readonly<{
@@ -114,7 +121,11 @@ describe('Completed session exercise removal on a real database', () => {
       new SqliteTransactionRunner<CompletedExerciseRemovalContext>(
         observed,
         (transaction) => ({
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         }),
       ),
     );
@@ -300,12 +311,18 @@ describe('Completed session exercise removal on a real database', () => {
       }),
     );
 
-    expect(
-      await database.getFirst<SessionRow>(
-        'SELECT * FROM workout_session WHERE id = ?',
-        [mixed.id],
-      ),
-    ).toEqual(mixed);
+    const after = await database.getFirst<SessionRow>(
+      'SELECT * FROM workout_session WHERE id = ?',
+      [mixed.id],
+    );
+    // Removing an exercise leaves every lifecycle instant and recorded fact
+    // alone, but it is still a real change to the aggregate, so the parent
+    // row's revision and update time advance.
+    expect(after).toEqual({
+      ...mixed,
+      revision: mixed.revision + 1,
+      updated_at_epoch_ms: after?.updated_at_epoch_ms,
+    });
   });
 
   it('leaves every other workout structurally unchanged', async () => {

@@ -31,7 +31,8 @@ export class ExerciseCatalogExportSqliteReader implements ExerciseCatalogExportR
       const rows = await this.database.getAll<ExerciseRow>(
         `SELECT ${exerciseColumns}
          FROM exercise_catalog_item
-         ${keyset.sql === '' ? '' : `WHERE ${keyset.sql}`}
+         WHERE deleted_at_epoch_ms IS NULL
+           ${keyset.sql === '' ? '' : `AND (${keyset.sql})`}
          ORDER BY normalized_name ASC, id ASC
          LIMIT ?`,
         [...keyset.parameters, query.limit + 1],

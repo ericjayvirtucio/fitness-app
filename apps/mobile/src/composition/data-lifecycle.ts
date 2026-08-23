@@ -21,6 +21,7 @@ import { WorkoutSessionDataEraser } from '../features/workout-session/infrastruc
 import { WorkoutSessionStoredDataProbe } from '../features/workout-session/infrastructure/workout-session-stored-data-probe';
 import { SqliteStorageCompactor } from '../infrastructure/persistence/sqlite-storage-compactor';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
+import { clearOutbox } from '../infrastructure/persistence/sync-outbox';
 import { getDatabase, initializePersistence } from './persistence';
 
 export async function createDataLifecycleUseCases() {
@@ -33,6 +34,7 @@ export async function createDataLifecycleUseCases() {
     new SqliteTransactionRunner<LocalDataErasureTransactionContext>(
       database,
       (transaction) => ({
+        clearOutbox: () => clearOutbox(transaction),
         // Ordered so a referencing row is always gone before what it
         // references: sets before session exercises before sessions, planned
         // exercises before both their workout and the catalog definition they

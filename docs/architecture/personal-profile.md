@@ -57,3 +57,9 @@ included in errors or logs. Sprint 5 relies on the operating-system application
 sandbox and device encryption; SQLite is not application-level encrypted. Cloud
 use, backup/export, stronger at-rest protection, and key recovery require separate
 designs. Initialization and operation failures never clear local data.
+
+`personal_profile` carries the synchronization-readiness metadata described
+in [Schema synchronization readiness](schema-synchronization-readiness.md).
+There is no person-initiated delete path for the profile, so its deletion
+tombstone is currently unreachable; it exists for schema uniformity and
+whatever a later phase does with it. No synchronization exists yet.

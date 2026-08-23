@@ -177,7 +177,7 @@ describe('A period-bounded completed workout list on a real database', () => {
     const plan = await history.database.getAll<{ detail: string }>(
       `EXPLAIN QUERY PLAN
         SELECT session.id FROM workout_session session
-        WHERE session.status = ?
+        WHERE session.status = ? AND session.deleted_at_epoch_ms IS NULL
           AND session.started_local_calendar_date BETWEEN ? AND ?
         ORDER BY session.started_local_calendar_date DESC,
           session.started_at_epoch_ms DESC, session.id DESC

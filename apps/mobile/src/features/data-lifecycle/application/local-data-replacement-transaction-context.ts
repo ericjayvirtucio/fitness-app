@@ -15,6 +15,8 @@ import type { CapabilityPresenceProbes } from './capability-presence';
  * coordinator owns no table and issues no SQL of its own.
  */
 export type LocalDataReplacementTransactionContext = Readonly<{
+  /** Clears every queued local-change record; see `clearOutbox`. */
+  clearOutbox: () => Promise<void>;
   /** Ordered so that referencing rows are removed before what they reference. */
   erasers: readonly StoredDataEraser[];
   presence: CapabilityPresenceProbes;

@@ -19,6 +19,9 @@ import {
   unwrap,
 } from './synthetic-workout-history.spec-helper';
 
+const deviceId = 'device-a';
+const now = () => new Date();
+
 /**
  * Correcting completed history rewrites authoritative rows, so these run
  * against a real SQLite engine with the repository's own migrations rather than
@@ -27,14 +30,18 @@ import {
 
 type SessionRow = Readonly<{
   completed_at_epoch_ms: number | null;
+  deleted_at_epoch_ms: number | null;
   display_name: string;
   id: string;
+  originating_device_id: string;
+  revision: number;
   source_planned_workout_id: string | null;
   source_weekday: number | null;
   started_at_epoch_ms: number;
   started_local_calendar_date: string;
   started_utc_offset_minutes: number;
   status: string;
+  updated_at_epoch_ms: number;
 }>;
 
 type ExerciseRow = Readonly<{
@@ -104,7 +111,11 @@ describe('Completed workout set correction on a real database', () => {
       new SqliteTransactionRunner<CompletedWorkoutCorrectionContext>(
         failing,
         (transaction) => ({
-          sessions: new WorkoutSessionSqliteRepository(transaction),
+          sessions: new WorkoutSessionSqliteRepository(
+            transaction,
+            deviceId,
+            now,
+          ),
         }),
       ),
       () => {
@@ -200,7 +211,18 @@ describe('Completed workout set correction on a real database', () => {
     assertCorrected(outcome);
 
     const after = await identifiers();
-    expect(after.session).toEqual(before.session);
+    // A completed workout's own facts do not move, but correcting it is a
+    // real change to the aggregate: the parent row's revision and update
+    // time advance even though every recorded fact besides the corrected set
+    // stays exactly as it was.
+    expect(after.session).toEqual({
+      ...before.session,
+      revision: before.session.revision + 1,
+      updated_at_epoch_ms: after.session.updated_at_epoch_ms,
+    });
+    expect(after.session.updated_at_epoch_ms).toBeGreaterThanOrEqual(
+      before.session.updated_at_epoch_ms,
+    );
     expect(after.exercise).toEqual(before.exercise);
     expect(after.sets.map((row) => row.id)).toEqual(
       before.sets.map((row) => row.id),
@@ -210,7 +232,7 @@ describe('Completed workout set correction on a real database', () => {
     expect(after.sets[0]?.repetitions).toBe(8);
     expect(after.sets[1]).toEqual(before.sets[1]);
     expect(await orphanCount()).toBe(0);
-    expect(await database.getVersion()).toBe(11);
+    expect(await database.getVersion()).toBe(12);
   });
 
   it('reconstructs the corrected aggregate from stored rows', async () => {
@@ -223,9 +245,11 @@ describe('Completed workout set correction on a real database', () => {
       setId: before.sets[0]?.id,
     });
 
-    const reloaded = await new WorkoutSessionSqliteRepository(database).getById(
-      unwrap(DomainId.create(before.session.id)),
-    );
+    const reloaded = await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).getById(unwrap(DomainId.create(before.session.id)));
 
     expect(reloaded?.status).toBe('completed');
     expect(reloaded?.completedAtEpochMilliseconds).toBe(
@@ -277,7 +301,11 @@ describe('Completed workout set correction on a real database', () => {
     ]);
     expect(after.sets.map((row) => row.position)).toEqual([0, 1, 2]);
     expect(after.sets[2]?.resistance_grams).toBe(50_000);
-    expect(after.session).toEqual(before.session);
+    expect(after.session).toEqual({
+      ...before.session,
+      revision: before.session.revision + 1,
+      updated_at_epoch_ms: after.session.updated_at_epoch_ms,
+    });
     expect(await orphanCount()).toBe(0);
   });
 
@@ -297,7 +325,11 @@ describe('Completed workout set correction on a real database', () => {
     expect(after.sets).toHaveLength(1);
     expect(after.sets[0]?.id).toBe(before.sets[1]?.id);
     expect(after.sets[0]?.position).toBe(0);
-    expect(after.session).toEqual(before.session);
+    expect(after.session).toEqual({
+      ...before.session,
+      revision: before.session.revision + 1,
+      updated_at_epoch_ms: after.session.updated_at_epoch_ms,
+    });
     expect(await orphanCount()).toBe(0);
   });
 
@@ -345,6 +377,6 @@ describe('Completed workout set correction on a real database', () => {
     expect(after.exercise).toEqual(before.exercise);
     expect(after.sets).toEqual(before.sets);
     expect(await orphanCount()).toBe(0);
-    expect(await database.getVersion()).toBe(11);
+    expect(await database.getVersion()).toBe(12);
   });
 });

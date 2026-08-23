@@ -91,7 +91,7 @@ describe('NutritionExportSqliteReader', () => {
       'ORDER BY local_calendar_date ASC, occurred_at_epoch_ms ASC, id ASC',
     );
     expect(query?.statement).not.toContain('OFFSET');
-    expect(query?.statement).not.toContain('WHERE');
+    expect(query?.statement).toContain('WHERE deleted_at_epoch_ms IS NULL');
     expect(query?.parameters).toEqual([201]);
   });
 

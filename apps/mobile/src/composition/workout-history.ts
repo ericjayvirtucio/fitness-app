@@ -20,23 +20,25 @@ import { WorkoutHistorySqliteRepository } from '../features/workout-history/infr
 import { WorkoutPersonalRecordsSqliteReader } from '../features/workout-history/infrastructure/workout-personal-records-sqlite-reader';
 import { GetProfileUseCase } from '../features/personal-profile/application/get-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createWorkoutHistoryUseCases() {
   await initializePersistence();
   const database = await getDatabase();
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
   const repository = new WorkoutHistorySqliteRepository(database);
   const sessionWrites = () =>
     new SqliteTransactionRunner(database, (transaction) => ({
-      sessions: new WorkoutSessionSqliteRepository(transaction),
+      sessions: new WorkoutSessionSqliteRepository(transaction, deviceId, now),
     }));
   // The catalog joins one workflow only, and only so an added exercise can
   // capture a fresh snapshot. No history read model gains a catalog dependency.
   const additionWrites = new SqliteTransactionRunner(
     database,
     (transaction) => ({
-      catalog: new ExerciseCatalogSqliteRepository(transaction),
-      sessions: new WorkoutSessionSqliteRepository(transaction),
+      catalog: new ExerciseCatalogSqliteRepository(transaction, deviceId, now),
+      sessions: new WorkoutSessionSqliteRepository(transaction, deviceId, now),
     }),
   );
   return Object.freeze({
@@ -45,7 +47,7 @@ export async function createWorkoutHistoryUseCases() {
       randomUUID,
     ),
     browseExercises: new BrowseExercisesUseCase(
-      new ExerciseCatalogSqliteRepository(database),
+      new ExerciseCatalogSqliteRepository(database, deviceId, now),
       repository,
     ),
     correctSet: new CorrectCompletedWorkoutSetUseCase(
@@ -58,7 +60,7 @@ export async function createWorkoutHistoryUseCases() {
       new WorkoutPersonalRecordsSqliteReader(database),
     ),
     getProfile: new GetProfileUseCase(
-      new PersonalProfileSqliteRepository(database),
+      new PersonalProfileSqliteRepository(database, deviceId, now),
     ),
     getSummary: new GetWorkoutProgressSummaryUseCase(repository),
     list: new ListWorkoutHistoryUseCase(repository),

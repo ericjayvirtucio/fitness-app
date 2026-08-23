@@ -119,6 +119,7 @@ function buildContext(
   const writeCalls = options.writeCalls ?? [];
 
   return {
+    clearOutbox: () => Promise.resolve(),
     erasers: eraserOrder.map(
       (name) => new RecordingEraser(name, erasureCalls, options.failingEraser),
     ),

@@ -109,9 +109,13 @@ const storedLifecycle = {
   startedAtEpochMilliseconds: 1_700_000_000_000,
 };
 
+const deviceId = 'device-a';
+const now = () => new Date('2026-08-10T00:00:00.000Z');
+
 /**
- * A database that answers the deletion's four reads in order: the stored
- * lifecycle, then the absent parent, then the two zero survivor counts.
+ * A database that answers the deletion's five reads in order: the stored
+ * lifecycle, the now-tombstoned parent, the two zero survivor counts, and the
+ * post-write revision readback for the outbox.
  */
 function deletableDatabase() {
   const database = new FakeDatabase();
@@ -120,9 +124,10 @@ function deletableDatabase() {
       completed_at_epoch_ms: completedAt,
       started_at_epoch_ms: 1_700_000_000_000,
     },
-    null,
+    { deleted_at_epoch_ms: now().getTime() },
     { count: 0 },
     { count: 0 },
+    { revision: 2 },
   ];
   database.allResults = [[{ id: exerciseId }]];
   return database;
@@ -131,7 +136,9 @@ function deletableDatabase() {
 describe('WorkoutSessionSqliteRepository', () => {
   it('persists canonical snapshots and individual sets with bound values', async () => {
     const database = new FakeDatabase();
-    await new WorkoutSessionSqliteRepository(database).insert(session());
+    await new WorkoutSessionSqliteRepository(database, deviceId, now).insert(
+      session(),
+    );
     expect(database.runs).toHaveLength(3);
     expect(database.runs[1]?.parameters).toContain('Push-up');
     expect(database.runs[2]?.parameters).toEqual([
@@ -194,6 +201,8 @@ describe('WorkoutSessionSqliteRepository', () => {
     ];
     const result = await new WorkoutSessionSqliteRepository(
       database,
+      deviceId,
+      now,
     ).getActive();
     expect(result).toMatchObject({
       exercises: [{ sets: [{ result: { repetitions: 8 } }] }],
@@ -204,7 +213,9 @@ describe('WorkoutSessionSqliteRepository', () => {
     const database = new FakeDatabase();
     database.firstResults = [{ id: sessionId }];
     await expect(
-      new WorkoutSessionSqliteRepository(database).discard(id(sessionId)),
+      new WorkoutSessionSqliteRepository(database, deviceId, now).discard(
+        id(sessionId),
+      ),
     ).resolves.toBe(true);
     expect(database.runs.at(-1)?.statement).toContain(
       'DELETE FROM workout_session WHERE id = ? AND status = ?',
@@ -215,7 +226,9 @@ describe('WorkoutSessionSqliteRepository', () => {
   it('discards sets and exercises before the session that owns them', async () => {
     const database = new FakeDatabase();
     database.firstResults = [{ id: sessionId }];
-    await new WorkoutSessionSqliteRepository(database).discard(id(sessionId));
+    await new WorkoutSessionSqliteRepository(database, deviceId, now).discard(
+      id(sessionId),
+    );
     expect(database.runs).toHaveLength(3);
     expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
     expect(database.runs[1]?.statement).toContain(
@@ -233,7 +246,9 @@ describe('WorkoutSessionSqliteRepository', () => {
 
   it('replaces sets before the exercises that own them', async () => {
     const database = new FakeDatabase();
-    await new WorkoutSessionSqliteRepository(database).replace(session());
+    await new WorkoutSessionSqliteRepository(database, deviceId, now).replace(
+      session(),
+    );
     expect(database.runs[1]?.statement).toContain('DELETE FROM workout_set');
     expect(database.runs[1]?.parameters).toEqual([sessionId]);
     expect(database.runs[2]?.statement).toContain(
@@ -242,22 +257,20 @@ describe('WorkoutSessionSqliteRepository', () => {
     expect(database.runs[2]?.parameters).toEqual([sessionId]);
   });
 
-  it('corrects a completed aggregate without writing to its parent row', async () => {
+  it('corrects a completed aggregate and bumps its parent revision', async () => {
     const database = new FakeDatabase();
     database.firstResults = [
       {
         completed_at_epoch_ms: completedAt,
         started_at_epoch_ms: 1_700_000_000_000,
       },
+      { revision: 2 },
     ];
-    await new WorkoutSessionSqliteRepository(database).correctCompleted(
-      completedSession(),
-    );
-    expect(
-      database.runs.some((entry) =>
-        entry.statement.includes('UPDATE workout_session'),
-      ),
-    ).toBe(false);
+    await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).correctCompleted(completedSession());
     expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
     expect(database.runs[1]?.statement).toContain(
       'DELETE FROM workout_session_exercise',
@@ -276,15 +289,20 @@ describe('WorkoutSessionSqliteRepository', () => {
       null,
       null,
     ]);
+    expect(database.runs[4]?.statement).toContain('UPDATE workout_session');
+    expect(database.runs[4]?.statement).toContain('revision = revision + 1');
+    expect(database.runs[5]?.statement).toContain('sync_outbox');
   });
 
   it('refuses to correct a session that is no longer completed', async () => {
     const database = new FakeDatabase();
     database.firstResults = [null];
     await expect(
-      new WorkoutSessionSqliteRepository(database).correctCompleted(
-        completedSession(),
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).correctCompleted(completedSession()),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
   });
@@ -298,9 +316,11 @@ describe('WorkoutSessionSqliteRepository', () => {
       },
     ];
     await expect(
-      new WorkoutSessionSqliteRepository(database).correctCompleted(
-        completedSession(),
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).correctCompleted(completedSession()),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
   });
@@ -308,31 +328,41 @@ describe('WorkoutSessionSqliteRepository', () => {
   it('refuses to correct an active aggregate', async () => {
     const database = new FakeDatabase();
     await expect(
-      new WorkoutSessionSqliteRepository(database).correctCompleted(session()),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).correctCompleted(session()),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
   });
 
-  it('deletes a completed workout child-first and binds every identifier', async () => {
+  it('tombstones a completed workout child-first and binds every identifier', async () => {
     const database = deletableDatabase();
 
-    await new WorkoutSessionSqliteRepository(database).deleteCompleted(
-      id(sessionId),
-      storedLifecycle,
-    );
+    await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).deleteCompleted(id(sessionId), storedLifecycle);
 
-    expect(database.runs).toHaveLength(3);
+    expect(database.runs).toHaveLength(4);
     expect(database.runs[0]?.statement).toContain('DELETE FROM workout_set');
     expect(database.runs[1]?.statement).toContain(
       'DELETE FROM workout_session_exercise',
     );
-    expect(database.runs[2]?.statement).toContain(
-      'DELETE FROM workout_session WHERE id = ? AND status = ?',
-    );
+    expect(database.runs[2]?.statement).toContain('UPDATE workout_session');
+    expect(database.runs[2]?.statement).toContain('deleted_at_epoch_ms = ?');
+    expect(
+      database.runs.some((run) =>
+        run.statement.startsWith('DELETE FROM workout_session '),
+      ),
+    ).toBe(false);
     expect(database.runs.map((entry) => entry.parameters)).toEqual([
       [sessionId],
       [sessionId],
-      [sessionId, 'completed'],
+      [now().getTime(), now().getTime(), sessionId, 'completed'],
+      ['workout_session', sessionId, 'delete', 2, now().getTime()],
     ]);
   });
 
@@ -341,10 +371,11 @@ describe('WorkoutSessionSqliteRepository', () => {
     database.firstResults = [null];
 
     await expect(
-      new WorkoutSessionSqliteRepository(database).deleteCompleted(
-        id(sessionId),
-        storedLifecycle,
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).deleteCompleted(id(sessionId), storedLifecycle),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
   });
@@ -359,23 +390,25 @@ describe('WorkoutSessionSqliteRepository', () => {
     ];
 
     await expect(
-      new WorkoutSessionSqliteRepository(database).deleteCompleted(
-        id(sessionId),
-        storedLifecycle,
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).deleteCompleted(id(sessionId), storedLifecycle),
     ).rejects.toBeInstanceOf(PersistenceError);
     expect(database.runs).toHaveLength(0);
   });
 
-  it('refuses to report a deletion that left the session row behind', async () => {
+  it('refuses to report a deletion that left the session row untombstoned', async () => {
     const database = deletableDatabase();
-    database.firstResults[1] = { id: sessionId };
+    database.firstResults[1] = { deleted_at_epoch_ms: null };
 
     await expect(
-      new WorkoutSessionSqliteRepository(database).deleteCompleted(
-        id(sessionId),
-        storedLifecycle,
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).deleteCompleted(id(sessionId), storedLifecycle),
     ).rejects.toBeInstanceOf(PersistenceError);
   });
 
@@ -384,20 +417,22 @@ describe('WorkoutSessionSqliteRepository', () => {
     database.firstResults[3] = { count: 1 };
 
     await expect(
-      new WorkoutSessionSqliteRepository(database).deleteCompleted(
-        id(sessionId),
-        storedLifecycle,
-      ),
+      new WorkoutSessionSqliteRepository(
+        database,
+        deviceId,
+        now,
+      ).deleteCompleted(id(sessionId), storedLifecycle),
     ).rejects.toBeInstanceOf(PersistenceError);
   });
 
   it('reads the owned exercises before deleting them so orphans stay findable', async () => {
     const database = deletableDatabase();
 
-    await new WorkoutSessionSqliteRepository(database).deleteCompleted(
-      id(sessionId),
-      storedLifecycle,
-    );
+    await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).deleteCompleted(id(sessionId), storedLifecycle);
 
     const selected = database.log.findIndex((statement) =>
       statement.includes('SELECT id FROM workout_session_exercise'),
@@ -413,15 +448,15 @@ describe('WorkoutSessionSqliteRepository', () => {
     const database = new FakeDatabase();
     database.firstResults = [{ id: sessionId }];
 
-    const renamed = await new WorkoutSessionSqliteRepository(database).rename(
-      id(sessionId),
-      'Leg Day',
-      {
-        completedAtEpochMilliseconds: null,
-        startedAtEpochMilliseconds: 1_700_000_000_000,
-        status: 'active',
-      },
-    );
+    const renamed = await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).rename(id(sessionId), 'Leg Day', {
+      completedAtEpochMilliseconds: null,
+      startedAtEpochMilliseconds: 1_700_000_000_000,
+      status: 'active',
+    });
 
     expect(renamed).toBe(true);
     expect(database.runs).toHaveLength(1);
@@ -430,6 +465,7 @@ describe('WorkoutSessionSqliteRepository', () => {
     );
     expect(database.runs[0]?.parameters).toEqual([
       'Leg Day',
+      now().getTime(),
       sessionId,
       'active',
       1_700_000_000_000,
@@ -449,7 +485,8 @@ describe('WorkoutSessionSqliteRepository', () => {
     const database = new FakeDatabase();
     database.firstResults = [{ id: sessionId }];
 
-    await new WorkoutSessionSqliteRepository(database).rename(
+    database.firstResults.push({ revision: 2 });
+    await new WorkoutSessionSqliteRepository(database, deviceId, now).rename(
       id(sessionId),
       'Leg Day',
       {
@@ -468,15 +505,15 @@ describe('WorkoutSessionSqliteRepository', () => {
     const database = new FakeDatabase();
     database.firstResults = [null];
 
-    const renamed = await new WorkoutSessionSqliteRepository(database).rename(
-      id(sessionId),
-      'Leg Day',
-      {
-        completedAtEpochMilliseconds: null,
-        startedAtEpochMilliseconds: 1_700_000_000_000,
-        status: 'active',
-      },
-    );
+    const renamed = await new WorkoutSessionSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).rename(id(sessionId), 'Leg Day', {
+      completedAtEpochMilliseconds: null,
+      startedAtEpochMilliseconds: 1_700_000_000_000,
+      status: 'active',
+    });
 
     expect(renamed).toBe(false);
     expect(database.runs).toHaveLength(0);

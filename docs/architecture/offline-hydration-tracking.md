@@ -114,3 +114,8 @@ Hydration records remain in the operating-system application sandbox. There is n
 networking, analytics, telemetry, or third-party processing. Encryption, export,
 backup, restore, reset, retention, reminders, analytics, personalized targets,
 health-platform integration, and synchronization remain unavailable.
+
+Both tables carry the synchronization-readiness metadata described in
+[Schema synchronization readiness](schema-synchronization-readiness.md).
+Deleting an entry tombstones the row rather than removing it; every read here
+already excludes a tombstoned row. No synchronization exists yet.

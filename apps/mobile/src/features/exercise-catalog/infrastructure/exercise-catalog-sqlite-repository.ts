@@ -4,6 +4,7 @@ import type {
   DatabaseParameters,
 } from '../../../infrastructure/persistence/database';
 import { toPersistenceError } from '../../../infrastructure/persistence/persistence-error';
+import { queueOutboxEntry } from '../../../infrastructure/persistence/sync-outbox';
 import {
   noExerciseCatalogFilter,
   type ExerciseCatalogFilter,
@@ -20,13 +21,20 @@ import {
   type ExerciseRow,
 } from './exercise-row-mapping';
 
+const tableName = 'exercise_catalog_item';
+
 export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepository {
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(
+    private readonly database: DatabaseConnection,
+    private readonly deviceId: string,
+    private readonly now: () => Date,
+  ) {}
 
   async getById(id: DomainId): Promise<ExerciseCatalogItem | null> {
     try {
       const row = await this.database.getFirst<ExerciseRow>(
-        `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE id = ?`,
+        `SELECT ${exerciseColumns} FROM exercise_catalog_item
+         WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
         [id.value],
       );
       return row === null ? null : mapExerciseRow(row);
@@ -38,14 +46,14 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
   getByIds(ids: readonly DomainId[]) {
     if (ids.length === 0) return Promise.resolve(Object.freeze([]));
     return this.readMany(
-      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE id IN (${ids.map(() => '?').join(', ')}) ORDER BY id ASC`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE id IN (${ids.map(() => '?').join(', ')}) AND deleted_at_epoch_ms IS NULL ORDER BY id ASC`,
       ids.map((id) => id.value),
     );
   }
 
   findByNormalizedName(normalizedName: string) {
     return this.readMany(
-      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE normalized_name = ? ORDER BY id ASC`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE normalized_name = ? AND deleted_at_epoch_ms IS NULL ORDER BY id ASC`,
       [normalizedName],
     );
   }
@@ -67,43 +75,88 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
 
   listFavorites(limit: number) {
     return this.readMany(
-      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE is_favorite = 1 ORDER BY normalized_name ASC, id ASC LIMIT ?`,
+      `SELECT ${exerciseColumns} FROM exercise_catalog_item WHERE is_favorite = 1 AND deleted_at_epoch_ms IS NULL ORDER BY normalized_name ASC, id ASC LIMIT ?`,
       [limit],
     );
   }
 
   async insert(item: ExerciseCatalogItem): Promise<void> {
+    const nowEpochMs = this.now().getTime();
     await this.write(
-      `INSERT INTO exercise_catalog_item (${exerciseColumns}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      parameters(item),
+      `INSERT INTO exercise_catalog_item (
+        ${exerciseColumns}, updated_at_epoch_ms, deleted_at_epoch_ms,
+        revision, originating_device_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 1, ?)`,
+      [...parameters(item), nowEpochMs, this.deviceId],
+    );
+    await queueOutboxEntry(
+      this.database,
+      tableName,
+      item.definition.id.value,
+      'upsert',
+      1,
+      nowEpochMs,
     );
   }
 
   async update(item: ExerciseCatalogItem): Promise<boolean> {
     if ((await this.getById(item.definition.id)) === null) return false;
     const values = parameters(item);
+    const nowEpochMs = this.now().getTime();
     await this.write(
-      `UPDATE exercise_catalog_item SET display_name = ?, normalized_name = ?, equipment = ?, primary_muscle_group = ?, logging_mode = ?, notes = ?, is_favorite = ? WHERE id = ?`,
-      [...values.slice(1), item.definition.id.value],
+      `UPDATE exercise_catalog_item SET display_name = ?, normalized_name = ?,
+        equipment = ?, primary_muscle_group = ?, logging_mode = ?, notes = ?,
+        is_favorite = ?, updated_at_epoch_ms = ?, revision = revision + 1
+       WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
+      [...values.slice(1), nowEpochMs, item.definition.id.value],
     );
+    await this.queueRevision(item.definition.id.value, 'upsert', nowEpochMs);
     return true;
   }
 
   async setFavorite(id: DomainId, isFavorite: boolean): Promise<boolean> {
     if ((await this.getById(id)) === null) return false;
+    const nowEpochMs = this.now().getTime();
     await this.write(
-      'UPDATE exercise_catalog_item SET is_favorite = ? WHERE id = ?',
-      [isFavorite ? 1 : 0, id.value],
+      `UPDATE exercise_catalog_item SET is_favorite = ?,
+        updated_at_epoch_ms = ?, revision = revision + 1
+       WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
+      [isFavorite ? 1 : 0, nowEpochMs, id.value],
     );
+    await this.queueRevision(id.value, 'upsert', nowEpochMs);
     return true;
   }
 
   async delete(id: DomainId): Promise<boolean> {
     if ((await this.getById(id)) === null) return false;
-    await this.write('DELETE FROM exercise_catalog_item WHERE id = ?', [
-      id.value,
-    ]);
+    const nowEpochMs = this.now().getTime();
+    await this.write(
+      `UPDATE exercise_catalog_item SET deleted_at_epoch_ms = ?,
+        updated_at_epoch_ms = ?, revision = revision + 1
+       WHERE id = ? AND deleted_at_epoch_ms IS NULL`,
+      [nowEpochMs, nowEpochMs, id.value],
+    );
+    await this.queueRevision(id.value, 'delete', nowEpochMs);
     return true;
+  }
+
+  private async queueRevision(
+    id: string,
+    operation: 'delete' | 'upsert',
+    nowEpochMs: number,
+  ): Promise<void> {
+    const stored = await this.database.getFirst<{ revision: number }>(
+      'SELECT revision FROM exercise_catalog_item WHERE id = ?',
+      [id],
+    );
+    await queueOutboxEntry(
+      this.database,
+      tableName,
+      id,
+      operation,
+      stored?.revision ?? 1,
+      nowEpochMs,
+    );
   }
 
   /**

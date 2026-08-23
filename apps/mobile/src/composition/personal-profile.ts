@@ -3,18 +3,26 @@ import type { PersonalProfileTransactionContext } from '../features/personal-pro
 import { SaveProfileUseCase } from '../features/personal-profile/application/save-profile-use-case';
 import { PersonalProfileSqliteRepository } from '../features/personal-profile/infrastructure/personal-profile-sqlite-repository';
 import { SqliteTransactionRunner } from '../infrastructure/persistence/sqlite-transaction-runner';
-import { getDatabase, initializePersistence } from './persistence';
+import { getDatabase, getDeviceId, initializePersistence } from './persistence';
 
 export async function createPersonalProfileUseCases() {
   await initializePersistence();
   const database = await getDatabase();
-  const repository = new PersonalProfileSqliteRepository(database);
+  const deviceId = await getDeviceId();
+  const now = () => new Date();
+  const repository = new PersonalProfileSqliteRepository(
+    database,
+    deviceId,
+    now,
+  );
   const transactionRunner =
     new SqliteTransactionRunner<PersonalProfileTransactionContext>(
       database,
       (transaction) => ({
         personalProfileRepository: new PersonalProfileSqliteRepository(
           transaction,
+          deviceId,
+          now,
         ),
       }),
     );

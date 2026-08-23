@@ -333,3 +333,7 @@ recorded here and checked by hand rather than claimed as implemented.
 - Replacement writes one statement per record, so a very large incoming history
   is bound by transaction throughput. Batching stays available behind the
   unchanged repository contracts if measurement justifies it.
+- Since migration 12, the erase phase also clears `sync_outbox`, and every
+  written row gets fresh synchronization metadata rather than anything read
+  from the file; `device_identity` is untouched by either phase. See
+  [Schema synchronization readiness](schema-synchronization-readiness.md).

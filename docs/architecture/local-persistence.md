@@ -105,6 +105,25 @@ source-exercise history. It adds no tables or summary values; Workout History
 derives bounded projections from version-9 facts. See
 [Offline Workout History architecture](offline-workout-history.md).
 
+Version 12 adds `updated_at_epoch_ms`, `deleted_at_epoch_ms`, `revision`, and
+`originating_device_id` to the ten tables a person owns as an independently
+addressable record: `personal_profile`, `goal_configuration`,
+`hydration_target`, `nutrition_consumption_entry`, `nutrition_catalog_item`,
+`hydration_entry`, `exercise_catalog_item`, `body_weight_entry`,
+`planned_workout`, and `workout_session`. Aggregate children —
+`planned_exercise`, `workout_session_exercise`, `workout_set` — get none of
+the four; they have no independent lifecycle and are always rewritten with
+their parent. It adds `sync_outbox`, one upserted row per changed record not
+yet sent anywhere, and the `device_identity` singleton, a random identifier
+generated once at composition start rather than in migration SQL. Ten indexes
+become partial indexes `WHERE deleted_at_epoch_ms IS NULL`, and
+`planned_workout` is rebuilt once to move its weekday uniqueness into a
+partial unique index, because a tombstoned row would otherwise occupy that
+constraint forever. No synchronization exists yet; deletion becomes a
+tombstone only where a future device must learn about it, and every other
+delete path is unchanged. See
+[Schema synchronization readiness](schema-synchronization-readiness.md).
+
 ## Transactions
 
 The application contract `TransactionRunner<TContext>` does not know about
