@@ -25,56 +25,75 @@ export type SemanticColors = Readonly<{
   warning: string;
 }>;
 
+/**
+ * The identity is a set of values rather than a theme abstraction, so a screen
+ * inherits it without being edited. Every pair a component actually renders is
+ * asserted in `theme.spec.ts`; the two exemptions — surface separation and
+ * decoration — are stated there rather than silently skipped.
+ *
+ * The identity green marks active state, progress, and success. It clears the
+ * body-text threshold in both themes, which means the rule that it is not used
+ * for body copy is a decision about meaning rather than a workaround: a color
+ * that marks a state stops marking it once ordinary sentences are printed in it.
+ */
 export const lightColors: SemanticColors = {
-  accent: '#2F7668',
-  background: '#F4F7F5',
-  border: '#B8C8C1',
-  danger: '#B42318',
-  divider: '#DCE5E1',
-  focus: '#0B6EDE',
-  information: '#175CD3',
+  accent: '#8A5200',
+  background: '#F7F8F7',
+  border: '#7E8781',
+  danger: '#B3261E',
+  divider: '#D5DAD6',
+  focus: '#0B57D0',
+  information: '#0B57D0',
   onDanger: '#FFFFFF',
   onInformation: '#FFFFFF',
   onPrimary: '#FFFFFF',
-  onSecondary: '#17352E',
+  onSecondary: '#08301A',
   onSuccess: '#FFFFFF',
-  onWarning: '#2D1B00',
+  onWarning: '#FFFFFF',
   overlay: 'rgba(7, 18, 14, 0.56)',
-  primary: '#176B5B',
-  secondary: '#D8EAE4',
-  skeleton: '#D8E2DE',
-  success: '#287A4D',
+  primary: '#0A7A2C',
+  secondary: '#DDF3E2',
+  skeleton: '#E2E6E3',
+  success: '#0A7A2C',
   surface: '#FFFFFF',
-  surfaceVariant: '#E9F0ED',
-  textDisabled: '#82918B',
-  textPrimary: '#12221E',
-  textSecondary: '#50635C',
-  warning: '#D99A27',
+  surfaceVariant: '#EFF1EF',
+  textDisabled: '#6B736D',
+  textPrimary: '#0B0F0C',
+  textSecondary: '#5A625C',
+  warning: '#8A5200',
 };
 
+/**
+ * Dark carries the identity, on a true black page.
+ *
+ * A filled card separates from that page by 1.21:1, which is the identity
+ * working as intended and also its weakest point in bright light. `border` is
+ * what makes that acceptable, so it is held to the 3:1 a boundary needs on the
+ * lightest surface rather than to whatever looks subtle on black.
+ */
 export const darkColors: SemanticColors = {
-  accent: '#74D3BC',
-  background: '#0D1714',
-  border: '#526A61',
-  danger: '#FFB4AB',
-  divider: '#2B3C35',
+  accent: '#FFC14D',
+  background: '#000000',
+  border: '#666666',
+  danger: '#FF5A4E',
+  divider: '#2E2E2E',
   focus: '#8FC5FF',
-  information: '#A8C7FA',
-  onDanger: '#690005',
-  onInformation: '#062E6F',
-  onPrimary: '#00382E',
-  onSecondary: '#0F2E27',
-  onSuccess: '#00391F',
-  onWarning: '#402D00',
-  overlay: 'rgba(0, 0, 0, 0.68)',
-  primary: '#74D3BC',
-  secondary: '#AFCFC5',
-  skeleton: '#344942',
-  success: '#83D5A5',
-  surface: '#18251F',
-  surfaceVariant: '#23332C',
-  textDisabled: '#7E9188',
-  textPrimary: '#EEF7F3',
-  textSecondary: '#B4C8BF',
-  warning: '#F7C56C',
+  information: '#7FB4FF',
+  onDanger: '#3B0703',
+  onInformation: '#001B3D',
+  onPrimary: '#062B12',
+  onSecondary: '#7BF7A2',
+  onSuccess: '#062B12',
+  onWarning: '#2B1A00',
+  overlay: 'rgba(0, 0, 0, 0.72)',
+  primary: '#22DD55',
+  secondary: '#0F2E1A',
+  skeleton: '#242424',
+  success: '#22DD55',
+  surface: '#101010',
+  surfaceVariant: '#1A1A1A',
+  textDisabled: '#787878',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#9A9A9A',
+  warning: '#FFC14D',
 };
