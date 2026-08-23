@@ -109,6 +109,8 @@ The API reads `PORT` when it is supplied and otherwise listens on port `3000`. P
 
 Read [PRODUCT.md](PRODUCT.md) for the product direction and [AGENTS.md](AGENTS.md) before making engineering changes. Contribution requirements are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Which third-party code, data, and media this product may use, which it may not, and what each obligation costs are recorded in [docs/third-party-material.md](docs/third-party-material.md). No third-party material ships today; the phase that imports any creates the notices its terms require in the same change.
+
 Mobile simulator setup, navigation conventions, testing, and troubleshooting are documented in [docs/mobile-development.md](docs/mobile-development.md).
 Native E2E suite ownership, state behavior, and artifacts are documented in the
 [mobile E2E guide](e2e/mobile/README.md).

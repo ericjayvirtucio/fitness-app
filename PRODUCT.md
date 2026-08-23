@@ -186,6 +186,26 @@ changed: no workout, set, result, record, or export.
 
 Each phase requires a reviewed specification. The roadmap expresses direction, not a promise of scope or schedule.
 
+## Direction from here
+
+The offline capability phase produced a product that records nutrition, hydration, training, and body weight without a network, and states what it recorded. Two things are true of it at once: nutrition is deeper here than in most fitness applications, and training is shallower than in the best of them. The direction from here closes that gap and then joins the two, while keeping the offline guarantee above intact.
+
+The direction was informed by studying a mature open-source workout tracker. What that study produced was knowledge of the capabilities a serious training log needs and a visual direction — not code. That application is licensed under the AGPL, this one is private and unlicensed, and no line of its source is used or may be used. Anything traceable to it is reimplemented against this repository's own domain model and design system. The material this direction may and may not use is registered in [docs/third-party-material.md](docs/third-party-material.md), including exercise media that cannot be shipped without a separate license from its rights holder.
+
+The phases below are sequenced by the cost of doing them late rather than by visible value.
+
+1. **One visual identity.** A deliberate dark, high-contrast identity and the display components every screen that presents a derived number already needs. It goes first because it is the cheapest change in the program — the design system's token boundary means the palette is one file with no screen edits — and because every later phase then arrives in the final visual language rather than needing a second pass. Specified in [Specification 0041](specs/0041-the-app-has-one-visual-identity.md).
+2. **A schema synchronization can be added to.** Update time, a deletion tombstone, a revision, and an originating device on every table a person owns, plus a record of local changes not yet sent anywhere. No synchronization is built and nothing reaches a network. This is second on purpose: the migration is small, but making deletion a tombstone changes every read path that currently assumes a deleted row is gone, and that cost is paid once against today's tables or repeatedly against every table added before it. It is also the design work the offline-first philosophy above requires before synchronization may be implemented.
+3. **A usable exercise library.** The library ships empty and offers twenty-six starter definitions. An openly licensed dataset raises that by orders of magnitude, and obliges the repository to carry the attribution that dataset requires.
+4. **Training depth.** Rest timing within a session, effort recorded as reserve or exertion, estimated maxima, grouped sets, and progression schemes — the capabilities that separate a log of what happened from a tool that informs what to do next.
+5. **Nutrition depth.** A real food database behind the existing catalog, barcode entry, and macronutrient targets derived from the goal and energy calculations already shipped.
+6. **Energy balance.** Intake measured against expenditure, derived on the device from data a person already logs. It depends on both pillars being deep, which is why it follows them, and it is the capability neither pillar has alone.
+7. **Cloud services.** Authentication, authoritative server behavior, and reconciliation, as the roadmap above already describes. Phase 2 is what makes this an addition rather than a rewrite.
+
+Three decisions are settled. The visual identity is a change of token values rather than a new theme abstraction, which keeps a user-selectable theme additive if it is ever wanted. A screen's primary action belongs to that screen rather than to the tab bar, because a single action button in the tab bar assumes one dominant activity and this product has two. Cloud-readiness is schema work rather than service work, and phase 2 adds no endpoint, account, or network call.
+
+Two questions are open and each blocks its phase. How much exercise data ships inside the application, given that the complete multilingual dataset is far too large to bundle and the likely answer trades a smaller offline catalog against images fetched on first use. And how food product data is obtained without inheriting a share-alike obligation on a derived database — a question whose convenient answer, querying a public database live, costs offline barcode lookup and therefore argues with the offline-first philosophy above rather than merely being a licensing detail.
+
 ## Offline-first philosophy
 
 Food, beverage, water, workout, weight, and measurement logging must not require a network round trip. Mobile owns the immediate offline experience and local interaction model. The backend becomes authoritative when data participates in cloud services, but synchronization must reconcile state rather than block local work.
