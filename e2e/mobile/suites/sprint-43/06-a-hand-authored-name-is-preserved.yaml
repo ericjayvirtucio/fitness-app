@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+name: A hand-authored name is preserved and reported as skipped
+---
+- launchApp:
+    clearState: true
+# "Chest Dip" is an expanded-pack name, so the import must leave this
+# definition exactly as the person wrote it rather than adding a second row
+# beside it.
+- runFlow:
+    file: ../../flows/exercise/create-named-bodyweight-exercise.yaml
+    env:
+      EXERCISE_NAME: Chest Dip
+- runFlow: ../../flows/exercise/add-expanded-exercises.yaml
+- assertVisible: Added 188 exercises to your library. 1 was already in your library and was left unchanged.
+- assertNotVisible: Added 189 exercises to your library.
+# The person's own definition is still there, and the expanded entry that
+# matched it was skipped rather than added beside it.
+- tapOn:
+    id: exercise-library-search
+- inputText: Chest Dip
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Edit Chest Dip
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Chest Dip

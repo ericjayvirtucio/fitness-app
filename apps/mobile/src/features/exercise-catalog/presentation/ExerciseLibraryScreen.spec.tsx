@@ -10,6 +10,7 @@ import type { StarterExerciseImportOutcome } from '../application/add-starter-ex
 import { buildExerciseCatalogItem } from '../application/build-exercise-catalog-item';
 import type { ExerciseCatalogFilter } from '../application/exercise-catalog-filter';
 import type { ExerciseCatalogItem } from '../application/exercise-catalog-item';
+import { expandedExerciseCount } from '../application/expanded-exercises';
 import { starterExerciseCount } from '../application/starter-exercises';
 import { ExerciseLibraryScreen } from './ExerciseLibraryScreen';
 
@@ -73,11 +74,13 @@ type ImportResult = Promise<StarterExerciseImportOutcome>;
 async function renderLibrary(
   options: Readonly<{
     execute?: () => ImportResult;
+    executeExpanded?: () => ImportResult;
     favorites?: readonly ExerciseCatalogItem[];
     items?: readonly ExerciseCatalogItem[];
     onBrowse?: (filter?: ExerciseCatalogFilter) => Promise<void>;
     recents?: readonly ExerciseCatalogItem[];
     written?: readonly ExerciseCatalogItem[];
+    writtenExpanded?: readonly ExerciseCatalogItem[];
   }> = {},
 ) {
   const stored = [...(options.items ?? [])];
@@ -89,15 +92,30 @@ async function renderLibrary(
         skippedCount: 0,
         status: 'imported',
       }));
+  const executeExpanded =
+    options.executeExpanded ??
+    (() =>
+      Promise.resolve<StarterExerciseImportOutcome>({
+        addedCount: expandedExerciseCount,
+        skippedCount: 0,
+        status: 'imported',
+      }));
   const addStarterExercises = jest.fn(async () => {
     const outcome = await execute();
     if (outcome.status === 'imported') stored.push(...(options.written ?? []));
+    return outcome;
+  });
+  const addExpandedExercises = jest.fn(async () => {
+    const outcome = await executeExpanded();
+    if (outcome.status === 'imported')
+      stored.push(...(options.writtenExpanded ?? []));
     return outcome;
   });
   await render(
     <ExerciseLibraryScreen
       loadUseCases={() =>
         Promise.resolve({
+          addExpandedExercises: { execute: addExpandedExercises },
           addStarterExercises: { execute: addStarterExercises },
           browse: {
             listAll: async (filter?: ExerciseCatalogFilter) => {
@@ -122,7 +140,7 @@ async function renderLibrary(
       onEdit={jest.fn()}
     />,
   );
-  return { addStarterExercises };
+  return { addExpandedExercises, addStarterExercises };
 }
 
 /**
@@ -368,6 +386,136 @@ describe('ExerciseLibraryScreen starter exercises', () => {
     // Search has its own effect, which an import does not re-trigger, so a stale
     // result would otherwise keep describing the catalog as it was.
     await waitFor(() => expect(screen.getByText('Burpee')).toBeOnTheScreen());
+  });
+});
+
+describe('ExerciseLibraryScreen expanded exercises', () => {
+  it('offers the expanded pack alongside the starter set on an empty library', async () => {
+    await renderLibrary();
+
+    await waitFor(() =>
+      expect(screen.getByText('No exercises yet')).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByRole('button', { name: 'Add starter exercises' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: 'Add expanded exercise library' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('states the count before the press', async () => {
+    await renderLibrary();
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          new RegExp(
+            `Add ${String(expandedExerciseCount)} more exercises`,
+            'u',
+          ),
+        ),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  it('states what was added, independently of the starter section', async () => {
+    await renderLibrary();
+
+    await press('Add expanded exercise library');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `Added ${String(expandedExerciseCount)} exercises to your library.`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.queryByText(/^Added .*starter/u)).not.toBeOnTheScreen();
+  });
+
+  it('says nothing was added when the library already holds the whole pack', async () => {
+    await renderLibrary({
+      executeExpanded: () =>
+        Promise.resolve<StarterExerciseImportOutcome>({
+          skippedCount: expandedExerciseCount,
+          status: 'unchanged',
+        }),
+    });
+
+    await press('Add expanded exercise library');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `Your library already has all ${String(expandedExerciseCount)} of these exercises. Nothing was added.`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  it('states that nothing changed when the expanded import is refused', async () => {
+    await renderLibrary({
+      executeExpanded: () =>
+        Promise.resolve<StarterExerciseImportOutcome>({
+          reason: 'write-failed',
+          status: 'refused',
+        }),
+    });
+
+    await press('Add expanded exercise library');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          'The expanded library could not be added. Nothing was changed.',
+        ),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  it('lets both packs be imported independently without either affecting the other', async () => {
+    const { addExpandedExercises, addStarterExercises } = await renderLibrary();
+
+    await press('Add starter exercises');
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `Added ${String(starterExerciseCount)} exercises to your library.`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+    await press('Add expanded exercise library');
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `Added ${String(expandedExerciseCount)} exercises to your library.`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+
+    expect(addStarterExercises).toHaveBeenCalledTimes(1);
+    expect(addExpandedExercises).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps both offers and their results above the catalog they write', async () => {
+    await renderLibrary({
+      items: [item('c335a500-2af1-5c5f-bb9c-cb3eb2aca115', 'Push-up')],
+    });
+    await waitFor(() => expect(screen.getByText('Push-up')).toBeOnTheScreen());
+
+    await press('Add expanded exercise library');
+    await waitFor(() => expect(screen.getByText(/^Added /u)).toBeOnTheScreen());
+
+    const order = renderedText();
+    const starterSection = order.indexOf('Starter exercises');
+    const expandedSection = order.indexOf('Expanded exercise library');
+    const result = order.findIndex((text) => text.startsWith('Added '));
+    const catalog = order.indexOf('All exercises');
+    expect(starterSection).toBeGreaterThan(-1);
+    expect(expandedSection).toBeGreaterThan(starterSection);
+    expect(result).toBeGreaterThan(expandedSection);
+    expect(catalog).toBeGreaterThan(result);
   });
 });
 

@@ -185,3 +185,12 @@ The table carries the synchronization-readiness metadata described in
 Deleting a definition tombstones the row rather than removing it; every read
 here, including the duplicate-name check and the Planner's referential usage
 check, already excludes a tombstoned row. No synchronization exists yet.
+
+The tombstone does **not** free the row's primary key: a bulk import
+(starter or expanded, see
+[Specification 0043](../../specs/0043-expanded-exercise-library.md)) that
+tries to re-add a definition deleted this way collides with the still-present
+`id` and refuses the whole import, rather than reviving the one row.
+Specification 0027 originally promised that deleting an imported definition
+and importing again re-adds it; that promise no longer holds since this
+tombstone was introduced, and fixing the interaction remains open.

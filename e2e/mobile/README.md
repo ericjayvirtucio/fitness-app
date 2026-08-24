@@ -59,6 +59,7 @@ smoke suite on both platforms, and update this guide in the same change.
 ./scripts/qa.sh sprint 39 --platform ios
 ./scripts/qa.sh sprint 40 --platform ios
 ./scripts/qa.sh sprint 41 --platform ios
+./scripts/qa.sh sprint 43 --platform ios
 ./scripts/qa.sh smoke --platform ios --device <simulator-udid>
 ```
 
@@ -94,9 +95,12 @@ at startup, so running it separately before every suite is unnecessary.
 - A platform-specific flow is justified only by observed native behavior.
 
 Sprint suites exist for the repository's manual QA sources: Sprints 6, 8–13,
-15–27, and 29–41. Sprints 5, 7, and 14 deliberately return an unsupported-suite
-error because no product manual QA specification exists for them. Sprint 28
-does too: it changed no screen and added no suite.
+15–27, 29–41, and 43. Sprints 5, 7, and 14 deliberately return an
+unsupported-suite error because no product manual QA specification exists for
+them. Sprint 28 does too: it changed no screen and added no suite. Sprint 42
+currently has none either: it added synchronization-readiness metadata to
+existing tables with no new screen to exercise, and its own owner QA relies on
+the automated real-SQLite synchronization-readiness suite instead.
 
 Use synthetic names prefixed with `E2E`. Create state through public controls;
 do not add database fixtures, deep-link seeders, network services, or production

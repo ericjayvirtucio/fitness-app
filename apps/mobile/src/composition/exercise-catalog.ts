@@ -1,5 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { AddStarterExercisesUseCase } from '../features/exercise-catalog/application/add-starter-exercises-use-case';
+import { expandedExercises } from '../features/exercise-catalog/application/expanded-exercises';
 import {
   BrowseExercisesUseCase,
   CreateExerciseUseCase,
@@ -36,9 +37,10 @@ export async function createExerciseCatalogUseCases() {
       ),
     }),
   );
-  // The starter import only ever adds, so no plan can reference what it writes
-  // and it needs the catalog alone rather than the mutation context that also
-  // carries the planner reference reader.
+  // Shared by both the starter and the expanded import: neither ever does
+  // anything but add, so no plan can reference what either writes and both
+  // need the catalog alone rather than the mutation context that also carries
+  // the planner reference reader.
   const starterImportRunner =
     new SqliteTransactionRunner<StarterExerciseImportContext>(
       database,
@@ -52,6 +54,10 @@ export async function createExerciseCatalogUseCases() {
     );
 
   return Object.freeze({
+    addExpandedExercises: new AddStarterExercisesUseCase(
+      starterImportRunner,
+      expandedExercises,
+    ),
     addStarterExercises: new AddStarterExercisesUseCase(starterImportRunner),
     browse: new BrowseExercisesUseCase(
       repository,

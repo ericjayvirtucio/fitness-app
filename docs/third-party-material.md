@@ -5,10 +5,15 @@ use, which it may not, and what each obligation costs. It exists so that a
 licensing answer is reached once and recorded, rather than rediscovered by
 whoever opens the next phase.
 
-**No third-party code, data, or media ships in this repository today.** There is
-no `THIRD-PARTY.md` at the repository root, and none is needed until the first
-import. The phase that imports any material below creates that file in the same
-change, carrying the notices its terms require.
+**One import has happened.** Sprint 43 (Specification 0043) selected and
+re-classified a subset of `hasaneyldrm/exercises-dataset`'s exercise names and
+equipment/muscle classifications — no instruction text, no translation, no
+image, no video — into
+`apps/mobile/src/features/exercise-catalog/application/expanded-exercises.ts`.
+The MIT notice this owes lives in [`THIRD-PARTY.md`](../THIRD-PARTY.md) at the
+repository root. No other third-party code, data, or media ships in this
+repository. A later phase that imports further material extends that file in
+the same change, carrying the notices its terms require.
 
 The [Engineering Constitution](../AGENTS.md) already requires reviewing a
 dependency's license before adoption. This document is the standing result of
@@ -39,11 +44,21 @@ later. Read the license before reading the code.
 Exercise data and the imagery that illustrates it are licensed separately from
 each other in every source examined, and the difference is the whole point.
 
-**`hasaneyldrm/exercises-dataset`** — MIT for the data. Roughly 1,324 exercises
-with names, categories, body parts, equipment, target muscles, and step-by-step
-instructions in six languages. Usable, provided the MIT copyright notice travels
-with any copy. The complete dataset is roughly 17 MB, which is more than an
-application bundle should carry; how much of it ships is an open question in the
+**`hasaneyldrm/exercises-dataset`** — MIT for the data, tooling, and
+instruction text specifically (its `LICENSE` file states this explicitly,
+alongside a separate media exception — see below). Roughly 1,324 exercises
+with names, categories, body parts, equipment, target muscles, and
+step-by-step instructions, now in ten languages. Usable, provided the MIT
+copyright notice travels with any copy. The complete dataset is roughly 17 MB,
+which is more than an application bundle should carry.
+
+Sprint 43 (Specification 0043) verified this license directly against the
+repository's `LICENSE` file at commit
+`7455efae41b330c265e7cd4b78dfa848e7ce5eb`, retrieved 2026-08-24, and used only
+the English name, equipment, and target-muscle fields for 189 curated
+Exercise Definitions — never the instruction text, translations, images, or
+GIFs. The notice this owes is recorded in [`THIRD-PARTY.md`](../THIRD-PARTY.md).
+How much more of it, if any, ships later remains an open question in the
 product direction.
 
 **The media in that same repository** — the animations and thumbnails in its

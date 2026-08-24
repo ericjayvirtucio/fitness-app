@@ -248,6 +248,13 @@ test_sprint_41_resolution() {
     'Sprint 41 resolves to independently reported scenarios'
 }
 
+test_sprint_43_resolution() {
+  assert_equal \
+    "${test_root}/e2e/mobile/suites/sprint-43" \
+    "$(resolve_suite sprint 43)" \
+    'Sprint 43 resolves to independently reported scenarios'
+}
+
 test_human_readable_report() {
   local temporary_directory
   temporary_directory="$(mktemp -d)"
@@ -305,5 +312,6 @@ test_sprint_38_resolution
 test_sprint_39_resolution
 test_sprint_40_resolution
 test_sprint_41_resolution
+test_sprint_43_resolution
 test_human_readable_report
 printf 'QA wrapper tests passed.\n'
