@@ -1,0 +1,29 @@
+appId: com.fitnessapp.dev
+---
+# Opens the Exercise Library and adds the expanded exercise pack the way a
+# person does: through the public library screen, beside the starter section
+# rather than through a fixture, a seeder, or a hidden route.
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+# The expanded section sits directly beneath the starter section, so it stays
+# reachable however many definitions the library already holds. It can still
+# begin below the fold on a short device, so it is scrolled to rather than
+# assumed.
+- scrollUntilVisible:
+    element:
+      text: Add expanded exercise library
+    direction: DOWN
+    centerElement: true
+- tapOn: Add expanded exercise library
+# Ends on the Exercise Library, which is a pushed screen with no tab bar. A
+# caller that needs the tabs relaunches rather than guessing at back gestures.
+#
+# Deliberately asserts nothing about the outcome. Each scenario asserts the
+# sentence it expects, because one sentence here would be wrong for a second
+# import.

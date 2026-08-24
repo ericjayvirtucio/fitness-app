@@ -1,0 +1,45 @@
+appId: com.fitnessapp.dev
+name: An empty library offers the expanded pack beside the starter set
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: tab-workout
+- scrollUntilVisible:
+    element:
+      text: Open Exercise Library
+    direction: DOWN
+- tapOn: Open Exercise Library
+- assertVisible: Exercise Library
+- assertVisible: No exercises yet
+# Authoring and both imports stay side by side. The expanded pack is offered
+# as an addition, never a replacement, so the starter section and its own
+# explanation still appear exactly as Sprint 27 left them.
+- assertVisible: Create first exercise
+- scrollUntilVisible:
+    element:
+      text: Starter exercises
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add 26 common exercises to your library in one step.*
+- scrollUntilVisible:
+    element:
+      text: Add starter exercises
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add starter exercises
+- scrollUntilVisible:
+    element:
+      text: Expanded exercise library
+    direction: DOWN
+    centerElement: true
+# The explanation states the count and who owns the result before anything is
+# written, exactly as the starter section's own explanation does.
+- assertVisible: Add 189 more exercises across every equipment type.*
+- assertVisible: .*edit, favorite, or remove any of them individually.*
+- scrollUntilVisible:
+    element:
+      text: Add expanded exercise library
+    direction: DOWN
+    centerElement: true
+- assertVisible: Add expanded exercise library

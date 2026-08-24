@@ -25,6 +25,14 @@ import {
 } from '../application/exercise-catalog-use-cases';
 import { ExerciseFilterControls } from './ExerciseFilterControls';
 import {
+  expandedExerciseActionLabel,
+  expandedExerciseExplanation,
+  expandedExerciseImportedMessage,
+  expandedExerciseRefusalMessage,
+  expandedExerciseSectionTitle,
+  expandedExerciseUnchangedMessage,
+} from './expanded-exercise-messages';
+import {
   filteredSectionTitle,
   truncatedListMessage,
 } from './exercise-filter-messages';
@@ -71,6 +79,8 @@ export function ExerciseLibraryScreen({
   const [state, setState] = useState<State>({ status: 'loading' });
   const [starterResult, setStarterResult] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [expandedResult, setExpandedResult] = useState<string | null>(null);
+  const [isImportingExpanded, setIsImportingExpanded] = useState(false);
   // A filter tap and a keystroke can both be in flight, and the catalog can be
   // read again by a focus reload while either is. Only the newest read may write
   // to the screen; an older one that resolves late is dropped rather than
@@ -129,6 +139,7 @@ export function ExerciseLibraryScreen({
   useFocusEffect(
     useCallback(() => {
       setStarterResult(null);
+      setExpandedResult(null);
       load();
     }, [load]),
   );
@@ -226,6 +237,28 @@ export function ExerciseLibraryScreen({
       setIsImporting(false);
     }
   };
+  const addExpandedExercises = async () => {
+    setIsImportingExpanded(true);
+    setExpandedResult(null);
+    try {
+      const outcome = await state.useCases.addExpandedExercises.execute();
+      if (outcome.status === 'imported') await refreshLists(state.useCases);
+      setExpandedResult(
+        outcome.status === 'imported'
+          ? expandedExerciseImportedMessage(
+              outcome.addedCount,
+              outcome.skippedCount,
+            )
+          : outcome.status === 'unchanged'
+            ? expandedExerciseUnchangedMessage
+            : expandedExerciseRefusalMessage(outcome.reason),
+      );
+    } catch {
+      setState({ status: 'error' });
+    } finally {
+      setIsImportingExpanded(false);
+    }
+  };
   const hasQuery = query.trim() !== '';
   const isNarrowed = isExerciseCatalogFilterActive(filter);
   const results = hasQuery ? state.search : state.all;
@@ -284,6 +317,28 @@ export function ExerciseLibraryScreen({
         {starterResult === null ? null : (
           <AppText accessibilityLiveRegion="polite" color="secondary">
             {starterResult}
+          </AppText>
+        )}
+      </View>
+      {/*
+       * Offered alongside the starter section rather than folded into it, so
+       * pressing one control never implies anything about the other: the
+       * starter set stays the small, reviewed set it always was, and this is
+       * a distinct, larger, equally opt-in addition. Same reasoning as the
+       * starter section for living above the lists it grows.
+       */}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader title={expandedExerciseSectionTitle} />
+        <AppText color="secondary">{expandedExerciseExplanation}</AppText>
+        <AppButton
+          isLoading={isImportingExpanded}
+          label={expandedExerciseActionLabel}
+          onPress={() => void addExpandedExercises()}
+          variant="outline"
+        />
+        {expandedResult === null ? null : (
+          <AppText accessibilityLiveRegion="polite" color="secondary">
+            {expandedResult}
           </AppText>
         )}
       </View>

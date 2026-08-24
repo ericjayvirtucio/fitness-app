@@ -131,5 +131,29 @@ place, which keeps the result on screen and announced.
 
 One short exclusive transaction: one identifier query, twenty-six indexed name
 lookups, at most twenty-six single-row inserts, all against indexes migration 7
-created. No migration, index, worker, or persisted summary is added, and
-`user_version` stays 11.
+created. No migration, index, worker, or persisted summary is added.
+
+## Extended by the expanded pack (Sprint 43)
+
+[Specification 0043](../../specs/0043-expanded-exercise-library.md) adds a
+second, larger pack — 189 further definitions in
+`application/expanded-exercises.ts` — offered beside this section, not instead
+of it. It reuses `AddStarterExercisesUseCase` exactly as built here,
+constructed a second time with different content
+(`composition/exercise-catalog.ts`'s `addExpandedExercises`), and its own
+messages live in `presentation/expanded-exercise-messages.ts`. Everything
+above this section — the empty-installation reasoning, ownership, duplicate
+policy, transaction, and experience placement — applies unchanged to the
+expanded pack.
+
+One exception: deleting an imported definition (from either pack) and
+importing again no longer re-adds it, contrary to the "Duplicates" section
+above. [Specification 0042](../../specs/0042-schema-synchronization-readiness.md)
+changed deletion for `exercise_catalog_item` to a tombstone
+(`deleted_at_epoch_ms`) after this document and Specification 0027 were
+written; the import's presence check filters to non-deleted rows, so a
+re-import now collides with the tombstoned row's still-present primary key and
+refuses the whole write instead. See Specification 0043's "Duplicate policy"
+section for the full account. This document is not yet corrected beyond this
+note, and the interaction itself is not fixed — both are tracked as residual
+work.

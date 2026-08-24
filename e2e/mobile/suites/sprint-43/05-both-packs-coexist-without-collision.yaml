@@ -1,0 +1,39 @@
+appId: com.fitnessapp.dev
+name: The starter set and the expanded pack coexist without collision
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../flows/exercise/add-starter-exercises.yaml
+- assertVisible: Added 26 exercises to your library.
+- runFlow: ../../flows/exercise/add-expanded-exercises.yaml
+# Neither import reports the other's content as already held: the two packs
+# were curated to share no name or identifier, so both additions land in full.
+- assertVisible: Added 189 exercises to your library.
+- assertNotVisible: were already in your library
+# A definition unique to each pack is reachable by search, and the starter
+# set's own entries remain exactly where Sprint 27 left them.
+- tapOn:
+    id: exercise-library-search
+- inputText: Push-up
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Edit Push-up
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Push-up
+- tapOn:
+    id: exercise-library-search
+- eraseText
+- inputText: Barbell Curl
+- swipe:
+    start: 50%, 40%
+    end: 50%, 35%
+- scrollUntilVisible:
+    element:
+      text: Edit Barbell Curl
+    direction: DOWN
+    centerElement: true
+- assertVisible: Edit Barbell Curl
