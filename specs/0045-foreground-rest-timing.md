@@ -218,12 +218,20 @@ A countdown failure cannot roll back a recorded set: the SQLite write
 completes, or the whole mutation fails and throws, entirely inside
 `saveSet`/`mutate` before the countdown component could ever mount. The
 countdown's own interval is cleared on every terminal transition
-(`completed`, `dismissed`) and on component unmount; tests assert
-`jest.getTimerCount() === 0` afterward, matching the existing fake-timer
-discipline already used in `ExercisePicker.spec.tsx:124-129` and
-`ExerciseLibraryScreen.spec.tsx:569-573`. Session completion and abandonment
-stop any running countdown only as a consequence of `onClose` unmounting
-`WorkoutSessionScreen` — no separate wiring is added for this.
+(`completed`, `dismissed`) and on component unmount; tests assert this by
+spying on `setInterval`/`clearInterval` directly and asserting the specific
+interval id this component creates is the one passed to `clearInterval` —
+`jest.getTimerCount()` is not a reliable zero in this test environment (React
+Native Testing Library and `act` hold their own timers even for a static
+render, and a single interaction can move the count by more than one), so an
+id-specific spy assertion is the precise way to prove this component's own
+timer, and only its own timer, is cleared. Fake-timer setup and teardown
+otherwise follow the existing `jest.useFakeTimers()` / `jest.useRealTimers()`
+convention already used in `ExercisePicker.spec.tsx` and
+`ExerciseLibraryScreen.spec.tsx`.
+Session completion and abandonment stop any running countdown only as a
+consequence of `onClose` unmounting `WorkoutSessionScreen` — no separate
+wiring is added for this.
 
 ## Performance, privacy, and security
 
@@ -278,12 +286,19 @@ abstraction with no second consumer to justify it.
   `ExercisePicker.spec.tsx` and `ExerciseLibraryScreen.spec.tsx`): the rest
   offer appears only after a successful `addSet`/`updateSet` outcome and never
   after a rejected one; pressing a preset Start button shows remaining time
-  and a Stop control; `jest.advanceTimersByTime` to the deadline shows "Rest
-  complete" exactly once, with the live-region assertion targeting only that
-  node; Stop/dismiss while running clears the countdown; unmounting mid-run
-  leaves `jest.getTimerCount() === 0`; no mutation use case is ever invoked by
-  a countdown interaction; the existing Finish/Discard flow tests gain an
-  added assertion that no timer is leaked.
+  and a Stop control; every start control is absent while running, so a
+  second press has nothing to hit; `jest.advanceTimersByTime` to the deadline
+  shows "Rest complete" exactly once, with the live-region assertion
+  targeting only that node; Stop/dismiss while running or completed returns
+  to the preset offer with a fresh deadline on restart; stopping and
+  unmounting mid-run each clear the specific interval id this component
+  created (see "Failure and recovery"); no mutation use case is ever invoked
+  by a countdown interaction. Finishing or
+  discarding the workout is not given a dedicated countdown-cleanup test:
+  `WorkoutSessionScreen.spec.tsx` has no existing Finish/Discard flow test to
+  extend, and the unmount guarantee above already covers the mechanism
+  `onClose` relies on — React's own unmount behavior, not something specific
+  to this feature.
 - **Manual, physical device**: the existing critical smoke checklist
   (`docs/manual-testing/README.md`) plus a new capability checklist —
   completion announced once, not per tick; largest Dynamic Type; backgrounding
