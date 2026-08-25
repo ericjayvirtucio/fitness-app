@@ -97,6 +97,8 @@ command-line verification gate.
 
 Documentation describes the current truth. Update it in the same change as behavior. Future features should include an implementation guide, tests, architecture updates, troubleshooting guidance, API documentation where applicable, an ADR for architecture changes, and a runbook for operationally important behavior.
 
+During repository review and final documentation, determine whether the sprint changes roadmap status, dependencies, exit criteria, sequencing, risks, or the end goal. Update [docs/product-roadmap.md](docs/product-roadmap.md) in the same staged change when it does.
+
 Use relative links within the repository. Record durable decisions in ADRs, not transient chat or pull request comments. Remove obsolete guidance instead of layering contradictions.
 
 ## Security philosophy
