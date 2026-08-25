@@ -54,7 +54,7 @@ every feature a fitness application could have is built.
 | 3a. One visual identity              | Complete         | One deliberate, contrast-proven visual identity; no screen loses a stated value                                                                                            | Phase 2                                                                      | [Specification 0041](../specs/0041-the-app-has-one-visual-identity.md)                                                                                                             |
 | 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                            |
 | 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md) |
-| 4. Training depth                    | **Current**      | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | No specification yet — see "Training depth direction" below                                                                                                                        |
+| 4. Training depth                    | **Current**      | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing, shipped) — see "Training depth direction" below for remaining candidates                               |
 | 5. Nutrition depth                   | Planned          | A real food database behind the existing catalog, barcode entry, macro targets derived from existing goal/energy calculations                                              | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Open question: sourcing product data without inheriting a share-alike obligation on a derived database                                                                             |
 | 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                  |
 | 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                               |
@@ -96,8 +96,11 @@ Stated as outcomes, not task lists. A phase exits when:
   losing edits. _(Met — Specs 0041, 0042, 0043, 0044.)_
 - **4. Training depth** — a person can see more than a bare log of sets: at
   minimum, a way to observe how a session's effort or pacing behaved without
-  the application asserting a fact it did not record. _(Not yet met — no
-  capability has shipped.)_
+  the application asserting a fact it did not record. _(Not yet met.
+  Sprint 46 shipped rest timing — [Specification 0045](../specs/0045-foreground-rest-timing.md)
+  — as Phase 4's first capability, but a forward-looking rest countdown is
+  not an observation of how a session's effort or pacing behaved, so this
+  exit criterion is not satisfied by it alone.)_
 - **5. Nutrition depth** — logging a food item finds it in a real database
   most of the time, and a person has a macro target derived from their own
   goal and energy configuration. _(Not yet met.)_
@@ -110,28 +113,31 @@ Stated as outcomes, not task lists. A phase exits when:
 
 ## Training depth direction (provisional)
 
-Phase 4 has no approved specification. The candidates named in `PRODUCT.md`
-are: rest timing within a session, effort recorded as reserve or exertion,
-estimated one-repetition maximum, grouped sets or supersets, and progression
-schemes. None is approved scope. Recording them here is not a promise any
-will ship in this form, this order, or at all.
+The candidates named in `PRODUCT.md` are: rest timing within a session,
+effort recorded as reserve or exertion, estimated one-repetition maximum,
+grouped sets or supersets, and progression schemes. **Rest timing shipped in
+Sprint 46 as [Specification 0045](../specs/0045-foreground-rest-timing.md)**;
+the remaining four are not approved scope. Recording them here is not a
+promise any will ship in this form, this order, or at all.
 
-**Rest timing is the recommended first candidate**, based on Sprint 45's
-repository-based discovery:
+**Rest timing shipped first**, based on Sprint 45's repository-based
+discovery:
 
 - **Dependencies:** none on new schema. A foreground countdown needs no
-  persisted column.
-- **Outcome-based exit criteria:** a person can start an optional,
-  dismissible rest countdown after logging a set during an active Workout
-  Session, entirely in the foreground, with no persisted state and no
-  notification.
+  persisted column — confirmed by the shipped implementation.
+- **Shipped outcome:** a person can start an optional, dismissible rest
+  countdown, choosing from four preset durations (60, 90, 120, or 180
+  seconds), after logging a set during an active Workout Session, entirely
+  in the foreground, with no persisted state and no notification.
 - **Relationship to later candidates:** a natural extension is a per-exercise
   default rest duration stored on `ExerciseDefinition` (a nullable column,
   requiring a migration) once the foreground-only version proves the
   interaction is worth persisting. Per-set overrides could follow that.
-- **Major exclusions:** any persisted rest-duration state, any notification
-  or alarm, any background timer, any auto-advance behavior. These remain
-  excluded until a future sprint explicitly proposes and justifies them.
+  Neither is approved scope.
+- **Major exclusions (held for this version):** any persisted rest-duration
+  state, any notification or alarm, any background timer, any auto-advance
+  behavior. These remain excluded until a future sprint explicitly proposes
+  and justifies them.
 - **Why not the other four candidates first:**
   - _Effort as RIR/RPE_ — every prior specification that named it (0012,
     0013, 0032, 0035) listed it as excluded; it adds a subjective, contested
@@ -152,9 +158,9 @@ repository-based discovery:
     and a progression scheme needs history across weeks the Planner does not
     yet model.
 
-No implementation specification exists for rest timing. A future sprint may
-propose one; this entry records only the discovery outcome and the
-recommendation.
+[Specification 0045](../specs/0045-foreground-rest-timing.md) documents rest
+timing in full. No implementation specification exists for the remaining
+four candidates; a future sprint may propose one.
 
 ## Adaptability rules
 
@@ -190,6 +196,15 @@ goal are recorded here — not every edit to this file.
   (Training depth) recorded as current, with rest timing recommended as the
   provisional first candidate after repository-based discovery. No
   capability implemented; no specification created for Phase 4.
+- **2026-08-25 — Sprint 46.** Rest timing shipped as
+  [Specification 0045](../specs/0045-foreground-rest-timing.md): an optional,
+  explicit-start, foreground-only rest countdown after a set saves
+  successfully, with no persisted state, notification, or background timer.
+  Phase 4 remains Current, not Complete — its stated exit criterion is an
+  observation of a session's effort or pacing, which a forward-looking rest
+  countdown does not provide. The remaining four Training Depth candidates
+  (effort as RIR/RPE, estimated one-repetition maximum, grouped sets or
+  supersets, progression schemes) remain provisional and unapproved.
 
 ## Authoritative references
 

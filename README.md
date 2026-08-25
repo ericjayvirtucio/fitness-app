@@ -163,21 +163,26 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
-Sprint 44: Deliberate Exercise Pack Restoration. The Exercise Library now
-offers two curated packs a person can add in deliberate, independent
-actions — twenty-six starter definitions and a further hundred eighty-nine
-from an openly licensed dataset, two hundred fifteen in total — and a
-definition deleted from either pack can be explicitly restored in place by
-requesting that pack again, with every edit made before the deletion
-preserved and its synchronization revision advanced rather than reset.
-Sprint 42 (Schema Synchronization Readiness) gave every table a person owns
-an update time, a deletion tombstone, a revision, and the device that
-created the row, plus a durable `sync_outbox` recording local changes not
-yet sent anywhere; no synchronization is built and nothing leaves the
-device. Sprint 41 (One Visual Identity) gave the application a single,
-contrast-proven dark and light palette. Authentication, an API endpoint,
-conflict resolution, background sync, and account services remain entirely
-out of scope.
+Sprint 46: Foreground Rest Timing. During an active Workout Session, a
+person can start an optional, dismissible rest countdown — 60, 90, 120, or
+180 seconds — after a set saves successfully. It runs entirely in the
+foreground, states remaining time plainly, announces completion once, and
+holds no persisted state, notification, alarm, or background timer; losing
+it by leaving the screen or closing the app never affects a recorded set.
+This is Phase 4's (Training Depth) first shipped capability. Sprint 44:
+Deliberate Exercise Pack Restoration. The Exercise Library now offers two
+curated packs a person can add in deliberate, independent actions —
+twenty-six starter definitions and a further hundred eighty-nine from an
+openly licensed dataset, two hundred fifteen in total — and a definition
+deleted from either pack can be explicitly restored in place by requesting
+that pack again, with every edit made before the deletion preserved and its
+synchronization revision advanced rather than reset. Sprint 42 (Schema
+Synchronization Readiness) gave every table a person owns an update time, a
+deletion tombstone, a revision, and the device that created the row, plus a
+durable `sync_outbox` recording local changes not yet sent anywhere; no
+synchronization is built and nothing leaves the device. Authentication, an
+API endpoint, conflict resolution, background sync, and account services
+remain entirely out of scope.
 
 See [docs/product-roadmap.md](docs/product-roadmap.md) for phase status,
 dependencies, and the product's direction toward its end goal.
