@@ -63,6 +63,7 @@ pnpm build         # Build/export all applications
 pnpm format:check  # Verify formatting
 pnpm lint          # Run lint checks
 pnpm test          # Run automated tests
+pnpm test:changed  # Test only workspaces affected relative to main
 pnpm typecheck     # Run strict TypeScript checks
 ```
 
@@ -71,6 +72,9 @@ workspaces and their test files run serially to limit memory use. User-interface
 behavior are verified on an available physical device with the
 [manual testing guide](docs/manual-testing/README.md); no simulator automation
 is required.
+
+Use `pnpm test:changed` for quick feedback while developing on a branch. Run the
+complete `pnpm test` command before considering a change verified.
 
 Run one application with a workspace filter:
 

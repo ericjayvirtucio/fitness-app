@@ -74,18 +74,24 @@ Avoid vague names such as `common`, `shared`, `helper`, `manager`, or `data` unl
 ## Testing philosophy
 
 - Test externally meaningful behavior, domain invariants, boundaries, failures, and recovery—not implementation trivia.
-- Domain tests are fast and framework-independent.
-- Integration tests verify adapters such as databases, APIs, and platform services.
+- Pure domain rules use Vitest and remain fast and framework-independent.
+- Expo application behavior and focused React Native components use Jest.
+- Jest integration tests verify adapters such as SQLite, APIs, and platform services.
 - Manual device checks cover a small set of critical user journeys that depend
   on native user-interface or platform behavior.
 - Every defect fix includes a regression test when technically feasible.
 - Tests must be deterministic, isolated, readable, and safe to run repeatedly.
 - Mock only boundaries the test does not own. Do not mock the subject into passing.
+- Treat coverage as diagnostic information, not an arbitrary percentage gate.
+- Remove a test as duplicate only when it exercises the same boundary, action,
+  and meaningful outcome without adding distinct failure diagnosis.
 
 A feature is not complete when its meaningful behavior cannot be verified.
 Simulator or emulator automation is not required. Keep deterministic domain,
 application, persistence, and focused component tests runnable from the command
 line. Use the repository's risk-based manual checklist for native behavior.
+`pnpm test:changed` is optional branch feedback; `pnpm test` remains the complete
+command-line verification gate.
 
 ## Documentation standards
 
