@@ -1,6 +1,0 @@
-appId: com.fitnessapp.dev
-name: Primary navigation
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/shared/assert-primary-navigation.yaml

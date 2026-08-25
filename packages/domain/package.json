@@ -19,7 +19,7 @@
     "build": "tsc -p tsconfig.build.json",
     "clean": "tsc -b tsconfig.build.json --clean",
     "lint": "eslint . --max-warnings=0",
-    "test": "vitest run",
+    "test": "vitest run --maxWorkers=1 --no-file-parallelism",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

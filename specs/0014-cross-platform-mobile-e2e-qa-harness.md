@@ -1,5 +1,10 @@
 # Specification 0014: Cross-platform mobile E2E QA harness
 
+> Superseded on 2026-08-25 by
+> [ADR 0033](../docs/decisions/0033-risk-based-manual-device-testing.md).
+> The harness and commands below are retained as historical design context and
+> are no longer part of the repository's testing workflow.
+
 - Status: Approved
 - Date: 2026-08-08
 

@@ -1,5 +1,10 @@
 # Sprint 11 manual QA: Offline exercise catalog
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, build, date, tester, result, and evidence for every available
 target. A failure must be fixed, automatically reverified, and retested before
 merge readiness.

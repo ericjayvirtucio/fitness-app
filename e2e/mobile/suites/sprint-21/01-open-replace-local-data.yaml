@@ -1,8 +1,0 @@
-appId: com.fitnessapp.dev
-name: Open replace local data from Data controls
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/profile/create-profile.yaml
-- runFlow: ../../flows/data-lifecycle/open-replace-local-data.yaml
-- assertVisible: Replace local data

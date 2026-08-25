@@ -1,5 +1,10 @@
 # Sprint 20 manual QA: Offline local data erasure
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, build, timezone, appearance, text size, network state, and
 result. Use synthetic data on a disposable QA target. Do not repeat the open,
 explain, cancel, delete, first-run, relaunch, and restore-eligibility behavior

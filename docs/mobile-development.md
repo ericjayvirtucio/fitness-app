@@ -87,42 +87,16 @@ pnpm build
 pnpm --filter @fitness/mobile exec expo install --check
 ```
 
-## Native end-to-end QA
+## Mobile verification
 
-Maestro CLI 2.7.0 drives the installed `com.fitnessapp.dev` application on an
-iOS Simulator or Android Emulator. Diagnose the local environment and run a
-suite from the repository root:
+`pnpm test` runs Jest and Vitest in the terminal without starting an iOS
+Simulator or Android Emulator. Test workspaces and their files run serially to
+reduce memory use.
 
-```bash
-./scripts/qa.sh doctor
-./scripts/qa.sh reset --platform ios
-./scripts/qa.sh smoke --platform ios
-./scripts/qa.sh sprint 13 --platform android
-./scripts/qa.sh sprint 15 --platform ios
-./scripts/qa.sh sprint 16 --platform ios
-./scripts/qa.sh sprint 17 --platform ios
-./scripts/qa.sh sprint 18 --platform ios
-./scripts/qa.sh regression
-```
-
-An explicit iOS command is self-preparing: it reuses one booted simulator or boots
-the first available iPhone Simulator, opens Simulator, waits for boot, and
-incrementally builds and installs a Release app. The Release bundle does not need
-Metro. The first run can take several minutes; later Xcode builds reuse caches.
-
-Android and commands without an explicit platform retain the pre-provisioned
-target contract. Build/install their application first and keep Metro running when
-the installed debug build requires it. Generated `ios` and `android` projects
-remain ignored.
-
-Every suite clears the selected application's sandbox, including
-`fitness-app.db`, before it begins. Use a disposable target; the wrapper does not
-back up development data. It never erases the whole simulator or emulator.
-
-Read the [mobile E2E guide](../e2e/mobile/README.md) for setup, suite structure,
-selectors, artifacts, and troubleshooting. Complete the
-[Sprint 14 harness checklist](manual-testing/sprint-14-mobile-e2e-harness.md)
-before claiming native QA is complete.
+Verify native presentation, accessibility, and platform integration on an
+available physical device. Use the [manual testing guide](manual-testing/README.md)
+to select the changed capability and critical smoke checks and to record the
+device, platform version, build, results, and limitations.
 
 ## Local persistence
 

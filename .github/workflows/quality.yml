@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Format, lint, type-check, and test
+    name: Format, lint, type-check, and command-line test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

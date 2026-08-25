@@ -1,7 +1,0 @@
-appId: com.fitnessapp.dev
-name: Workout planning
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/exercise/create-exercise.yaml
-- runFlow: ../../flows/workout/create-monday-plan.yaml

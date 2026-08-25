@@ -1,5 +1,10 @@
 # Sprint 15 manual QA: Workout history and progress foundation
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, app build, schema origin, timezone, appearance, network state, and
 result. A failure blocks merge readiness. Use synthetic fitness data.
 

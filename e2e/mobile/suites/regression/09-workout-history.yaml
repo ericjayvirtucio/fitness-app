@@ -1,7 +1,0 @@
-appId: com.fitnessapp.dev
-name: Completed workout history
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/exercise/create-exercise.yaml
-- runFlow: ../../flows/workout/complete-and-review-history.yaml

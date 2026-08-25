@@ -1,5 +1,10 @@
 # Specification 0018: Offline data export
 
+> Testing-policy note: automated simulator, sprint-suite, and regression-suite
+> requirements in this historical specification were superseded by
+> [ADR 0033](../docs/decisions/0033-risk-based-manual-device-testing.md).
+> Use command-line Jest/Vitest checks plus risk-based manual device testing.
+
 **Status:** Approved for implementation on 2026-08-11.
 
 ## Objective and scope

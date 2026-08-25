@@ -1,6 +1,0 @@
-appId: com.fitnessapp.dev
-name: Sprint 6 goals and energy
----
-- launchApp:
-    clearState: true
-- runFlow: ../flows/profile/create-profile-and-goal.yaml

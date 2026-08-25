@@ -1,6 +1,0 @@
-appId: com.fitnessapp.dev
-name: One-time nutrition logging
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/nutrition/log-one-time-entry.yaml

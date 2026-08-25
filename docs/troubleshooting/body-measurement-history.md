@@ -52,12 +52,8 @@ persistence error that never contains the measurement value. Inspect local
 persistence initialization and schema version with the local-persistence guide.
 Do not log database rows or measurement values.
 
-## Sprint 17 Maestro scenarios fail
+## A manual device check fails
 
-Run through `scripts/qa.sh`, not Maestro directly, and inspect `cli.log`,
-`report.txt`, and raw `junit.xml` in the printed artifact directory.
-
-Check-in flows deliberately keep the prefilled local date so a scenario never
-records a future measurement. The earlier of two check-ins uses the synthetic
-time `00:01`, which requires that the suite is not started within the first
-minute of a local day.
+Record the device, platform version, build, steps, and visible result using the
+[manual testing guide](../manual-testing/README.md). Keep the prefilled local
+date so the check does not accidentally record a future measurement.

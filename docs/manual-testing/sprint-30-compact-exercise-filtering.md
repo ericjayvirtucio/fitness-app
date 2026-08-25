@@ -1,5 +1,10 @@
 # Sprint 30 manual QA: compact, reusable exercise filtering
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, build, timezone, appearance, text size, network state, and
 result. Use synthetic data on a disposable QA target. Do not repeat the library
 narrowing, the empty filtered result, clearing, or relaunch behavior that the

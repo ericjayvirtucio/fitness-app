@@ -81,10 +81,10 @@ labels, the deletion alert, personal record evidence, and export.
 The surprise is real and is stated in the product: the naming screen says the
 change reaches personal records, before the person saves.
 
-Ten end-to-end assertions matched the literal `Workout`, because a constant is a
-stable matcher. They still pass, because the default is unchanged — but they now
-depend on a default rather than on a guarantee. `e2e/mobile/README.md` records
-that, and any flow that renames a workout must not compose them.
+The retired end-to-end harness had ten assertions matching the literal
+`Workout`, because a constant was a stable matcher. The default remains
+unchanged, but device checks for renaming must verify the user-provided name
+rather than depend on that default.
 
 The `Snapshot` suffix on the two projected fields remains misleading. Renaming
 them is a wide, mechanical change across readers, models, export mapping, and

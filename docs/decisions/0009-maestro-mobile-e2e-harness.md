@@ -1,6 +1,6 @@
 # ADR 0009: Maestro mobile end-to-end harness
 
-- Status: Accepted
+- Status: Superseded by ADR 0033
 - Date: 2026-08-08
 
 ## Context

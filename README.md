@@ -66,26 +66,11 @@ pnpm test          # Run automated tests
 pnpm typecheck     # Run strict TypeScript checks
 ```
 
-Native mobile E2E QA uses the repository-owned Maestro wrapper:
-
-```bash
-./scripts/qa.sh doctor
-./scripts/qa.sh reset --platform ios
-./scripts/qa.sh smoke --platform ios
-./scripts/qa.sh sprint 13 --platform android
-./scripts/qa.sh sprint 15 --platform ios
-./scripts/qa.sh sprint 16 --platform ios
-./scripts/qa.sh sprint 17 --platform ios
-./scripts/qa.sh sprint 18 --platform ios
-./scripts/qa.sh sprint 20 --platform ios
-./scripts/qa.sh regression
-```
-
-These suites clear `com.fitnessapp.dev` data on the selected virtual device.
-Explicit iOS runs boot an available iPhone Simulator and build/install the current
-Release app automatically. Android and implicit-platform runs still require a
-prepared target. Use a disposable simulator or emulator and read the
-[mobile E2E guide](e2e/mobile/README.md) before running them.
+`pnpm test` runs the non-simulator Jest and Vitest suites in the terminal. Test
+workspaces and their test files run serially to limit memory use. User-interface and native-platform
+behavior are verified on an available physical device with the
+[manual testing guide](docs/manual-testing/README.md); no simulator automation
+is required.
 
 Run one application with a workspace filter:
 
@@ -115,8 +100,8 @@ Mobile simulator setup, navigation conventions, testing, and troubleshooting are
 The design-system token boundary, the contrast contract that proves the palette,
 the card-variant rule, and what may enter the system are documented in
 [docs/architecture/design-system.md](docs/architecture/design-system.md).
-Native E2E suite ownership, state behavior, and artifacts are documented in the
-[mobile E2E guide](e2e/mobile/README.md).
+The repository's risk-based device checks and evidence format are documented in
+the [manual testing guide](docs/manual-testing/README.md).
 Domain boundaries, value-object conventions, and extension guidance are documented
 in [docs/architecture/domain-foundation.md](docs/architecture/domain-foundation.md).
 Local database initialization, migrations, transactions, and troubleshooting are
