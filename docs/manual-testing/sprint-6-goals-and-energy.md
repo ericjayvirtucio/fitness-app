@@ -1,5 +1,10 @@
 # Sprint 6 manual QA: Goals and energy
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record platform, OS version, app build, date, tester, and pass/fail evidence. Do
 not include sensitive profile values in shared screenshots or logs.
 

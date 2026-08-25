@@ -1,6 +1,0 @@
-appId: com.fitnessapp.dev
-name: Sprint 10 offline hydration tracking
----
-- launchApp:
-    clearState: true
-- runFlow: ../flows/hydration/log-water-and-persist.yaml

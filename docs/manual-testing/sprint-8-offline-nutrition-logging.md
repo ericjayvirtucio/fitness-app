@@ -1,5 +1,10 @@
 # Sprint 8 offline nutrition logging manual QA
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record the device/simulator, OS version, app build, appearance, and result for
 each available platform. Do not claim an unavailable platform was tested.
 

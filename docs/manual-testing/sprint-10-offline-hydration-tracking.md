@@ -1,5 +1,10 @@
 # Sprint 10 manual testing: Offline hydration tracking
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Run on an iOS simulator/device and Android target where available. Record target,
 OS version, result, and evidence for every item. If any item fails, stop, report
 the exact step, fix it, rerun relevant automated checks, and repeat the affected

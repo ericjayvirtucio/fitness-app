@@ -146,20 +146,14 @@ out for assistive technology and abbreviated visually. Every control meets the
 minimum touch target, layouts grow with Dynamic Type, and no state is
 communicated by color alone.
 
-## Maestro coverage
+## Device verification
 
-`./scripts/qa.sh sprint 17 --platform ios` runs four independently reported
-scenarios: an empty history, a check-in that survives a relaunch, two check-ins
-feeding Progress and the current profile weight, and an edit followed by a
-delete that leaves the profile weight unchanged.
-
-`e2e/mobile/suites/regression/11-body-measurements.yaml` adds a compact
-regression scenario. `e2e/mobile/flows/body-measurement/` holds the reusable
-open and check-in flows, and `flows/profile/create-profile.yaml` is now shared
-between the profile and body-measurement suites.
-
-Check-in flows keep the prefilled local date so a scenario never records a
-future measurement or crosses the selected period boundary.
+Manual device checks cover an empty history, a check-in that survives a
+relaunch, two check-ins feeding Progress and the current profile weight, and an
+edit followed by a delete that leaves the profile weight unchanged. Keep the
+prefilled local date so the check never records a future measurement or crosses
+the selected period boundary. Record the result using the
+[manual testing guide](../manual-testing/README.md).
 
 ## Accessibility container behavior
 
@@ -178,9 +172,6 @@ container labels for the same reason.
 - Progress describes recorded change between check-ins and offers no trend,
   rate of change, projection, or period comparison.
 - There is no chart, export, backup, or synchronization.
-- A check-in recorded in the first minute of a local day cannot be preceded by
-  the `00:01` synthetic time the Maestro flows use; the suite assumes it is not
-  run in that minute.
 
 `body_weight_entry` carries the synchronization-readiness metadata described
 in [Schema synchronization readiness](schema-synchronization-readiness.md).

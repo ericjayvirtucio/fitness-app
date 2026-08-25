@@ -1,8 +1,0 @@
-appId: com.fitnessapp.dev
-name: Open data export from Profile
----
-- launchApp:
-    clearState: true
-- runFlow: ../../flows/profile/create-profile.yaml
-- runFlow: ../../flows/data-export/open-data-export.yaml
-- assertVisible: Export my data

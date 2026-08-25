@@ -1,5 +1,10 @@
 # Sprint 13 manual QA: Offline workout sessions
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, app build, schema origin (fresh or upgraded from 8), network
 state, and result for every check. A failure blocks merge readiness. Fix it, add
 regression coverage where feasible, rerun relevant automation, and repeat the

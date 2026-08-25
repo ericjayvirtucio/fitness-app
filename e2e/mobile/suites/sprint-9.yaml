@@ -1,6 +1,0 @@
-appId: com.fitnessapp.dev
-name: Sprint 9 reusable nutrition catalog
----
-- launchApp:
-    clearState: true
-- runFlow: ../flows/nutrition/create-and-reuse-catalog-item.yaml

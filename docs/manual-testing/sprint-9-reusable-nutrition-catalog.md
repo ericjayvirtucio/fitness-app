@@ -1,5 +1,10 @@
 # Sprint 9 reusable Nutrition catalog manual testing
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record platform, OS, app revision, appearance, text size, assistive technology,
 result, and evidence for each check. Do not recommend merge until the repository
 owner confirms all required checks pass. If a check fails, preserve user data,

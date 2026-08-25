@@ -1,5 +1,10 @@
 # Specification 0015: Workout history and progress foundation
 
+> Testing-policy note: automated simulator, sprint-suite, and regression-suite
+> requirements in this historical specification were superseded by
+> [ADR 0033](../docs/decisions/0033-risk-based-manual-device-testing.md).
+> Use command-line Jest/Vitest checks plus risk-based manual device testing.
+
 - Status: Approved
 - Date: 2026-08-08
 

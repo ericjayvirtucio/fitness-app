@@ -1,5 +1,10 @@
 # Sprint 40 manual QA: the Workouts card states what it recorded
 
+> Current process: perform these checks manually on a physical device and record
+> results with [the manual testing guide](README.md). Any Maestro, `scripts/qa.sh`,
+> sprint-suite, or automated-regression instruction below is retired historical
+> context, not a command or release gate.
+
 Record device, OS, build, timezone, appearance, text size, network state, and
 result. Use synthetic data on a disposable QA target. Do not repeat proving that
 a period states its recorded load volume, that a period recording no eligible

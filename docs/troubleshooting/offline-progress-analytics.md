@@ -22,9 +22,7 @@ Use the on-screen retry. If the problem continues in development, inspect local
 persistence initialization and schema version using the local-persistence guide.
 Do not log database rows or sensitive fitness values.
 
-## QA report is missing or malformed
+## Manual device evidence is incomplete
 
-Run through `scripts/qa.sh`, not Maestro directly. Inspect `cli.log` and raw
-`junit.xml` in the printed artifact directory. No JUnit testcases, malformed XML,
-or a missing report produces a nonzero reporting-integrity status. A Maestro
-failure remains the final runner failure even if report formatting also fails.
+Record the device, platform version, build, selected checks, results, and any
+limitations using the [manual testing guide](../manual-testing/README.md).

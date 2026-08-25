@@ -76,12 +76,16 @@ Avoid vague names such as `common`, `shared`, `helper`, `manager`, or `data` unl
 - Test externally meaningful behavior, domain invariants, boundaries, failures, and recovery—not implementation trivia.
 - Domain tests are fast and framework-independent.
 - Integration tests verify adapters such as databases, APIs, and platform services.
-- End-to-end tests cover a small set of critical user journeys.
+- Manual device checks cover a small set of critical user journeys that depend
+  on native user-interface or platform behavior.
 - Every defect fix includes a regression test when technically feasible.
 - Tests must be deterministic, isolated, readable, and safe to run repeatedly.
 - Mock only boundaries the test does not own. Do not mock the subject into passing.
 
 A feature is not complete when its meaningful behavior cannot be verified.
+Simulator or emulator automation is not required. Keep deterministic domain,
+application, persistence, and focused component tests runnable from the command
+line. Use the repository's risk-based manual checklist for native behavior.
 
 ## Documentation standards
 

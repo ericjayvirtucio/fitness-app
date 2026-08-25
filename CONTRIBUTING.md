@@ -29,18 +29,14 @@ pnpm typecheck
 pnpm build
 ```
 
-Changes to mobile navigation, persistence composition, or a covered user workflow
-also run the smallest relevant native suite on each available platform:
+Run `pnpm test` for the terminal-based Jest and Vitest suites. They do not start
+a simulator or emulator, and the mobile suite runs serially to limit memory use.
 
-```bash
-./scripts/qa.sh smoke --platform ios
-./scripts/qa.sh sprint 13 --platform android
-```
-
-Use `./scripts/qa.sh regression` before merge when a change crosses feature or
-persistence boundaries. These commands clear the selected development app's
-local data. Setup, suite ownership, and retained manual checks are in
-[`e2e/mobile/README.md`](e2e/mobile/README.md).
+Changes to mobile navigation, native behavior, accessibility, persistence
+composition, or a user workflow also require the risk-based checks in the
+[manual testing guide](docs/manual-testing/README.md) on an available physical
+device. Test the changed capability and the short critical smoke checklist;
+do not repeat every historical sprint checklist for each change.
 
 Husky runs lint-staged before a commit. Hooks are a fast feedback mechanism, not a replacement for the complete checks.
 
