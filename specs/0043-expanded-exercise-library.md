@@ -7,6 +7,9 @@
 
 - Status: Approved
 - Date: 2026-08-24
+- Amended: 2026-08-25, to record the resolution of the delete-then-reimport
+  regression this specification identified and deliberately left open (see
+  "Duplicate policy" below).
 
 ## Objective and scope
 
@@ -124,15 +127,12 @@ holds — nothing is silently undone — but the refusal is generic rather than 
 specific "already deleted" statement, and every other pending addition in
 that same import attempt is refused along with it.
 
-This specification does not fix that interaction. Doing so is a design
-decision about what "delete, then ask for it again" should mean under
-Specification 0042's tombstone model — resurrect the row with a fresh
-revision and a new outbox entry, or leave it refused — and belongs to its own
-approval-gated change, not a side effect of adding content. It is recorded
-here, in `docs/manual-testing/sprint-43-usable-exercise-library.md`, and in a
-dedicated real-SQLite test (`expanded-exercise-import-sqlite.spec.ts`) so a
-future fix has to notice and deliberately change this behavior rather than
-regress it again silently.
+This specification did not fix that interaction; it recorded the choice as
+open. **Resolved by [Specification 0044](0044-deliberate-exercise-pack-restoration.md):**
+re-importing a tombstoned identifier now resurrects the row in place —
+undeleted with every stored field the person had preserved — instead of
+inserting it and colliding with its primary key. See that specification for
+the full resurrection semantics, collision matrix, and test coverage.
 
 ## Architecture
 

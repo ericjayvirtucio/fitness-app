@@ -8,9 +8,16 @@ import type { ExerciseCatalogRepository } from './exercise-catalog-repository';
 import type { StarterExerciseImportContext } from './starter-exercise-import-context';
 import { starterExercises, type StarterExercise } from './starter-exercises';
 
+/**
+ * Models a tombstone the same way the real repository does: a deleted row
+ * stays physically present but is excluded from every read the import uses to
+ * decide what already exists, so `restore` is the only path back to it.
+ */
 class FakeCatalog implements ExerciseCatalogRepository {
   failOnInsert: string | null = null;
+  failOnRestore: string | null = null;
   readonly items: ExerciseCatalogItem[] = [];
+  readonly deletedIds = new Set<string>();
 
   delete(): Promise<boolean> {
     throw new Error('Not used by the starter import.');
@@ -18,7 +25,7 @@ class FakeCatalog implements ExerciseCatalogRepository {
   findByNormalizedName(normalizedName: string) {
     return Promise.resolve(
       Object.freeze(
-        this.items.filter(
+        this.live().filter(
           (item) =>
             normalizeExerciseName(item.definition.name) === normalizedName,
         ),
@@ -27,14 +34,14 @@ class FakeCatalog implements ExerciseCatalogRepository {
   }
   getById(id: DomainId) {
     return Promise.resolve(
-      this.items.find((item) => item.definition.id.value === id.value) ?? null,
+      this.live().find((item) => item.definition.id.value === id.value) ?? null,
     );
   }
   getByIds(ids: readonly DomainId[]) {
     const wanted = new Set(ids.map((id) => id.value));
     return Promise.resolve(
       Object.freeze(
-        this.items.filter((item) => wanted.has(item.definition.id.value)),
+        this.live().filter((item) => wanted.has(item.definition.id.value)),
       ),
     );
   }
@@ -44,12 +51,19 @@ class FakeCatalog implements ExerciseCatalogRepository {
     this.items.push(item);
     return Promise.resolve();
   }
+  restore(id: DomainId): Promise<boolean> {
+    if (!this.deletedIds.has(id.value)) return Promise.resolve(false);
+    if (this.failOnRestore === id.value)
+      return Promise.reject(new Error('Storage is unavailable.'));
+    this.deletedIds.delete(id.value);
+    return Promise.resolve(true);
+  }
   listAll() {
-    return Promise.resolve(Object.freeze([...this.items]));
+    return Promise.resolve(Object.freeze([...this.live()]));
   }
   listFavorites() {
     return Promise.resolve(
-      Object.freeze(this.items.filter((item) => item.isFavorite)),
+      Object.freeze(this.live().filter((item) => item.isFavorite)),
     );
   }
   search() {
@@ -60,6 +74,20 @@ class FakeCatalog implements ExerciseCatalogRepository {
   }
   update(): Promise<boolean> {
     throw new Error('Not used by the starter import.');
+  }
+
+  /**
+   * Test setup only: marks an already-stored item deleted without going
+   * through `delete`, which this fake does not otherwise support.
+   */
+  markDeleted(id: string): void {
+    this.deletedIds.add(id);
+  }
+
+  private live(): readonly ExerciseCatalogItem[] {
+    return this.items.filter(
+      (item) => !this.deletedIds.has(item.definition.id.value),
+    );
   }
 }
 
@@ -74,12 +102,15 @@ class RollingBackRunner implements TransactionRunner<StarterExerciseImportContex
   async run<TResult>(
     operation: (context: StarterExerciseImportContext) => Promise<TResult>,
   ): Promise<TResult> {
-    const snapshot = [...this.catalog.items];
+    const itemsSnapshot = [...this.catalog.items];
+    const deletedSnapshot = new Set(this.catalog.deletedIds);
     try {
       return await operation({ catalog: this.catalog });
     } catch (error: unknown) {
       this.catalog.items.length = 0;
-      this.catalog.items.push(...snapshot);
+      this.catalog.items.push(...itemsSnapshot);
+      this.catalog.deletedIds.clear();
+      for (const id of deletedSnapshot) this.catalog.deletedIds.add(id);
       throw error;
     }
   }
@@ -232,5 +263,86 @@ describe('AddStarterExercisesUseCase', () => {
 
     expect(outcome).toEqual({ reason: 'write-failed', status: 'refused' });
     expect(catalog.items).toEqual([authored]);
+  });
+
+  it('resurrects a deleted definition instead of refusing the import, keeping what the person changed', async () => {
+    const entry = firstEntry();
+    const edited = buildExerciseCatalogItem(entry.id, {
+      equipment: entry.equipment,
+      isFavorite: true,
+      loggingMode: entry.loggingMode,
+      name: 'My custom name',
+      notes: 'Added a weight belt',
+      primaryMuscleGroup: entry.primaryMuscleGroup,
+    });
+    if (!edited.isSuccess) throw new Error('Invalid fixture');
+    catalog.items.push(edited.value);
+    catalog.markDeleted(entry.id);
+
+    const outcome = await useCase.execute();
+
+    expect(outcome).toEqual({
+      addedCount: starterExercises.length,
+      skippedCount: 0,
+      status: 'imported',
+    });
+    expect(catalog.deletedIds.has(entry.id)).toBe(false);
+    const revived = catalog.items.filter(
+      (stored) => stored.definition.id.value === entry.id,
+    );
+    // Exactly one row for this identifier: resurrecting it did not insert a
+    // second copy from the bundled content alongside the tombstoned one.
+    expect(revived).toHaveLength(1);
+    expect(revived[0]?.definition.name).toBe('My custom name');
+    expect(revived[0]?.isFavorite).toBe(true);
+    expect(revived[0]?.definition.notes).toBe('Added a weight belt');
+  });
+
+  it('rolls back every addition, including ones already written, when a restore fails partway through', async () => {
+    const failing = starterExercises[3];
+    if (failing === undefined) throw new Error('Invalid fixture');
+    catalog.items.push(item(failing, failing.name, failing.id));
+    catalog.markDeleted(failing.id);
+    catalog.failOnRestore = failing.id;
+
+    const outcome = await useCase.execute();
+
+    expect(outcome).toEqual({ reason: 'write-failed', status: 'refused' });
+    // Only the one tombstoned row from before the attempt: the ordinary
+    // insertions earlier in the same batch did not survive either.
+    expect(catalog.items).toHaveLength(1);
+    expect(catalog.deletedIds.has(failing.id)).toBe(true);
+  });
+
+  it('resurrects a deleted entry, skips a live one, and inserts a genuinely new one in the same import', async () => {
+    const [a, b, c] = starterExercises;
+    if (a === undefined || b === undefined || c === undefined)
+      throw new Error('Invalid fixture');
+    await new AddStarterExercisesUseCase(new RollingBackRunner(catalog), [
+      a,
+      b,
+    ]).execute();
+    catalog.markDeleted(a.id);
+
+    const outcome = await new AddStarterExercisesUseCase(
+      new RollingBackRunner(catalog),
+      [a, b, c],
+    ).execute();
+
+    expect(outcome).toEqual({
+      addedCount: 2,
+      skippedCount: 1,
+      status: 'imported',
+    });
+    expect(catalog.deletedIds.has(a.id)).toBe(false);
+    expect(
+      catalog.items.filter((stored) => stored.definition.id.value === a.id),
+    ).toHaveLength(1);
+    expect(
+      catalog.items.filter((stored) => stored.definition.id.value === b.id),
+    ).toHaveLength(1);
+    expect(
+      catalog.items.some((stored) => stored.definition.id.value === c.id),
+    ).toBe(true);
   });
 });

@@ -67,6 +67,7 @@ export function buildRestoreTransactionContext(
       insert: write('exercise'),
       listAll: unsupported,
       listFavorites: unsupported,
+      restore: unsupported,
       search: unsupported,
       setFavorite: unsupported,
       update: unsupported,

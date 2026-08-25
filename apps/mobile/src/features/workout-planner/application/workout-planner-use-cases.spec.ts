@@ -105,6 +105,7 @@ function catalog(item: ExerciseCatalogItem): ExerciseCatalogRepository {
     insert: jest.fn(),
     listAll: jest.fn(),
     listFavorites: jest.fn(),
+    restore: jest.fn(),
     search: jest.fn(),
     setFavorite: jest.fn(),
     update: jest.fn(),

@@ -147,13 +147,17 @@ policy, transaction, and experience placement — applies unchanged to the
 expanded pack.
 
 One exception: deleting an imported definition (from either pack) and
-importing again no longer re-adds it, contrary to the "Duplicates" section
-above. [Specification 0042](../../specs/0042-schema-synchronization-readiness.md)
+importing again does not re-add it by plain insertion, contrary to the
+"Duplicates" section above. [Specification 0042](../../specs/0042-schema-synchronization-readiness.md)
 changed deletion for `exercise_catalog_item` to a tombstone
 (`deleted_at_epoch_ms`) after this document and Specification 0027 were
-written; the import's presence check filters to non-deleted rows, so a
-re-import now collides with the tombstoned row's still-present primary key and
-refuses the whole write instead. See Specification 0043's "Duplicate policy"
-section for the full account. This document is not yet corrected beyond this
-note, and the interaction itself is not fixed — both are tracked as residual
-work.
+written; the import's presence check filters to non-deleted rows, so a plain
+`insert` would collide with the tombstoned row's still-present primary key.
+Resolved by [Specification 0044](../../specs/0044-deliberate-exercise-pack-restoration.md):
+the import now tries
+`ExerciseCatalogRepository.restore` before `insert`. A matching tombstoned
+identifier is undeleted in place — every stored field the person had
+(name, equipment, notes, favorite) survives, `originating_device_id` stays
+the row's original creator, and `revision`/`updated_at_epoch_ms` advance —
+rather than being reinserted from the bundled content or refusing the whole
+write. A genuinely absent identifier still inserts normally.

@@ -186,11 +186,17 @@ Deleting a definition tombstones the row rather than removing it; every read
 here, including the duplicate-name check and the Planner's referential usage
 check, already excludes a tombstoned row. No synchronization exists yet.
 
-The tombstone does **not** free the row's primary key: a bulk import
+The tombstone does **not** free the row's primary key, so a bulk import
 (starter or expanded, see
 [Specification 0043](../../specs/0043-expanded-exercise-library.md)) that
-tries to re-add a definition deleted this way collides with the still-present
-`id` and refuses the whole import, rather than reviving the one row.
-Specification 0027 originally promised that deleting an imported definition
-and importing again re-adds it; that promise no longer holds since this
-tombstone was introduced, and fixing the interaction remains open.
+re-adds a definition deleted this way cannot reach it through a plain
+`insert` — that would collide with the still-present `id`. Resolved by
+[Specification 0044](../../specs/0044-deliberate-exercise-pack-restoration.md):
+the repository instead exposes `restore(id)`, which the import tries first: a matching
+tombstoned row is undeleted in place (only `deleted_at_epoch_ms`,
+`revision`, and `updated_at_epoch_ms` change; `originating_device_id` and
+every other stored column are left exactly as they were), and only a
+genuinely absent identifier falls through to `insert`. Specification 0027's
+original promise — that deleting an imported definition and importing again
+re-adds it — holds again, now honoring whatever the person had changed on
+the row before it was deleted.
