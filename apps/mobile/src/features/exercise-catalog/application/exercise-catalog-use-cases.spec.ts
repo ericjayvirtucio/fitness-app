@@ -95,6 +95,7 @@ class MemoryRepository implements ExerciseCatalogRepository {
   listFavorites = jest.fn(() =>
     Promise.resolve(this.values.filter((value) => value.isFavorite)),
   );
+  restore = jest.fn(() => Promise.resolve(false));
   search = jest.fn(
     (query: string, limit: number, filter?: ExerciseCatalogFilter) =>
       Promise.resolve(

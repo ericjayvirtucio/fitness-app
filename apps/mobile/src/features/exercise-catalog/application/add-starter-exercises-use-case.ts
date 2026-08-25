@@ -104,7 +104,16 @@ async function importInto(
     additions.push(item);
   }
 
-  for (const item of additions) await catalog.insert(item);
+  for (const item of additions) {
+    // The identifier may still physically exist as a tombstoned row, because
+    // Specification 0042 made deletion a tombstone rather than a hard delete.
+    // Explicitly asking for this definition again is consent to bring that
+    // row back, not to overwrite whatever the person had stored on it, so a
+    // restore is tried first and only a genuinely absent identifier falls
+    // through to an ordinary insert.
+    if (await catalog.restore(item.definition.id)) continue;
+    await catalog.insert(item);
+  }
 
   const skippedCount = candidates.length - additions.length;
   return additions.length === 0

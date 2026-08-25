@@ -18,6 +18,11 @@ export interface ExerciseCatalogRepository {
     filter?: ExerciseCatalogFilter,
   ): Promise<readonly ExerciseCatalogItem[]>;
   listFavorites(limit: number): Promise<readonly ExerciseCatalogItem[]>;
+  // Undeletes a tombstoned row exactly as it was last stored, touching only
+  // its deletion, revision, and modification metadata. It is not a second
+  // creation path: a caller that wants bundled content has to insert it, and
+  // this only ever brings back a row the catalog already held.
+  restore(id: DomainId): Promise<boolean>;
   search(
     normalizedQuery: string,
     limit: number,

@@ -190,6 +190,9 @@ class Catalog implements ExerciseCatalogRepository {
   listFavorites(): Promise<readonly ExerciseCatalogItem[]> {
     throw new Error('The addition must not list catalog favorites.');
   }
+  restore(): Promise<boolean> {
+    throw new Error('The addition must not restore catalog definitions.');
+  }
   search(): Promise<readonly ExerciseCatalogItem[]> {
     throw new Error('The addition must not search the catalog.');
   }
