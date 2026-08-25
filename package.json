@@ -18,6 +18,7 @@
     "lint": "turbo run lint",
     "prepare": "husky",
     "test": "turbo run test --concurrency=1",
+    "test:changed": "turbo run test --affected --concurrency=1",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

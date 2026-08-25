@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import type { LocalDataErasureResult } from '../application/erase-local-data-use-case';
 import { LocalDataErasureError } from '../application/local-data-erasure-error';
@@ -51,9 +51,13 @@ function alertButton(alert: AlertSpy, style: AlertButton['style']) {
   return alert.mock.calls[0]?.[2]?.find((button) => button.style === style);
 }
 
-/** Presses the destructive option of the confirmation the screen just opened. */
-function confirmDestructiveAlert(alert: AlertSpy): void {
-  alertButton(alert, 'destructive')?.onPress?.();
+async function pressAlertButton(
+  alert: AlertSpy,
+  style: AlertButton['style'],
+): Promise<void> {
+  await act(() => {
+    alertButton(alert, style)?.onPress?.();
+  });
 }
 
 function spyOnAlert(): AlertSpy {
@@ -64,7 +68,7 @@ async function deleteEverything(): Promise<AlertSpy> {
   const alert = spyOnAlert();
   await acknowledge();
   await fireEvent.press(screen.getByTestId('confirm-delete-local-data'));
-  confirmDestructiveAlert(alert);
+  await pressAlertButton(alert, 'destructive');
   return alert;
 }
 
@@ -164,7 +168,7 @@ describe('DeleteLocalDataScreen', () => {
 
     await acknowledge();
     await fireEvent.press(screen.getByTestId('confirm-delete-local-data'));
-    alertButton(alert, 'cancel')?.onPress?.();
+    await pressAlertButton(alert, 'cancel');
 
     expect(erase).not.toHaveBeenCalled();
     expect(screen.queryByTestId('delete-local-data-complete')).toBeNull();

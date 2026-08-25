@@ -31,12 +31,20 @@ pnpm build
 
 Run `pnpm test` for the terminal-based Jest and Vitest suites. They do not start
 a simulator or emulator, and the mobile suite runs serially to limit memory use.
+During development, `pnpm test:changed` runs only workspaces affected relative to
+`main`; it is quick feedback and does not replace the complete pre-review run.
 
 Changes to mobile navigation, native behavior, accessibility, persistence
 composition, or a user workflow also require the risk-based checks in the
 [manual testing guide](docs/manual-testing/README.md) on an available physical
 device. Test the changed capability and the short critical smoke checklist;
 do not repeat every historical sprint checklist for each change.
+
+Use Vitest for pure domain rules and Jest for Expo application behavior, focused
+React Native components, and SQLite integration. Add tests for meaningful
+boundaries, failures, transactions, recovery, and confirmed defect regressions.
+Coverage reports guide investigation; no arbitrary percentage is a completion
+gate.
 
 Husky runs lint-staged before a commit. Hooks are a fast feedback mechanism, not a replacement for the complete checks.
 

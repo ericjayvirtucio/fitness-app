@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import type { DataExportFile } from '../../data-export/application/data-export-file';
 import { DataRestoreError } from '../../data-restore/application/data-restore-error';
@@ -76,6 +76,15 @@ function spyOnAlert(): AlertSpy {
   return jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
 }
 
+async function pressAlertButton(
+  alert: AlertSpy,
+  style: AlertButton['style'],
+): Promise<void> {
+  await act(() => {
+    alertButton(alert, style)?.onPress?.();
+  });
+}
+
 async function chooseFile(): Promise<void> {
   await fireEvent.press(
     await screen.findByTestId('choose-replace-local-data-file'),
@@ -97,7 +106,7 @@ async function acknowledgeReplacement(): Promise<void> {
 async function replaceEverything(): Promise<AlertSpy> {
   const alert = spyOnAlert();
   await fireEvent.press(screen.getByTestId('confirm-replace-local-data'));
-  alertButton(alert, 'destructive')?.onPress?.();
+  await pressAlertButton(alert, 'destructive');
   return alert;
 }
 
@@ -336,7 +345,7 @@ describe('ReplaceLocalDataScreen', () => {
     await acknowledgeReplacement();
     const alert = spyOnAlert();
     await fireEvent.press(screen.getByTestId('confirm-replace-local-data'));
-    alertButton(alert, 'cancel')?.onPress?.();
+    await pressAlertButton(alert, 'cancel');
 
     expect(replaceCount).toBe(0);
     expect(

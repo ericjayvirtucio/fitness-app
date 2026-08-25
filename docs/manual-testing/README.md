@@ -8,6 +8,13 @@ application, persistence, and focused component behavior:
 pnpm test
 ```
 
+Vitest covers pure domain rules. Jest covers Expo application behavior, focused
+React Native components, and SQLite integration. Tests prioritize meaningful
+boundaries, failures, transactions, recovery, and confirmed defect regressions;
+coverage percentages are diagnostic rather than release gates. During branch
+development, `pnpm test:changed` provides quick affected-workspace feedback, but
+the full command above remains required before review.
+
 ## Test record
 
 Copy this block into the pull request or verification notes:
