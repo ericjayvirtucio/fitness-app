@@ -127,6 +127,37 @@ export class ExerciseCatalogSqliteRepository implements ExerciseCatalogRepositor
     return true;
   }
 
+  /**
+   * Undeletes a tombstoned row in place. Explicitly asking for a definition
+   * again is consent to bring it back, not consent to discard whatever the
+   * person had stored on it, so this clears only `deleted_at_epoch_ms` and
+   * bumps modification metadata — every other column, including a rename,
+   * a re-equip, or a favorite made before the deletion, is left exactly as
+   * it was. `originating_device_id` stays the device that first created the
+   * row, matching `update` and `setFavorite`, which never touch it either.
+   */
+  async restore(id: DomainId): Promise<boolean> {
+    let deletedRow: { id: string } | null;
+    try {
+      deletedRow = await this.database.getFirst<{ id: string }>(
+        'SELECT id FROM exercise_catalog_item WHERE id = ? AND deleted_at_epoch_ms IS NOT NULL',
+        [id.value],
+      );
+    } catch (error: unknown) {
+      throw toPersistenceError(error, 'operation-failed');
+    }
+    if (deletedRow === null) return false;
+    const nowEpochMs = this.now().getTime();
+    await this.write(
+      `UPDATE exercise_catalog_item SET deleted_at_epoch_ms = NULL,
+        updated_at_epoch_ms = ?, revision = revision + 1
+       WHERE id = ? AND deleted_at_epoch_ms IS NOT NULL`,
+      [nowEpochMs, id.value],
+    );
+    await this.queueRevision(id.value, 'upsert', nowEpochMs);
+    return true;
+  }
+
   async delete(id: DomainId): Promise<boolean> {
     if ((await this.getById(id)) === null) return false;
     const nowEpochMs = this.now().getTime();

@@ -213,12 +213,65 @@ describe('ExerciseCatalogSqliteRepository', () => {
     ).rejects.toMatchObject({ code: 'operation-failed' });
   });
 
+  it('does nothing when the identifier is not a tombstoned row', async () => {
+    const database = new FakeDatabase();
+    database.row = null;
+
+    const restored = await new ExerciseCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).restore(item().definition.id);
+
+    expect(restored).toBe(false);
+    expect(database.runs).toEqual([]);
+  });
+
+  it('undeletes a tombstoned row, bumps its revision, and queues an outbox upsert without touching its stored fields', async () => {
+    const database = new FakeDatabase();
+    // One row shape answers both `getFirst` calls this makes: the existence
+    // check only reads `id`, and the revision lookup inside `queueRevision`
+    // only reads `revision`.
+    database.row = { id: row.id, revision: 5 };
+
+    const restored = await new ExerciseCatalogSqliteRepository(
+      database,
+      deviceId,
+      now,
+    ).restore(item().definition.id);
+
+    expect(restored).toBe(true);
+    const undelete = database.runs.find((run) =>
+      run.statement.includes('deleted_at_epoch_ms = NULL'),
+    );
+    expect(undelete?.statement).not.toMatch(/display_name|is_favorite/);
+    expect(undelete?.parameters).toEqual([now().getTime(), row.id]);
+    const queued = database.runs.find((run) =>
+      run.statement.includes('sync_outbox'),
+    );
+    expect(queued?.parameters).toEqual([
+      'exercise_catalog_item',
+      row.id,
+      'upsert',
+      5,
+      now().getTime(),
+    ]);
+  });
+
   it('translates driver failures without exposing details', async () => {
     const database = new FakeDatabase();
     database.error = new Error('sensitive exercise name and SQL');
     await expect(
       new ExerciseCatalogSqliteRepository(database, deviceId, now).insert(
         item(),
+      ),
+    ).rejects.toMatchObject({
+      code: 'operation-failed',
+      message: 'The local storage operation failed.',
+    });
+    await expect(
+      new ExerciseCatalogSqliteRepository(database, deviceId, now).restore(
+        item().definition.id,
       ),
     ).rejects.toMatchObject({
       code: 'operation-failed',

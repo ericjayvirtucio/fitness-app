@@ -124,18 +124,19 @@ describe('Expanded exercise import on a real database', () => {
   });
 
   /**
-   * The catalog's identifier-uniqueness check reads only rows where
-   * `deleted_at_epoch_ms IS NULL` (`exercise-catalog-sqlite-repository.ts`),
-   * so a deleted entry's row still physically exists when the import tries
-   * to insert it again under the same identifier: the write collides with
-   * the existing primary key and the whole transaction rolls back. The net
-   * effect a person sees is that the deletion holds — nothing is silently
-   * resurrected — but the refusal is generic rather than a specific
-   * "already deleted" message. This test exists so a future change to either
-   * the delete or the import path has to notice this interaction rather than
-   * regress it silently.
+   * The regression Specification 0043 recorded and left unresolved: a
+   * deleted entry's row still physically exists (deletion is a tombstone,
+   * not a hard delete), so re-importing it under the same identifier used to
+   * collide with the primary key and refuse the whole transaction. The
+   * import now resurrects a tombstoned identifier instead of inserting it
+   * again. The mechanism is shared with the starter pack — full field,
+   * revision, and outbox fidelity is proven against that content in
+   * `starter-exercise-import-sqlite.spec.ts` — so what belongs here is only
+   * confirming it resolves this way for the expanded pack too, per that
+   * specification's note that the fix is "for both packs, not only this
+   * one."
    */
-  it('leaves a deleted entry deleted when the same import is repeated', async () => {
+  it('resurrects a deleted entry instead of refusing the import when it is repeated', async () => {
     await expandedUseCase.execute();
     const first = expandedExercises[0];
     if (first === undefined) throw new Error('Invalid fixture');
@@ -145,9 +146,16 @@ describe('Expanded exercise import on a real database', () => {
 
     const outcome = await expandedUseCase.execute();
 
-    expect(outcome).toEqual({ reason: 'write-failed', status: 'refused' });
+    expect(outcome).toEqual({
+      addedCount: 1,
+      skippedCount: expandedExercises.length - 1,
+      status: 'imported',
+    });
     const id = DomainId.create(first.id);
     if (isErr(id)) throw new Error('Invalid fixture');
-    expect(await catalog.getById(id.value)).toBeNull();
+    expect(await catalog.getById(id.value)).toMatchObject({
+      definition: { name: first.name },
+    });
+    expect(await rowCount()).toBe(expandedExercises.length);
   });
 });

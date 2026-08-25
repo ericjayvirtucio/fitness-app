@@ -44,7 +44,10 @@ type CatalogRow = Readonly<{
   logging_mode: string;
   normalized_name: string;
   notes: string | null;
+  originating_device_id: string;
   primary_muscle_group: string;
+  revision: number;
+  updated_at_epoch_ms: number;
 }>;
 
 const writableTables = [
@@ -65,7 +68,9 @@ const writableTables = [
 
 class ObservedDatabase implements DatabaseConnection {
   failOnInsertIndex: number | null = null;
+  failOnRestoreIndex: number | null = null;
   private insertCount = 0;
+  private restoreCount = 0;
 
   constructor(private readonly inner: DatabaseConnection) {}
 
@@ -85,6 +90,15 @@ class ObservedDatabase implements DatabaseConnection {
     if (statement.startsWith('INSERT INTO exercise_catalog_item')) {
       this.insertCount += 1;
       if (this.insertCount === this.failOnInsertIndex)
+        return Promise.reject(new Error('Storage is unavailable.'));
+    }
+    if (
+      statement.startsWith(
+        'UPDATE exercise_catalog_item SET deleted_at_epoch_ms = NULL',
+      )
+    ) {
+      this.restoreCount += 1;
+      if (this.restoreCount === this.failOnRestoreIndex)
         return Promise.reject(new Error('Storage is unavailable.'));
     }
     return this.inner.run(statement, parameters);
@@ -109,6 +123,7 @@ describe('Starter exercise import on a real database', () => {
   let database: NodeSqliteDatabase;
   let observed: ObservedDatabase;
   let catalog: ExerciseCatalogSqliteRepository;
+  let runner: SqliteTransactionRunner<StarterExerciseImportContext>;
   let useCase: AddStarterExercisesUseCase;
 
   beforeEach(async () => {
@@ -116,18 +131,17 @@ describe('Starter exercise import on a real database', () => {
     await initializeDatabase(database, migrations);
     observed = new ObservedDatabase(database);
     catalog = new ExerciseCatalogSqliteRepository(database, deviceId, now);
-    useCase = new AddStarterExercisesUseCase(
-      new SqliteTransactionRunner<StarterExerciseImportContext>(
-        observed,
-        (transaction) => ({
-          catalog: new ExerciseCatalogSqliteRepository(
-            transaction,
-            deviceId,
-            now,
-          ),
-        }),
-      ),
+    runner = new SqliteTransactionRunner<StarterExerciseImportContext>(
+      observed,
+      (transaction) => ({
+        catalog: new ExerciseCatalogSqliteRepository(
+          transaction,
+          deviceId,
+          now,
+        ),
+      }),
     );
+    useCase = new AddStarterExercisesUseCase(runner);
   });
 
   afterEach(() => {
@@ -283,6 +297,107 @@ describe('Starter exercise import on a real database', () => {
     expect(deleted).toEqual({ status: 'deleted' });
     const stored = (await rows()).find((row) => row.id === entry.id);
     expect(stored?.deleted_at_epoch_ms).not.toBeNull();
+  });
+
+  /**
+   * Resolves the interaction Specification 0043 recorded and deliberately
+   * left open: what "delete it, then ask for it again" means once deletion
+   * is a tombstone rather than a hard delete. Explicit consent to add the
+   * definition again resurrects the same row instead of refusing the whole
+   * import, but it is not consent to discard an edit made before the
+   * deletion, so every stored field the person changed survives untouched
+   * and only the tombstone, revision, and modification time move. The
+   * reimport runs from a second device to prove `originating_device_id`
+   * stays with whichever device first created the row.
+   */
+  it('resurrects a deleted definition on re-import, keeping what the person changed and its originating device', async () => {
+    await useCase.execute();
+    const entry = starterExercises[0];
+    if (entry === undefined) throw new Error('Invalid fixture');
+
+    const updated = await new UpdateExerciseUseCase(catalog).execute(entry.id, {
+      equipment: 'dumbbell',
+      isFavorite: true,
+      loggingMode: 'external-load-and-repetitions',
+      name: 'My custom bench',
+      notes: 'Added a spotter',
+      primaryMuscleGroup: 'shoulders',
+    });
+    expect(updated.status).toBe('saved');
+    const deleted = await new DeleteExerciseUseCase(catalog).execute(entry.id);
+    expect(deleted).toEqual({ status: 'deleted' });
+    const beforeReimport = (await rows()).find((row) => row.id === entry.id);
+    expect(beforeReimport?.deleted_at_epoch_ms).not.toBeNull();
+    expect(beforeReimport).toMatchObject({
+      originating_device_id: deviceId,
+      revision: 3,
+    });
+
+    const otherDeviceUseCase = new AddStarterExercisesUseCase(
+      new SqliteTransactionRunner<StarterExerciseImportContext>(
+        database,
+        (transaction) => ({
+          catalog: new ExerciseCatalogSqliteRepository(
+            transaction,
+            'device-b',
+            now,
+          ),
+        }),
+      ),
+    );
+    const outcome = await otherDeviceUseCase.execute();
+
+    expect(outcome).toEqual({
+      addedCount: 1,
+      skippedCount: starterExercises.length - 1,
+      status: 'imported',
+    });
+    const stored = await rows();
+    // Exactly the starter count: the resurrect undeleted the existing row
+    // rather than inserting a second one alongside it.
+    expect(stored).toHaveLength(starterExercises.length);
+    expect(stored.find((row) => row.id === entry.id)).toMatchObject({
+      deleted_at_epoch_ms: null,
+      display_name: 'My custom bench',
+      equipment: 'dumbbell',
+      is_favorite: 1,
+      logging_mode: 'external-load-and-repetitions',
+      normalized_name: 'my custom bench',
+      notes: 'Added a spotter',
+      originating_device_id: deviceId,
+      primary_muscle_group: 'shoulders',
+      revision: 4,
+    });
+    const queued = await database.getFirst<{
+      operation: string;
+      revision: number;
+    }>(
+      'SELECT operation, revision FROM sync_outbox WHERE table_name = ? AND row_id = ?',
+      ['exercise_catalog_item', entry.id],
+    );
+    expect(queued).toEqual({ operation: 'upsert', revision: 4 });
+  });
+
+  it('rolls back every write in the batch, leaving the deletion intact, when a restore fails', async () => {
+    const [first, second, third] = starterExercises;
+    if (first === undefined || second === undefined || third === undefined)
+      throw new Error('Invalid fixture');
+    await new AddStarterExercisesUseCase(runner, [first]).execute();
+    await new DeleteExerciseUseCase(catalog).execute(first.id);
+    const before = await rows();
+    observed.failOnRestoreIndex = 1;
+
+    // `second` and `third` are genuinely new and insert first; `first` is the
+    // previously deleted one and resurrects last, so its failure has to
+    // unwind insertions that already succeeded earlier in this transaction.
+    const outcome = await new AddStarterExercisesUseCase(runner, [
+      second,
+      third,
+      first,
+    ]).execute();
+
+    expect(outcome).toEqual({ reason: 'write-failed', status: 'refused' });
+    expect(await rows()).toEqual(before);
   });
 
   it('keeps a session snapshot after the imported definition is deleted', async () => {
