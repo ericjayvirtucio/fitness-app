@@ -163,23 +163,21 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
-Sprint 42: Schema Synchronization Readiness. Every table a person owns —
-profile, goals, nutrition entries and catalog, hydration entries and target,
-the exercise catalog, planned workouts, completed and active workout
-sessions, and body-weight history — now carries an update time, a deletion
-tombstone, a revision, and the device that created the row. A durable
-`sync_outbox` records local changes not yet sent anywhere, upserted one row
-per changed record rather than one per edit, and a random per-installation
-device identifier is generated once and never exported. No synchronization is
-built and nothing leaves the device: the export file format is unchanged and
-carries none of the new metadata, restore and replacement write fresh
-metadata through the same repositories they already used, and erase-all
-clears the outbox while leaving device identity untouched. A person's
-deletion becomes a tombstone only where a future device would need to learn
-about it; abandoning a workout that was never completed remains an
-unconditional hard delete, exactly as before. Every read that lists,
-searches, or matches against a person's records now excludes a tombstoned
-one, and the indexes those reads depend on stay index-covered as partial
-indexes over live rows. Authentication, an API endpoint, conflict
-resolution, background sync, and account services remain entirely out of
-scope.
+Sprint 44: Deliberate Exercise Pack Restoration. The Exercise Library now
+offers two curated packs a person can add in deliberate, independent
+actions — twenty-six starter definitions and a further hundred eighty-nine
+from an openly licensed dataset, two hundred fifteen in total — and a
+definition deleted from either pack can be explicitly restored in place by
+requesting that pack again, with every edit made before the deletion
+preserved and its synchronization revision advanced rather than reset.
+Sprint 42 (Schema Synchronization Readiness) gave every table a person owns
+an update time, a deletion tombstone, a revision, and the device that
+created the row, plus a durable `sync_outbox` recording local changes not
+yet sent anywhere; no synchronization is built and nothing leaves the
+device. Sprint 41 (One Visual Identity) gave the application a single,
+contrast-proven dark and light palette. Authentication, an API endpoint,
+conflict resolution, background sync, and account services remain entirely
+out of scope.
+
+See [docs/product-roadmap.md](docs/product-roadmap.md) for phase status,
+dependencies, and the product's direction toward its end goal.
