@@ -1,6 +1,7 @@
 import {
   GoalConfiguration,
   calculateDailyCalorieTarget,
+  calculateDailyMacronutrientTargets,
   goalTypes,
   isOk,
   type Energy,
@@ -14,12 +15,17 @@ import {
   AppText,
   Card,
   describeCardContents,
+  Divider,
   SelectionField,
+  StatTile,
   TextField,
   spacing,
 } from '../../../design-system';
 import type { SaveGoalInput } from '../application/save-goal-use-case';
-import { formatDailyEnergy } from './energy-formatting';
+import {
+  formatDailyEnergy,
+  formatMacronutrientGrams,
+} from './energy-formatting';
 
 type GoalConfigurationFormProps = Readonly<{
   errors: Readonly<Record<string, string>>;
@@ -38,14 +44,39 @@ const goalLabels: Readonly<Record<GoalType, string>> = {
 
 const targetCaveat =
   'Based on estimated maintenance and your selected adjustment. Results are not guaranteed.';
+const macroTargetCaveat =
+  'A general target based on a fixed macronutrient split within published dietary reference ranges, not personalized nutrition or medical advice.';
 
 /**
  * A labelled card is one accessibility element, so this card announced its title
  * and not the target it exists to show. The rendered lines and the announced
- * ones are the same strings, in the same order.
+ * ones are the same strings, in the same order. Macro targets are arithmetic
+ * over this same calorie target, so they render here rather than requiring a
+ * second calculation or a second card.
  */
 function CalculatedTargetCard({ target }: Readonly<{ target: Energy }>) {
-  const lines = ['Calculated target', formatDailyEnergy(target), targetCaveat];
+  const macroTargets = calculateDailyMacronutrientTargets(target);
+  const macroLines = [
+    {
+      label: 'Protein target',
+      value: formatMacronutrientGrams(macroTargets.proteinGrams),
+    },
+    {
+      label: 'Carbohydrate target',
+      value: formatMacronutrientGrams(macroTargets.carbohydrateGrams),
+    },
+    {
+      label: 'Fat target',
+      value: formatMacronutrientGrams(macroTargets.fatGrams),
+    },
+  ];
+  const lines = [
+    'Calculated target',
+    formatDailyEnergy(target),
+    targetCaveat,
+    ...macroLines.flatMap((line) => [line.label, line.value]),
+    macroTargetCaveat,
+  ];
   return (
     <Card
       accessibilityLabel={describeCardContents(
@@ -59,6 +90,13 @@ function CalculatedTargetCard({ target }: Readonly<{ target: Energy }>) {
       </AppText>
       <AppText variant="heading">{lines[1]}</AppText>
       <AppText color="secondary">{lines[2]}</AppText>
+      <Divider />
+      <View style={{ gap: spacing.sm }}>
+        {macroLines.map((line) => (
+          <StatTile key={line.label} variant="row" {...line} />
+        ))}
+      </View>
+      <AppText color="secondary">{macroTargetCaveat}</AppText>
     </Card>
   );
 }

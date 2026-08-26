@@ -1,7 +1,15 @@
 # Specification 0047: Goal-derived daily macronutrient targets
 
-- Status: Approved (implementation deferred to Sprint 49)
+> Implementation note: Sprint 49 implemented this specification against the
+> calculated-target card's actual location, discovered during implementation to
+> differ from "Application" and "Display" below — see the note after "Display"
+> for what changed and why the acceptance criteria are still met unmodified.
+
+- Status: Approved
 - Date: 2026-08-26
+- Amended: 2026-08-26, to record Sprint 49 implementation and reconcile the
+  "Application" and "Display" sections with the calculated-target card's
+  actual location (see the implementation note after "Display").
 
 ## Objective and scope
 
@@ -196,6 +204,30 @@ order. The three new lines extend that same accessible name with three more
 they do not become a second accessible element, and no new accessibility
 plumbing is introduced.
 
+**Implementation note (Sprint 49).** Repository review at implementation time
+found that no code reads `EnergySummary.target` for display, and that
+`GoalsEnergyScreen.tsx` renders no calorie-target line at all — the
+"calculated-target card" referenced above is `CalculatedTargetCard` inside
+`GoalConfigurationForm.tsx`, which computes and displays a _live preview_
+target from the form's current (possibly unsaved) goal selection, not from
+`EnergySummary.target`. `docs/architecture/goals-and-energy.md` already named
+this "the goal form's calculated target card" before this sprint. Wiring
+macro targets through a new `EnergySummary.macroTargets` field as drafted
+above would have added a field nothing reads, alongside the field
+(`EnergySummary.target`) it was designed to mirror, which is already unread.
+Sprint 49 instead computed `calculateDailyMacronutrientTargets` directly
+inside `CalculatedTargetCard`, from the same `target: Energy` prop the card
+already renders. `EnergySummary`, `deriveEnergySummary`, and
+`GoalsEnergyScreen.tsx` are unchanged. Every acceptance criterion below is met
+exactly as stated — the person-visible behavior (a saved, valid goal shows
+protein/carbohydrate/fat targets consistent with the shown calorie target;
+an invalid or absent goal shows neither) is identical to what "Application"
+and "Display" above describe; only the internal wiring differs. Testing
+moved from the planned `energy-summary.spec.ts` and `GoalsEnergyScreen.spec.tsx`
+cases to `GoalConfigurationForm.spec.tsx`, where the card actually lives.
+The domain module (`macro-targets.ts`) and its exports from `@fitness/domain`
+were implemented exactly as specified.
+
 ## Persistence and migration
 
 None. The migration count stays at 13. The macronutrient distribution is a
@@ -271,16 +303,17 @@ None introduced.
   input calorie target's kilocalories exactly, with no rounding artifact,
   for several representative calorie targets including the 1,000-kilocalorie
   floor.
-- **Application** (`energy-summary.spec.ts`): `macroTargets` is `null` when
-  no goal is saved; `null` when the saved goal's target is an error; equal
-  to `calculateDailyMacronutrientTargets(target.value)` when the target
-  succeeds.
 - **Presentation** (`energy-formatting.spec.ts`,
-  `GoalsEnergyScreen.spec.tsx`): `formatMacronutrientGrams` rounds and
-  formats like `formatDailyEnergy`; the three macro lines render only when
-  the calorie target renders; the calculated-target card's accessible name
-  includes all six `label, value` segments (BMI card and screening card are
-  unaffected) in the documented order.
+  `GoalConfigurationForm.spec.tsx` — see the Sprint 49 implementation note
+  above for why these replace the originally planned
+  `energy-summary.spec.ts` and `GoalsEnergyScreen.spec.tsx` cases):
+  `formatMacronutrientGrams` rounds and formats like `formatDailyEnergy`;
+  the three macro lines render only when the calorie target itself renders,
+  and are absent whenever it is (out-of-range adjustment, no goal type
+  chosen yet); the calculated-target card's accessible name includes all ten
+  segments — calculated target, its value and caveat, the three macro
+  `label, value` pairs in protein/carbohydrate/fat order, and the macro
+  caveat — in the documented order.
 - **Manual, physical device**: a short addition to the existing Goals &
   Energy manual-testing coverage confirming the three new lines are
   announced correctly by a screen reader as part of the existing card, not

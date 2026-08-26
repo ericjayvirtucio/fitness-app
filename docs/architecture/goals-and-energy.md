@@ -51,6 +51,25 @@ for the five profile activity levels. These are explicit representative product
 values within the Academy's published PAL ranges. They are estimates, not exact
 measurements of individual activity expenditure.
 
+Daily macronutrient targets are arithmetic over the calorie target the goal form
+already computes: 20% of calories from protein, 50% from carbohydrate, and 30%
+from fat, converted to grams at 4 kilocalories per gram of protein or
+carbohydrate and 9 per gram of fat. The 20/50/30 split is one representative
+point inside the Acceptable Macronutrient Distribution Range (10–35% protein,
+45–65% carbohydrate, 20–35% fat) published in the National Academies' Dietary
+Reference Intakes work, restated in the 2025 letter report ["Rethinking the
+Acceptable Macronutrient Distribution Range for the 21st
+Century"](https://www.ncbi.nlm.nih.gov/books/NBK610333/) (National Academies
+Press, accessed 2026-08-26); it is fixed, not personalized by goal type,
+activity level, or any other profile field. The gram conversion factors are the
+FDA's general nutrition-labeling factors, [21 CFR
+101.9(c)(1)](https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-101/subpart-A/section-101.9)
+(eCFR, accessed 2026-08-26). `calculateDailyMacronutrientTargets`
+(`packages/domain/src/goals-energy/macro-targets.ts`) takes the already-validated
+calorie target and cannot fail on it, so it returns `MacronutrientTargets`
+directly rather than a `Result`. See [Specification
+0047](../../specs/0047-goal-derived-macro-targets.md).
+
 ## Age and time
 
 Age compares the timezone-free birth and as-of calendar year, month, and day. It
@@ -87,9 +106,12 @@ The screening card, the estimates card, and the goal form's calculated target ca
 are each one accessibility element, so each accessible name carries every metric
 it renders — `label, value` for each, in written order — rather than only the
 card's title. Without it the BMI, its screening category, both energy estimates,
-and the calculated daily calorie target reached no screen reader at all. See
-[Specification 0034](../../specs/0034-announced-card-contents.md) and
-[ADR 0024](../decisions/0024-labelled-containers-announce-their-contents.md).
+and the calculated daily calorie target reached no screen reader at all. The
+calculated target card's accessible name extends the same way to the protein,
+carbohydrate, and fat targets: they join that one card's name rather than
+becoming a second accessibility element. See [Specification
+0034](../../specs/0034-announced-card-contents.md) and [ADR
+0024](../decisions/0024-labelled-containers-announce-their-contents.md).
 
 ## Known limitations
 
