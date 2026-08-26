@@ -82,20 +82,33 @@ notice, for any muscle-map or body-diagram presentation.
 
 No food data has been imported, bundled, or approved for use. Sprint 48
 (2026-08-26) reviewed both candidates against their current primary sources
-and recorded the result in [ADR
-0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md);
-this section restates the licensing facts that decision rests on.
+and recorded the licensing decision in [ADR
+0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md).
+Sprint 50 profiled FoodData Central's current bulk release and recorded the
+evidence-insufficient coverage decision in [ADR
+0036](decisions/0036-fooddata-central-coverage-remains-unproven.md). This
+section restates the licensing and sourcing facts those decisions rest on.
 
-**USDA FoodData Central** — a work of the United States federal government,
-public domain, no attribution required and none owed. Official bulk
-CSV/JSON downloads and a documented API exist
+**USDA FoodData Central** — public-domain data published under CC0 1.0. No
+permission or share-alike obligation applies; USDA requests that users identify
+FoodData Central as the source even though that citation is not a license
+condition. Official bulk CSV/JSON downloads and a documented API exist
 ([fdc.nal.usda.gov/download-datasets](https://fdc.nal.usda.gov/download-datasets/),
-accessed 2026-08-26). Free to bundle and redistribute without a share-alike
-or any other obligation. Its Branded Foods dataset carries a `gtin_upc`
-field intended for barcode identification, but this repository has not
-verified that field's real-world coverage is adequate for a barcode-lookup
-feature on its own; its Foundation and Legacy datasets are strong for
-ordinary, non-branded foods.
+accessed 2026-08-26; licensing terms at the [official API
+guide](https://fdc.nal.usda.gov/api-guide/), accessed 2026-08-26). Free to
+download, transform, bundle, and redistribute on those terms. Its Branded Foods
+dataset carries a `gtin_upc` field intended for barcode identification.
+
+Sprint 50's [coverage evaluation](fooddata-central-coverage-evaluation.md)
+measured 430,240 distinct live, valid GTINs in the April 2026 Branded CSV after
+excluding discontinued rows and selecting the latest publication. Of those
+selected records, 97.05% contained energy plus protein, carbohydrate, and fat,
+and 80.95% contained all seven fields this application supports. FNDDS contained
+all seven for 5,431 of 5,432 searchable foods. These are internal completeness
+measures, not real-world discovery rates. No independent representative sample
+or named launch market existed, and 99.75% of selected Branded records were
+U.S.-labelled, so FoodData Central remains unapproved rather than being described
+as globally or launch-market adequate.
 
 **Open Food Facts** — database structure licensed ODbL 1.0, individual
 records licensed under the Database Contents License (DbCL) 1.0, images

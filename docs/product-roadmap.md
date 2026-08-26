@@ -47,18 +47,18 @@ every feature a fitness application could have is built.
 
 ## Phase table
 
-| Phase                                | Status           | Outcome                                                                                                                                                                    | Prerequisites                                                                | Supporting documents                                                                                                                                                                                                                    |
-| ------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Offline foundations               | Complete         | Every domain (profile, goals/energy, nutrition, hydration, workouts, body measurement) reads and writes fully offline, with export, restore, erasure, and safe replacement | —                                                                            | Specs 0001–0026, ADRs 0001–0021                                                                                                                                                                                                         |
-| 2. Product coherence                 | Complete         | Every screen states exactly what it computed; workouts are correctable, deletable, addable, and renameable by their owner; history periods govern their own lists          | Phase 1                                                                      | Specs 0031, 0032, 0035–0040, ADRs 0022, 0025–0030                                                                                                                                                                                       |
-| 3a. One visual identity              | Complete         | One deliberate, contrast-proven visual identity; no screen loses a stated value                                                                                            | Phase 2                                                                      | [Specification 0041](../specs/0041-the-app-has-one-visual-identity.md)                                                                                                                                                                  |
-| 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                                                                                 |
-| 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md)                                                      |
-| 4. Training depth                    | Complete         | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing), [Specification 0046](../specs/0046-record-reps-in-reserve.md) (reps in reserve) — see "Training depth direction" below for remaining unapproved candidates |
-| 5. Nutrition depth                   | Current          | Two independent tracks: (a) macro targets derived from existing goal/energy calculations; (b) a real food database behind the existing catalog with barcode entry          | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Track (a): [Specification 0047](../specs/0047-goal-derived-macro-targets.md), implemented in Sprint 49. Track (b): unapproved — see [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)                |
-| 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                                                                       |
-| 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                                                                                    |
-| 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                                                                        |
+| Phase                                | Status           | Outcome                                                                                                                                                                    | Prerequisites                                                                | Supporting documents                                                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Offline foundations               | Complete         | Every domain (profile, goals/energy, nutrition, hydration, workouts, body measurement) reads and writes fully offline, with export, restore, erasure, and safe replacement | —                                                                            | Specs 0001–0026, ADRs 0001–0021                                                                                                                                                                                                                                                                     |
+| 2. Product coherence                 | Complete         | Every screen states exactly what it computed; workouts are correctable, deletable, addable, and renameable by their owner; history periods govern their own lists          | Phase 1                                                                      | Specs 0031, 0032, 0035–0040, ADRs 0022, 0025–0030                                                                                                                                                                                                                                                   |
+| 3a. One visual identity              | Complete         | One deliberate, contrast-proven visual identity; no screen loses a stated value                                                                                            | Phase 2                                                                      | [Specification 0041](../specs/0041-the-app-has-one-visual-identity.md)                                                                                                                                                                                                                              |
+| 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                                                                                                                                             |
+| 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md)                                                                                                                  |
+| 4. Training depth                    | Complete         | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing), [Specification 0046](../specs/0046-record-reps-in-reserve.md) (reps in reserve) — see "Training depth direction" below for remaining unapproved candidates                                                             |
+| 5. Nutrition depth                   | Current          | Two independent tracks: (a) macro targets derived from existing goal/energy calculations; (b) a real food database behind the existing catalog with barcode entry          | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Track (a): [Specification 0047](../specs/0047-goal-derived-macro-targets.md), implemented in Sprint 49. Track (b): unapproved after Sprint 50 — see [ADR 0036](decisions/0036-fooddata-central-coverage-remains-unproven.md) and the [coverage evaluation](fooddata-central-coverage-evaluation.md) |
+| 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                                                                                                                                   |
+| 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                                                                                                                                                |
+| 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                                                                                                                                    |
 
 ## Dependency diagram
 
@@ -66,7 +66,7 @@ every feature a fitness application could have is built.
 flowchart LR
     A["1-2. Offline foundations +\nproduct coherence (complete)"] --> B["3. Visual identity,\nsync readiness, exercise\nlibrary (complete)"]
     B --> D["4. Training depth (complete)"]
-    D --> E["5. Nutrition depth (planned)"]
+    D --> E["5. Nutrition depth (current)"]
     E --> F["6. Energy balance (planned, blocked)"]
     B --> G["7. Cloud services (planned)"]
     F --> G
@@ -113,10 +113,12 @@ Stated as outcomes, not task lists. A phase exits when:
   implemented [Specification 0047](../specs/0047-goal-derived-macro-targets.md):
   a person with a saved, valid goal now sees protein, carbohydrate, and fat
   targets alongside their calculated daily calorie target, satisfying the
-  macro-target half. The food-database half remains unapproved — [ADR
-  0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
-  records why and what would unblock it. This phase does not exit until
-  both halves are independently met.)_
+  macro-target half. Sprint 50 found promising internal FoodData Central
+  completeness but could not measure ordinary-food, branded-name, or exact-
+  barcode discovery against an independent representative sample — [ADR
+  0036](decisions/0036-fooddata-central-coverage-remains-unproven.md) records
+  the evidence-insufficient decision and exact follow-up. This phase does not
+  exit until both halves are independently met.)_
 - **6. Energy balance** — a person can see intake measured against
   expenditure, computed entirely on-device from data they already logged.
   _(Not yet met; blocked on 4 and 5.)_
@@ -255,6 +257,20 @@ not need to be resolved as one decision.
   a domain change to design and review when a provider is eventually
   approved, not before.
 
+Sprint 50 executed ADR 0035's coverage-evaluation path without lowering the
+acceptance bar after seeing the data. The [April 2026 aggregate
+profile](fooddata-central-coverage-evaluation.md) found 430,240 distinct live,
+valid Branded GTINs; 97.05% of selected records had energy plus all three
+macros, and 80.95% had all seven application fields. FNDDS also populated all
+seven fields for 5,431 of 5,432 foods. Those are strong internal completeness
+results, but not hit rates: no independent representative sample or named launch
+market existed, and 99.75% of selected Branded records were U.S.-labelled. [ADR
+0036](decisions/0036-fooddata-central-coverage-remains-unproven.md) therefore
+chooses evidence-insufficient Outcome C. FoodData Central remains a candidate,
+not an approved source. The smallest coverage follow-up is to name the launch
+market and run the already-fixed protocol against an independent sample; qualified
+Open Food Facts legal review remains the alternative unblocker.
+
 **Why not decide the provider question now.** Guessing an answer to an
 unresolved license or coverage question, or silently narrowing Phase 5 to
 "whichever source is easiest to bundle," would produce exactly the kind of
@@ -366,6 +382,19 @@ goal are recorded here — not every edit to this file.
   locations. Phase 5's macro-target half of its exit criterion is now met;
   the food-database half remains unapproved per ADR 0035. Phase 5 stays
   **Current**, not Complete, and Phase 6 stays blocked.
+- **2026-08-26 — Sprint 50.** Fixed measurable discovery, completeness, and
+  ambiguity thresholds before profiling FoodData Central's April 2026 bulk
+  release. Internal structure was promising: 430,240 distinct live, valid
+  Branded GTINs, 97.05% with energy and all three macros, and 80.95% with all
+  seven application fields; FNDDS populated all seven for 5,431 of 5,432
+  foods. Adoption remains unapproved because ordinary-food, branded-name, and
+  barcode discovery could not be tested against an independent representative
+  sample, the launch market is unnamed, and the measured Branded records are
+  99.75% U.S.-labelled. [ADR
+  0036](decisions/0036-fooddata-central-coverage-remains-unproven.md) records
+  evidence-insufficient Outcome C. No provider integration or implementation
+  specification was created. Phase 5 remains **Current** and Phase 6 remains
+  blocked.
 
 ## Authoritative references
 

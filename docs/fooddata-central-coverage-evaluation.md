@@ -3,6 +3,7 @@
 - Protocol fixed: 2026-08-26, before downloading or inspecting the evaluated
   release
 - Evaluation release: USDA FoodData Central April 2026 bulk downloads
+- Outcome: C — evidence is insufficient to approve FoodData Central
 - Decision governed by: [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
 
 ## Question and decision rule
@@ -194,3 +195,219 @@ Accessed 2026-08-26:
 This register records what each source establishes. Any conclusion about product
 suitability drawn from those facts is explicitly labelled as an inference in the
 results section.
+
+## Evaluated material and retrieval evidence
+
+The three official CSV archive links were retrieved on 2026-08-26 into a
+temporary directory outside the repository. `unzip -tq` reported no compressed
+data errors. USDA publishes no checksum beside these downloads, so the SHA-256
+values below are locally computed retrieval identifiers, not publisher-signed
+integrity claims.
+
+| Dataset          | Official release                                                                                            | Response bytes | Archive contents bytes | Local SHA-256                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | -------------: | ---------------------: | ------------------------------------------------------------------ |
+| Foundation Foods | [April 2026 CSV](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip) |      3,825,741 |             32,744,127 | `70457ee9d9342f43bda2010318c85f04210c689fdeb9cd2da4c513b0e8dbc655` |
+| FNDDS 2021–2023  | [October 2024 CSV](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_survey_food_csv_2024-10-31.zip)   |      3,325,692 |             25,504,473 | `5ccc25ec2777a8982fbb61378a42f415316173eb11e48c9a8ba4cb19f5a4f29c` |
+| Branded Foods    | [April 2026 CSV](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_branded_food_csv_2026-04-30.zip)    |    448,767,220 |          3,091,857,579 | `26050a5d03197469813754743a21ee0fad4ccf22b6aac2a995846a987719fc49` |
+
+The combined download was 455,918,653 bytes and the combined archive contents
+were 3,150,106,179 bytes. Response metadata recorded `ETag` and
+`Last-Modified` values locally; the Foundation URL's `Last-Modified` value was
+2026-08-19 despite its April release name. This is why reproduction must compare
+the digest rather than assuming a dated URL is immutable.
+
+The download page's displayed FNDDS CSV sizes do not match the bytes served by
+its official link. The table advertises a much larger CSV, while the link
+returned the valid 3,325,692-byte archive described above. The measured file and
+its digest govern these results. A production sizing exercise would need USDA to
+clarify the page discrepancy instead of treating either number as stable.
+
+## Reproduction
+
+Run the committed standard-library profiler against the three archives; it
+writes aggregate JSON and never writes a provider row:
+
+```text
+python3 scripts/evaluate-fooddata-central.py \
+  --foundation <foundation.zip> \
+  --fndds <fndds.zip> \
+  --branded <branded.zip> \
+  --output <aggregates.json>
+```
+
+The evaluated script has SHA-256
+`cfaaa10124c3bea6cf04f877714f99027a93a6c1f6a4e1ec86fe81cb3f6c9447`.
+Two runs produced byte-identical aggregate JSON with SHA-256
+`72cdd7224b300236afa41eda013b15a5ffe3d277f3128d39c2d6e50a95f93c82`.
+The script:
+
+- streams CSV members from ZIP files without extracting them;
+- recognizes USDA's identifier and nutrient-number representations for the
+  seven application nutrients;
+- validates GTIN-8, UPC-A/GTIN-12, EAN-13, and GTIN-14 check digits, then
+  left-pads valid values to canonical GTIN-14 for deduplication;
+- excludes records carrying a discontinuation date;
+- selects the greatest publication date per canonical GTIN and uses FDC ID only
+  as a deterministic tie-breaker; and
+- counts a nutrient only when its amount is present, preserving missing as
+  missing and reported zero as known zero.
+
+The tie-breaker makes the aggregate reproducible but does not prove that two
+same-date records describe the same retail product. Same-date ties are reported
+as ambiguity rather than hidden.
+
+## Directly measured aggregate results
+
+### Ordinary-food datasets
+
+| Dataset          | Searchable foods | Energy + protein + carbohydrate + fat | All seven application fields |
+| ---------------- | ---------------: | ------------------------------------: | ---------------------------: |
+| Foundation Foods |              469 |                          377 (80.38%) |                  90 (19.19%) |
+| FNDDS 2021–2023  |            5,432 |                        5,431 (99.98%) |               5,431 (99.98%) |
+
+Foundation's archive also contains 87,521 acquisition, sample, and subsample
+rows. They are analytical support, not counted as the 469 searchable Foundation
+foods. FNDDS is the stronger structural candidate for ordinary-food logging: it
+has a much broader searchable list and nearly universal population of the seven
+fields this application supports. This is an inference from internal structure,
+not a measured search-discovery rate.
+
+No independent ordinary-food query sample was available. Therefore neither the
+90% ranked-discovery threshold nor its confidence-bound condition was tested.
+
+### Branded identifiers and geography
+
+- 1,999,950 Branded rows were present, and all carried a nonblank `gtin_upc`.
+- 1,947,777 rows (97.39%) had a supported GTIN length and valid check digit.
+- Removing 3,702 discontinued rows and collapsing update history produced
+  430,240 distinct live, valid GTINs.
+- 378,786 of those GTINs had multiple live rows before latest-publication
+  selection; 4,976 (1.16%) were still tied on the latest publication date.
+- The selected records were 421,536 `United States`, 7,614 `US`, and 1,090
+  `New Zealand`. Treating the two U.S. labels together, 99.75% were U.S. and
+  0.25% were New Zealand. No other market appeared.
+
+The provider's own rows demonstrate that barcode identifiers exist at useful
+scale. They do not establish the denominator of current products sold in any
+market, so 430,240 cannot be converted into a real-world hit rate. The market
+distribution directly supports U.S./New Zealand scope and directly contradicts
+any claim of global representation.
+
+### Nutrition completeness for selected branded records
+
+| Field or group     | Present | Rate of 430,240 selected GTINs |
+| ------------------ | ------: | -----------------------------: |
+| Energy             | 423,800 |                         98.50% |
+| Protein            | 425,154 |                         98.82% |
+| Carbohydrate       | 422,852 |                         98.28% |
+| Total fat          | 424,846 |                         98.75% |
+| Fiber              | 358,902 |                         83.42% |
+| Total sugars       | 402,804 |                         93.62% |
+| Sodium             | 423,542 |                         98.44% |
+| Nutrition-usable   | 417,550 |                         97.05% |
+| Nutrition-complete | 348,260 |                         80.95% |
+
+Both internal completeness thresholds pass: usable exceeds 95% and complete
+exceeds 80%. This does not rescue an identifier absent from the database and is
+not counted as barcode discovery.
+
+## Threshold evaluation
+
+| Predefined measure               | Result                                                                                   | Status                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------ |
+| Ordinary-food discovery          | No independent sample; unmeasured                                                        | Not met                  |
+| Branded-food name discovery      | No independent sample; unmeasured                                                        | Not met                  |
+| Exact barcode discovery          | No independent sample or named launch market; unmeasured                                 | Not met                  |
+| Nutrition-usable matches         | 97.05% of internally selected branded GTINs                                              | Structural threshold met |
+| Nutrition-complete matches       | 80.95% of internally selected branded GTINs                                              | Structural threshold met |
+| False-positive or ambiguous rate | External search ambiguity unmeasured; 1.16% internal same-latest-date GTIN ties observed | Not met                  |
+
+"Not met" here means the evidence required by the protocol was not produced; it
+does not manufacture a zero-percent provider hit rate. The three discovery
+conditions are conjunctive adoption gates, so an unmeasured condition prevents
+approval.
+
+## Sampling and geographic limitations
+
+- The repository does not identify an initial launch market. Market-specific
+  barcode acceptance therefore cannot be evaluated against product intent.
+- No dated, independent probability frame of food-search attempts, retail
+  purchases, or retail assortment was supplied or identified in the reviewed
+  USDA material. Sampling FoodData Central itself would be circular.
+- FNDDS describes foods reported in a U.S. dietary survey, so it is useful for
+  U.S. ordinary-food vocabulary but is not a global search frame.
+- Branded submission is voluntary, and the official documentation names only
+  the United States and New Zealand as market countries. The measured archive is
+  99.75% U.S. after normalization.
+- A crowd-contributed database, a personal cupboard, or a hand-picked list could
+  support exploratory defect finding but would not satisfy the approved
+  representativeness claim. None was substituted for the missing frame.
+- Internal same-date update ties show that a future importer must define current
+  product identity more carefully than "one row per barcode." The present
+  deterministic tie-breaker is analysis bookkeeping, not an approved product
+  reconciliation policy.
+
+## Offline distribution and transformation cost
+
+FoodData Central can be downloaded and redistributed under CC0. Offline use is
+therefore legally possible on the official terms reviewed here, with USDA
+requesting source citation even though permission is not required.
+
+Operationally, shipping the raw Branded CSV is not responsible: its archive
+expands to 3.09 GB, includes update history, and has almost two million rows for
+430,240 selected identifiers. A future approved implementation would need a
+deterministic transformation to current, checksum-valid records; nutrient and
+unit mapping; a compact indexed representation; integrity metadata; atomic
+updates; rollback; and safe deletion. Branded API data update monthly while bulk
+downloads update twice yearly, creating an explicit freshness-versus-offline-
+package trade. FNDDS updates with its survey cycle; SR Legacy is final; Foundation
+updates with FoodData Central releases.
+
+No size is estimated for a transformed application bundle because no schema,
+field subset, compression choice, market scope, or update design is approved.
+The raw measured sizes are sufficient to show that "bundle the CSV" is not the
+smallest responsible implementation.
+
+## Decision: Outcome C — evidence is insufficient
+
+FoodData Central is **not approved** as Phase 5's sole food-data provider.
+Internal data quality is promising, especially FNDDS ordinary-food nutrient
+population and Branded energy/macro completeness, but the evaluation cannot
+answer the product question it fixed in advance: whether an independent set of
+foods and barcodes a person will actually try is found at the required rate.
+
+FoodData Central remains a credible candidate and could still become a bounded
+source in a multi-source design, but this sprint does not justify that design
+yet. Introducing a provider abstraction before one source is approved would be
+speculative, and using Open Food Facts as a second source still carries ADR
+0035's unresolved legal question.
+
+A better sample could materially change this decision. The smallest responsible
+follow-up is:
+
+1. name the application's initial market;
+2. acquire or commission an independent, dated sampling frame for that market;
+3. draw at least 385 ordinary-food queries, 385 branded-name queries, and 385
+   current barcodes per adoption stratum under this fixed protocol;
+4. publish only aggregate results and reviewer disagreements; and
+5. approve an implementation specification only if every predefined threshold
+   and lower-bound condition passes.
+
+Qualified review of Open Food Facts's bundling obligations remains the other
+credible unblocker, but it is not the only one because the representative USDA
+study remains feasible in principle. Neither path is implemented or approved by
+this evaluation.
+
+## Product and ownership consequences
+
+- Phase 5 remains **Current**: Sprint 49 met only the macro-target half.
+- Phase 6 remains blocked on Phase 5 reaching sufficient depth.
+- `NutritionProvenance` remains `'provided' | 'estimated'`; no provider value is
+  added prematurely.
+- Person-created catalog items and diary snapshots remain authoritative. No
+  provider refresh or reconciliation policy exists, and none may silently
+  overwrite them.
+- No provider record, archive, API key, secret, barcode, or raw sample enters
+  repository history.
+- No production file, runtime dependency, network client, cache, scanner, schema,
+  migration, export format, restore path, or erasure behavior changes.
