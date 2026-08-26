@@ -59,6 +59,12 @@ export {
   goalTypes,
 } from './goals-energy/goal-configuration';
 export type { GoalType } from './goals-energy/goal-configuration';
+export {
+  calculateDailyMacronutrientTargets,
+  macronutrientCaloriesPerGram,
+  macronutrientDistributionPolicy,
+} from './goals-energy/macro-targets';
+export type { MacronutrientTargets } from './goals-energy/macro-targets';
 
 export { Length, lengthUnits } from './shared/measurement/length';
 export type { LengthUnit } from './shared/measurement/length';
