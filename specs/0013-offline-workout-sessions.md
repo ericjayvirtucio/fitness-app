@@ -2,6 +2,9 @@
 
 - Status: Approved
 - Date: 2026-08-06
+- Amended: 2026-08-25, to note that "rest timers," excluded below, now has a
+  foreground-only version. See
+  [Specification 0045](0045-foreground-rest-timing.md).
 
 ## Objective and scope
 
@@ -56,9 +59,11 @@ bound, stored rows are validated, and failures reveal no workout values.
 ## Explicit exclusions
 
 History browsing/correction, analytics, volume, records, progression, adherence,
-recents, rest timers, advanced set types, HealthKit, Health Connect,
+recents, advanced set types, HealthKit, Health Connect,
 authentication, backend behavior, synchronization, encryption, export, backup,
-notifications, subscriptions, and AI are excluded.
+notifications, subscriptions, and AI are excluded. Rest timers were excluded
+at this specification's original approval; a foreground-only, non-persisted
+version now exists — see [Specification 0045](0045-foreground-rest-timing.md).
 
 The repository owner approved the Stage 1 design and requested staged,
 commit-by-commit implementation on 2026-08-06.

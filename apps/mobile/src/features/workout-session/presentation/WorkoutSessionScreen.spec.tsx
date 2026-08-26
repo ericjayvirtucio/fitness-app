@@ -314,6 +314,85 @@ describe('WorkoutSessionScreen', () => {
     );
   });
 
+  it('offers rest timing only after a set saves successfully', async () => {
+    const recorded = recordedSet(
+      2,
+      0,
+      ResistanceRepetitionResult.valid(twentyKilograms(), 8),
+    );
+    const addSet = jest.fn(() => Promise.resolve({ isSuccess: true }));
+    const loadUseCases = loader(activeSession([assistedPullUp([])]), {
+      addSet,
+      reloads: [
+        activeSession([assistedPullUp([])]),
+        activeSession([assistedPullUp([recorded])]),
+      ],
+    });
+    await renderScreen(loadUseCases);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Add Set for Assisted pull-up' }),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByLabelText('Start rest timer, 90 seconds'),
+    ).not.toBeOnTheScreen();
+
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add Set for Assisted pull-up' }),
+    );
+    await fireEvent.changeText(
+      screen.getByTestId('workout-set-repetitions-input'),
+      '8',
+    );
+    await fireEvent.changeText(
+      screen.getByTestId('workout-set-resistance-input'),
+      '20',
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Save Set' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('Start rest timer, 90 seconds'),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  it('never offers rest timing after a rejected set save', async () => {
+    const addSet = jest.fn(() => Promise.resolve({ isSuccess: false }));
+    const loadUseCases = loader(activeSession([assistedPullUp([])]), {
+      addSet,
+    });
+    await renderScreen(loadUseCases);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Add Set for Assisted pull-up' }),
+      ).toBeOnTheScreen(),
+    );
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Add Set for Assisted pull-up' }),
+    );
+    await fireEvent.changeText(
+      screen.getByTestId('workout-set-repetitions-input'),
+      '8',
+    );
+    await fireEvent.changeText(
+      screen.getByTestId('workout-set-resistance-input'),
+      '20',
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Save Set' }));
+
+    await waitFor(() => expect(addSet).toHaveBeenCalledTimes(1));
+    expect(
+      screen.getByText('Set could not be saved. Your values are still here.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText('Start rest timer, 90 seconds'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('opens the entry form on the recorded value when a set is edited', async () => {
     const loadUseCases = loader(
       activeSession([

@@ -17,6 +17,7 @@ import {
   spacing,
 } from '../../../design-system';
 import { ExercisePicker } from '../../workout-planner/presentation/ExercisePicker';
+import { RestCountdown } from './RestCountdown';
 import { WorkoutSetForm } from './WorkoutSetForm';
 import {
   formatPlannedWorkoutResult,
@@ -41,6 +42,7 @@ export function WorkoutSessionScreen({
   const [isAddingExercise, setIsAddingExercise] = useState(false);
   const [error, setError] = useState<string>();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [isRestAvailable, setIsRestAvailable] = useState(false);
   const load = useCallback(() => {
     void loadUseCases()
       .then(async (loaded) => {
@@ -99,6 +101,7 @@ export function WorkoutSessionScreen({
         );
     if (!outcome.isSuccess) throw new Error('Set was rejected');
     setEditor(undefined);
+    setIsRestAvailable(true);
     await refresh();
   };
 
@@ -119,6 +122,7 @@ export function WorkoutSessionScreen({
           Confirmed sets save immediately on this device.
         </AppText>
       </View>
+      {isRestAvailable ? <RestCountdown /> : null}
       {error ? (
         <AppText accessibilityLiveRegion="polite" color="danger">
           {error}

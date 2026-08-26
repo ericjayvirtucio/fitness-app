@@ -119,7 +119,30 @@ Data remains in the application sandbox. SQL is bound, rows are validated, and
 errors/logs exclude workout details. There is no network, telemetry, AI, or new
 permission. History and deterministic progress are described in
 [Offline Workout History](offline-workout-history.md). Encryption, charts,
-advanced analytics, advanced sets, timers, and synchronization remain deferred.
+advanced analytics, advanced sets, and synchronization remain deferred.
+
+## Rest timing
+
+The active session screen can offer an optional, foreground-only rest
+countdown after a set saves successfully: a person picks one of four preset
+durations (60, 90, 120, or 180 seconds) and starts it explicitly; nothing
+starts automatically. Remaining time is derived each tick from a fixed
+in-memory deadline rather than accumulated from ticks, so a delayed or
+backgrounded tick still reports true elapsed time instead of drifting.
+Completion is announced once through a discrete accessibility live region;
+the ticking numeral itself carries none, to avoid a per-second announcement.
+
+The countdown holds no session, repository, or persistence reference of any
+kind — only a duration and a dismiss callback — so it cannot read or write a
+`WorkoutSession`, a `WorkoutSet`, or anything downstream of one. It is a
+pure, component-local state machine plus one presentation component in
+`workout-session/presentation`, with no application-layer use case, no
+global timer service, and no new dependency. It does not persist across a
+screen unmount, an app background/foreground cycle, or app termination —
+there is no `AppState` handling and no background work of any kind, by
+design. Losing it never loses a recorded set: the set that made the offer
+available was already durably committed to SQLite before the countdown
+could mount. See [Specification 0045](../../specs/0045-foreground-rest-timing.md).
 
 `workout_session` carries the synchronization-readiness metadata described in
 [Schema synchronization readiness](schema-synchronization-readiness.md); its
