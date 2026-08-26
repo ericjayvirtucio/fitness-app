@@ -163,14 +163,21 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
+Sprint 50: Nutrition Data Coverage Evaluation. FoodData Central's April 2026
+bulk release was profiled under thresholds fixed before evaluation. Its internal
+nutrition completeness is promising, but ordinary-food, branded-name, and exact-
+barcode discovery could not be measured against an independent representative
+sample, and the application has no named launch market. FoodData Central remains
+unapproved; Phase 5 stays Current and Phase 6 stays blocked. See the [coverage
+evaluation](docs/fooddata-central-coverage-evaluation.md) and [ADR
+0036](docs/decisions/0036-fooddata-central-coverage-remains-unproven.md).
 Sprint 49: Goal-Derived Macronutrient Targets. A person with a saved, currently
 valid goal now sees a protein, carbohydrate, and fat target, each in whole
 grams, beside their calculated daily calorie target on the Goals & Energy
 screen — a fixed 20/50/30 split of that calorie target, computed entirely
 on-device with no food data, provider, schema change, or network call. This
 is the first half of Phase 5 (Nutrition Depth); a real food database behind
-the existing catalog, with barcode entry, remains unapproved (see
-[ADR 0035](docs/decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)).
+the existing catalog, with barcode entry, remains unapproved.
 Sprint 47: Optional Reps in Reserve. On any repetition-based recorded set,
 a person can optionally record their own estimate — 0 through 10 — of how
 many more repetitions they believed they could have performed. It is never
