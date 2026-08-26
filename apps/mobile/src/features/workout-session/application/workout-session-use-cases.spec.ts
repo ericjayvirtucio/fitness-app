@@ -148,6 +148,7 @@ describe('Workout Session use cases', () => {
       started.session.id.value,
       exercise.id.value,
       RepetitionResult.valid(8),
+      null,
     );
     expect(set.isSuccess).toBe(true);
     expect(sessions.current?.exercises[0]?.sets[0]?.result).toMatchObject({
@@ -179,6 +180,7 @@ describe('Workout Session use cases', () => {
       started.session.id.value,
       exercise.id.value,
       RepetitionResult.valid(8),
+      null,
     );
     expect((await finish.execute(started.session.id.value)).isSuccess).toBe(
       true,
@@ -227,6 +229,7 @@ describe('Discarding an active workout', () => {
       session.id.value,
       exercise.id.value,
       RepetitionResult.valid(8),
+      null,
     );
     await new FinishWorkoutSessionUseCase(
       runner,

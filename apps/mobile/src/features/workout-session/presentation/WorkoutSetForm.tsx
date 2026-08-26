@@ -5,6 +5,7 @@ import {
   Length,
   Mass,
   createWorkoutResult,
+  workoutSessionPolicy,
   type ExerciseLoggingMode,
   type UnitSystem,
   type WorkoutResult,
@@ -22,6 +23,7 @@ export function WorkoutSetForm({
   cancelLabel = 'Cancel Set',
   heading,
   initial,
+  initialRepsInReserve,
   loggingMode,
   onCancel,
   onSave,
@@ -31,9 +33,14 @@ export function WorkoutSetForm({
   cancelLabel?: string;
   heading?: string;
   initial?: WorkoutResult;
+  /** `null` and `undefined` are both rendered blank: no estimate on file. */
+  initialRepsInReserve?: number | null;
   loggingMode: ExerciseLoggingMode;
   onCancel: () => void;
-  onSave: (result: WorkoutResult) => Promise<void>;
+  onSave: (
+    result: WorkoutResult,
+    repsInReserve: number | null,
+  ) => Promise<void>;
   saveLabel?: string;
   unitSystem: UnitSystem;
 }>) {
@@ -58,6 +65,11 @@ export function WorkoutSetForm({
           initial.distance.in(unitSystem === 'metric' ? 'kilometer' : 'mile'),
         )
       : '',
+  );
+  const [repsInReserve, setRepsInReserve] = useState(
+    initialRepsInReserve === undefined || initialRepsInReserve === null
+      ? ''
+      : String(initialRepsInReserve),
   );
   const [error, setError] = useState<string>();
   const [isSaving, setIsSaving] = useState(false);
@@ -98,6 +110,16 @@ export function WorkoutSetForm({
           onChangeText={setRepetitions}
           testID="workout-set-repetitions-input"
           value={repetitions}
+        />
+      ) : null}
+      {hasRepetitions ? (
+        <TextField
+          helperText="Your own estimate of how many more repetitions you believed you could have done, from 0 to 10. Optional — leave blank if you did not estimate. Not a target or a recommendation."
+          keyboardType="number-pad"
+          label="Reps in reserve (optional)"
+          onChangeText={setRepsInReserve}
+          testID="workout-set-reps-in-reserve-input"
+          value={repsInReserve}
         />
       ) : null}
       {/*
@@ -160,8 +182,22 @@ export function WorkoutSetForm({
             setError('Enter valid values for this set.');
             return;
           }
+          const trimmedRepsInReserve = repsInReserve.trim();
+          let repsInReserveValue: number | null = null;
+          if (hasRepetitions && trimmedRepsInReserve !== '') {
+            const parsed = Number(trimmedRepsInReserve);
+            if (
+              !Number.isInteger(parsed) ||
+              parsed < 0 ||
+              parsed > workoutSessionPolicy.maximumRepsInReserve
+            ) {
+              setError('Enter valid values for this set.');
+              return;
+            }
+            repsInReserveValue = parsed;
+          }
           setIsSaving(true);
-          void onSave(result.value).catch(() => {
+          void onSave(result.value, repsInReserveValue).catch(() => {
             setError('Set could not be saved. Your values are still here.');
             setIsSaving(false);
           });

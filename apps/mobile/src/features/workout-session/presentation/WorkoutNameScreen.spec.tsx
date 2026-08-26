@@ -52,6 +52,7 @@ function session(name = 'Workout') {
           WorkoutSet.create({
             id: id('550e8400-e29b-41d4-a716-446655440002'),
             position: 0,
+            repsInReserve: null,
             result: RepetitionResult.valid(8),
           }),
         ),

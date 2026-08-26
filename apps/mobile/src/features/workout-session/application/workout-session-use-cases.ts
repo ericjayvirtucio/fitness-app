@@ -172,11 +172,17 @@ export class WorkoutSessionMutationUseCases {
     });
   }
 
-  addSet(sessionId: unknown, exerciseId: unknown, result: WorkoutResult) {
+  addSet(
+    sessionId: unknown,
+    exerciseId: unknown,
+    result: WorkoutResult,
+    repsInReserve: number | null,
+  ) {
     return this.mutateExercise(sessionId, exerciseId, (exercise) => {
       const set = WorkoutSet.create({
         id: requiredId(this.generateId()),
         position: exercise.sets.length,
+        repsInReserve,
         result,
       });
       return set.isSuccess
@@ -190,6 +196,7 @@ export class WorkoutSessionMutationUseCases {
     exerciseId: unknown,
     setId: unknown,
     result: WorkoutResult,
+    repsInReserve: number | null,
   ) {
     return this.mutateExercise(sessionId, exerciseId, (exercise) => {
       const id = DomainId.create(setId);
@@ -201,6 +208,7 @@ export class WorkoutSessionMutationUseCases {
         const updated = WorkoutSet.create({
           id: set.id,
           position: set.position,
+          repsInReserve,
           result,
         });
         return updated.isSuccess ? updated.value : set;
@@ -222,6 +230,7 @@ export class WorkoutSessionMutationUseCases {
         const rebuilt = WorkoutSet.create({
           id: set.id,
           position,
+          repsInReserve: set.repsInReserve,
           result: set.result,
         });
         if (!rebuilt.isSuccess)
