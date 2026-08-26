@@ -55,7 +55,7 @@ every feature a fitness application could have is built.
 | 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                                                                                 |
 | 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md)                                                      |
 | 4. Training depth                    | Complete         | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing), [Specification 0046](../specs/0046-record-reps-in-reserve.md) (reps in reserve) — see "Training depth direction" below for remaining unapproved candidates |
-| 5. Nutrition depth                   | Planned          | A real food database behind the existing catalog, barcode entry, macro targets derived from existing goal/energy calculations                                              | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Open question: sourcing product data without inheriting a share-alike obligation on a derived database                                                                                                                                  |
+| 5. Nutrition depth                   | Current          | Two independent tracks: (a) macro targets derived from existing goal/energy calculations; (b) a real food database behind the existing catalog with barcode entry          | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Track (a): [Specification 0047](../specs/0047-goal-derived-macro-targets.md), approved, implementation Sprint 49. Track (b): unapproved — see [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)      |
 | 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                                                                       |
 | 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                                                                                    |
 | 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                                                                        |
@@ -109,7 +109,13 @@ Stated as outcomes, not task lists. A phase exits when:
   criterion.)_
 - **5. Nutrition depth** — logging a food item finds it in a real database
   most of the time, and a person has a macro target derived from their own
-  goal and energy configuration. _(Not yet met.)_
+  goal and energy configuration. _(Not yet met. Sprint 48 approved
+  [Specification 0047](../specs/0047-goal-derived-macro-targets.md), which
+  satisfies only the macro-target half once Sprint 49 implements it. The
+  food-database half remains unapproved — [ADR
+  0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
+  records why and what would unblock it. This phase does not exit until
+  both halves are independently met.)_
 - **6. Energy balance** — a person can see intake measured against
   expenditure, computed entirely on-device from data they already logged.
   _(Not yet met; blocked on 4 and 5.)_
@@ -211,6 +217,62 @@ the full argument:
 timing in full. No implementation specification exists for the remaining
 four candidates; a future sprint may propose one.
 
+## Nutrition depth direction (provisional)
+
+Sprint 48 reviewed the open question this document and `PRODUCT.md` had
+already recorded — how food-product data can be obtained without
+inheriting a share-alike obligation on a derived database, while keeping
+offline-first logging intact — against current primary sources, rather
+than assuming it remained accurate or guessing a resolution. It found the
+question still open, and found that Phase 5's two-part exit criterion does
+not need to be resolved as one decision.
+
+- **Macro targets ship first, as their own track.** [Specification
+  0047](../specs/0047-goal-derived-macro-targets.md), approved this sprint
+  for Sprint 49 implementation, derives a daily protein, carbohydrate, and
+  fat target from a person's existing calorie target using a fixed
+  distribution inside the published Acceptable Macronutrient Distribution
+  Range. It needs no food data, no provider, and no schema change — Goals &
+  Energy has no code-level dependency on the nutrition catalog, confirmed
+  during this sprint's review.
+- **Food-database sourcing remains unapproved, as a separate track.** [ADR
+  0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
+  records the full comparison. In brief: USDA FoodData Central is public
+  domain with no redistribution restriction, but this sprint could not
+  verify its Branded Foods barcode coverage is adequate on its own. Open
+  Food Facts has the barcode coverage but licenses its data under ODbL 1.0
+  and DbCL 1.0, and its own published terms do not resolve whether bundling
+  a filtered subset inside a distributed application triggers the
+  share-alike obligation on that subset. Neither gap is a formality; each
+  needs a specific unblocking step named in ADR 0035 (qualified legal
+  review, or a coverage-adequacy evaluation) before a provider can be
+  approved.
+- **Nutrition provenance is not yet ready for a provider either way.**
+  `NutritionProvenance` is a closed `'provided' | 'estimated'` union today.
+  ADR 0035 records that a provider-sourced value needs its own provenance
+  value and a write path that never overwrites a person's own entry —
+  a domain change to design and review when a provider is eventually
+  approved, not before.
+
+**Why not decide the provider question now.** Guessing an answer to an
+unresolved license or coverage question, or silently narrowing Phase 5 to
+"whichever source is easiest to bundle," would produce exactly the kind of
+invented certainty this program's evidence-over-assumptions principle
+exists to prevent (`PRODUCT.md`). Recording both open conditions precisely
+means a future sprint can act the moment either is met, instead of
+re-deriving this comparison from scratch.
+
+## Release readiness observations (provisional)
+
+A Workout Session UI/UX review found that adding and removing exercises
+and sets during an active session can become visually confusing as a
+session grows. That redesign is deliberately deferred: it is a Phase 8
+(Portfolio / release readiness) concern, not a Phase 4 or Phase 5 one, and
+no Workout Session screen, control, or route changed in Sprint 48 or is
+approved to change under Nutrition Depth. Recording it here keeps the
+observation from being lost without promising it any sequence, sprint, or
+scope ahead of Phase 8's own review.
+
 ## Adaptability rules
 
 - A candidate capability stays unnumbered and unassigned to a sprint until
@@ -268,6 +330,26 @@ goal are recorded here — not every edit to this file.
   Complete**. Estimated one-repetition maximum, grouped sets or supersets,
   progression schemes, and RPE remain unapproved candidates for a later
   phase.
+- **2026-08-26 — Sprint 48.** Discovery, architecture, and licensing sprint
+  for Phase 5 (Nutrition Depth); no capability implemented. Verified the
+  previously recorded food-data sourcing blocker against current primary
+  sources and confirmed it is still open, then split Phase 5's two-part
+  exit criterion into independently sequenced tracks. Approved
+  [Specification 0047](../specs/0047-goal-derived-macro-targets.md) —
+  goal-derived daily macro targets, needing no food data — for
+  implementation in Sprint 49. Declined to approve any food-data provider:
+  [ADR
+  0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
+  records that USDA FoodData Central's barcode coverage is unverified and
+  Open Food Facts's ODbL/DbCL terms do not resolve whether bundling a
+  filtered subset inside a distributed application triggers its
+  share-alike obligation, and names the two conditions — qualified legal
+  review, or a coverage-adequacy evaluation — that would each
+  independently unblock a future sourcing decision. Phase 5 moves from
+  Planned to **Current**, not Complete. Also recorded, for Phase 8, a
+  Workout Session UI/UX observation (exercise and set controls can become
+  visually confusing as a session grows) that this sprint deliberately did
+  not act on.
 
 ## Authoritative references
 
