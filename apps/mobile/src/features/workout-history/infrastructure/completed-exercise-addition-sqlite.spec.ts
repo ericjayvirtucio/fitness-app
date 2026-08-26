@@ -306,13 +306,17 @@ describe('Completed session exercise addition on a real database', () => {
     return RepetitionResult.valid(repetitions);
   }
 
-  async function addChinUp(repetitions = 10) {
+  async function addChinUp(
+    repetitions = 10,
+    repsInReserve: number | null = null,
+  ) {
     const { expected, mixed } = await targets();
     return {
       mixed,
       outcome: await useCase.execute({
         definitionId: chinUpDefinitionId,
         expected,
+        repsInReserve,
         result: chinUps(repetitions),
         sessionId: mixed.id,
       }),
@@ -475,6 +479,7 @@ describe('Completed session exercise addition on a real database', () => {
         completedAtEpochMilliseconds: full.completed_at_epoch_ms ?? 0,
         startedAtEpochMilliseconds: full.started_at_epoch_ms,
       },
+      repsInReserve: null,
       result: chinUps(10),
       sessionId: full.id,
     });
@@ -507,6 +512,7 @@ describe('Completed session exercise addition on a real database', () => {
         ...expected,
         completedAtEpochMilliseconds: expected.completedAtEpochMilliseconds + 1,
       },
+      repsInReserve: null,
       result: chinUps(10),
       sessionId: mixed.id,
     });
@@ -580,6 +586,7 @@ describe('Completed session exercise addition on a real database', () => {
       await useCase.execute({
         definitionId: syntheticExerciseIds.pushUp,
         expected,
+        repsInReserve: 4,
         result: ResistanceRepetitionResult.valid(
           unwrap(Mass.create(80_000, 'gram')),
           3,

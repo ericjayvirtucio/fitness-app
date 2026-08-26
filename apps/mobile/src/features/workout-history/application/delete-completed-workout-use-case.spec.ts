@@ -49,6 +49,7 @@ function session(
           WorkoutSet.create({
             id: id(setId),
             position: 0,
+            repsInReserve: null,
             result: RepetitionResult.valid(8),
           }),
         ),

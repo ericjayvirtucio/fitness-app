@@ -46,6 +46,7 @@ function recordedSet(value: string, repetitions: number) {
     WorkoutSet.create({
       id: id(value),
       position: 0,
+      repsInReserve: null,
       result: RepetitionResult.valid(repetitions),
     }),
   );
@@ -236,6 +237,7 @@ function addition(
   overrides: Partial<{
     definitionId: unknown;
     expected: CompletedWorkoutLifecycle;
+    repsInReserve: number | null;
     result: WorkoutResult;
     sessionId: unknown;
   }> = {},
@@ -243,6 +245,7 @@ function addition(
   return {
     definitionId,
     expected,
+    repsInReserve: null,
     result: RepetitionResult.valid(10) as WorkoutResult,
     sessionId,
     ...overrides,

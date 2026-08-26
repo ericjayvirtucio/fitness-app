@@ -111,7 +111,7 @@ export function CompletedWorkoutExerciseAdditionScreen({
 
   const { session, unitSystem, useCases } = loaded;
 
-  const save = async (result: WorkoutResult) => {
+  const save = async (result: WorkoutResult, repsInReserve: number | null) => {
     const lifecycle = completedWorkoutLifecycle(session);
     // A second submission would append a second exercise rather than fail, so
     // the guard is a correctness control here rather than a courtesy.
@@ -124,6 +124,7 @@ export function CompletedWorkoutExerciseAdditionScreen({
       .execute({
         definitionId: selected.definition.id.value,
         expected: lifecycle,
+        repsInReserve,
         result,
         sessionId: id,
       })

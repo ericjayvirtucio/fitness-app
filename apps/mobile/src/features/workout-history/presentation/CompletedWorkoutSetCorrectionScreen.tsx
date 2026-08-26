@@ -130,16 +130,22 @@ export function CompletedWorkoutSetCorrectionScreen({
       : 'Adding records a set this workout did not record.'
   } Personal records and progress may change. The workout stays completed, and its exercise and plan details are unchanged.`;
 
-  const save = async (result: WorkoutResult) => {
+  const save = async (result: WorkoutResult, repsInReserve: number | null) => {
     const outcome: CompletedSetCorrectionOutcome = isEditing
       ? await useCases.correctSet.editSet({
           exerciseId,
-          expected: fingerprintRecordedSet(set.result),
+          expected: fingerprintRecordedSet(set),
+          repsInReserve,
           result,
           sessionId,
           setId: set.id.value,
         })
-      : await useCases.correctSet.addSet({ exerciseId, result, sessionId });
+      : await useCases.correctSet.addSet({
+          exerciseId,
+          repsInReserve,
+          result,
+          sessionId,
+        });
     if (outcome.status === 'refused') {
       setError(correctionRefusalMessage(outcome.reason));
       throw new Error('The correction was refused.');
@@ -186,6 +192,7 @@ export function CompletedWorkoutSetCorrectionScreen({
             set.result,
             unitSystem,
             exercise.loggingModeSnapshot,
+            set.repsInReserve,
           )}
         </AppText>
       ) : null}
@@ -199,7 +206,9 @@ export function CompletedWorkoutSetCorrectionScreen({
       <WorkoutSetForm
         cancelLabel="Cancel Correction"
         heading={isEditing ? 'Edit recorded result' : 'Record the missing set'}
-        {...(set ? { initial: set.result } : {})}
+        {...(set
+          ? { initial: set.result, initialRepsInReserve: set.repsInReserve }
+          : {})}
         loggingMode={exercise.loggingModeSnapshot}
         onCancel={onDone}
         onSave={save}
