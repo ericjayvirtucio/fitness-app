@@ -2,6 +2,10 @@
 
 - Status: Approved
 - Date: 2026-08-02
+- Amended: 2026-08-26, to note that "macros," excluded below, now has an
+  approved goal-derived macro-target version, scoped to targets rather than
+  to any food data this specification never covered. See [Specification
+  0047](0047-goal-derived-macro-targets.md).
 
 ## Objective and scope
 
