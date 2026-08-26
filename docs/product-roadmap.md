@@ -55,7 +55,7 @@ every feature a fitness application could have is built.
 | 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                                                                                 |
 | 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md)                                                      |
 | 4. Training depth                    | Complete         | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing), [Specification 0046](../specs/0046-record-reps-in-reserve.md) (reps in reserve) — see "Training depth direction" below for remaining unapproved candidates |
-| 5. Nutrition depth                   | Current          | Two independent tracks: (a) macro targets derived from existing goal/energy calculations; (b) a real food database behind the existing catalog with barcode entry          | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Track (a): [Specification 0047](../specs/0047-goal-derived-macro-targets.md), approved, implementation Sprint 49. Track (b): unapproved — see [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)      |
+| 5. Nutrition depth                   | Current          | Two independent tracks: (a) macro targets derived from existing goal/energy calculations; (b) a real food database behind the existing catalog with barcode entry          | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Track (a): [Specification 0047](../specs/0047-goal-derived-macro-targets.md), implemented in Sprint 49. Track (b): unapproved — see [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)                |
 | 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                                                                       |
 | 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                                                                                    |
 | 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                                                                        |
@@ -109,10 +109,11 @@ Stated as outcomes, not task lists. A phase exits when:
   criterion.)_
 - **5. Nutrition depth** — logging a food item finds it in a real database
   most of the time, and a person has a macro target derived from their own
-  goal and energy configuration. _(Not yet met. Sprint 48 approved
-  [Specification 0047](../specs/0047-goal-derived-macro-targets.md), which
-  satisfies only the macro-target half once Sprint 49 implements it. The
-  food-database half remains unapproved — [ADR
+  goal and energy configuration. _(Not yet met — one half of two. Sprint 49
+  implemented [Specification 0047](../specs/0047-goal-derived-macro-targets.md):
+  a person with a saved, valid goal now sees protein, carbohydrate, and fat
+  targets alongside their calculated daily calorie target, satisfying the
+  macro-target half. The food-database half remains unapproved — [ADR
   0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
   records why and what would unblock it. This phase does not exit until
   both halves are independently met.)_
@@ -227,14 +228,14 @@ than assuming it remained accurate or guessing a resolution. It found the
 question still open, and found that Phase 5's two-part exit criterion does
 not need to be resolved as one decision.
 
-- **Macro targets ship first, as their own track.** [Specification
-  0047](../specs/0047-goal-derived-macro-targets.md), approved this sprint
-  for Sprint 49 implementation, derives a daily protein, carbohydrate, and
+- **Macro targets shipped first, as their own track.** [Specification
+  0047](../specs/0047-goal-derived-macro-targets.md), approved in Sprint 48
+  and implemented in Sprint 49, derives a daily protein, carbohydrate, and
   fat target from a person's existing calorie target using a fixed
   distribution inside the published Acceptable Macronutrient Distribution
-  Range. It needs no food data, no provider, and no schema change — Goals &
+  Range. It needed no food data, no provider, and no schema change — Goals &
   Energy has no code-level dependency on the nutrition catalog, confirmed
-  during this sprint's review.
+  during Sprint 48's review and unchanged by implementation.
 - **Food-database sourcing remains unapproved, as a separate track.** [ADR
   0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
   records the full comparison. In brief: USDA FoodData Central is public
@@ -350,6 +351,21 @@ goal are recorded here — not every edit to this file.
   Workout Session UI/UX observation (exercise and set controls can become
   visually confusing as a session grows) that this sprint deliberately did
   not act on.
+- **2026-08-26 — Sprint 49.** Implemented [Specification
+  0047](../specs/0047-goal-derived-macro-targets.md): a person with a saved,
+  currently valid goal now sees a protein, carbohydrate, and fat target,
+  each in whole grams, alongside their existing calculated daily calorie
+  target on the Goals & Energy screen, derived entirely on-device from
+  values already computed there. No food data, provider, schema, migration,
+  export change, or network call was introduced. Implementation found the
+  "calculated-target card" the specification described actually lives in
+  `GoalConfigurationForm.tsx` as a live preview of the form's current
+  selection, not as a field on `EnergySummary` rendered by
+  `GoalsEnergyScreen.tsx` as originally drafted; Specification 0047 was
+  amended in place to record this and to point at the actual test
+  locations. Phase 5's macro-target half of its exit criterion is now met;
+  the food-database half remains unapproved per ADR 0035. Phase 5 stays
+  **Current**, not Complete, and Phase 6 stays blocked.
 
 ## Authoritative references
 

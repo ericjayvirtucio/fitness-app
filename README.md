@@ -163,6 +163,14 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
+Sprint 49: Goal-Derived Macronutrient Targets. A person with a saved, currently
+valid goal now sees a protein, carbohydrate, and fat target, each in whole
+grams, beside their calculated daily calorie target on the Goals & Energy
+screen — a fixed 20/50/30 split of that calorie target, computed entirely
+on-device with no food data, provider, schema change, or network call. This
+is the first half of Phase 5 (Nutrition Depth); a real food database behind
+the existing catalog, with barcode entry, remains unapproved (see
+[ADR 0035](docs/decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)).
 Sprint 47: Optional Reps in Reserve. On any repetition-based recorded set,
 a person can optionally record their own estimate — 0 through 10 — of how
 many more repetitions they believed they could have performed. It is never
