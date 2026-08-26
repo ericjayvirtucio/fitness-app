@@ -80,18 +80,43 @@ notice, for any muscle-map or body-diagram presentation.
 
 ## Food data
 
-**USDA FoodData Central** — a work of the United States federal government, in
-the public domain. Free to bundle and redistribute, and therefore the candidate
-for offline food lookup. Its coverage is oriented toward foods rather than retail
-products, and toward the United States.
+No food data has been imported, bundled, or approved for use. Sprint 48
+(2026-08-26) reviewed both candidates against their current primary sources
+and recorded the result in [ADR
+0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md);
+this section restates the licensing facts that decision rests on.
 
-**Open Food Facts** — licensed ODbL 1.0. Broad international coverage and the
-barcode data a scanner needs. The obligation is share-alike on a _derived
-database_: building one from it obliges offering that derived database under the
-same terms. Querying it live over the network creates no derived database and
-therefore no obligation, at the cost of barcode lookup requiring connectivity.
-That cost lands directly against the offline-first philosophy, so the choice is
-recorded as an open question in the product direction rather than settled here.
+**USDA FoodData Central** — a work of the United States federal government,
+public domain, no attribution required and none owed. Official bulk
+CSV/JSON downloads and a documented API exist
+([fdc.nal.usda.gov/download-datasets](https://fdc.nal.usda.gov/download-datasets/),
+accessed 2026-08-26). Free to bundle and redistribute without a share-alike
+or any other obligation. Its Branded Foods dataset carries a `gtin_upc`
+field intended for barcode identification, but this repository has not
+verified that field's real-world coverage is adequate for a barcode-lookup
+feature on its own; its Foundation and Legacy datasets are strong for
+ordinary, non-branded foods.
+
+**Open Food Facts** — database structure licensed ODbL 1.0, individual
+records licensed under the Database Contents License (DbCL) 1.0, images
+separately under CC BY-SA
+([world.openfoodfacts.org/terms-of-use](https://world.openfoodfacts.org/terms-of-use),
+accessed 2026-08-26). Broad international coverage and the barcode data a
+scanner needs. The obligation is share-alike on a _derived database_:
+combining Open Food Facts data into another database obliges releasing that
+resulting database under the same terms, and attribution to Open Food
+Facts with a link back is required regardless. **Whether shipping a
+filtered, non-further-redistributable subset inside a distributed mobile
+application counts as "distributing the database" in the sense that
+triggers this obligation on that bundled subset is not addressed by Open
+Food Facts's own terms or API FAQ** — this is not an assumption this
+repository is declining to research further; it is a gap in the source's
+own published documentation, and ADR 0035 names qualified legal review as
+the way to close it. Querying it live over the network avoids building a
+derived database at build time, at the cost of barcode lookup requiring
+connectivity, which lands directly against the offline-first philosophy —
+so live querying is not treated here as a way around the licensing
+question, only as a different trade against a different principle.
 
 ## Rules that follow
 
