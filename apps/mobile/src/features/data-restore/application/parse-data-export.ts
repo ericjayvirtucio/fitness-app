@@ -3,16 +3,20 @@ import { dataExportFormat } from '../../data-export/application/data-export-cont
 import { DataRestoreError, isDataRestoreError } from './data-restore-error';
 import { asObject } from './data-restore-parsing';
 import { dataRestorePolicy } from './data-restore-policy';
-import { parseDataExportV1 } from './parse-data-export-v1';
+import {
+  parseDataExportV1,
+  parseDataExportV2,
+} from './parse-data-export-versions';
 import type { ParsedDataExport } from './restore-data';
 
 /**
  * The version boundary.
  *
- * A saved file is only ever read by the parser for the version it declares, so
- * a future version 2 adds a branch here rather than a migration framework. The
- * format constant is imported from the export contract so the two sides of one
- * public promise cannot drift apart.
+ * A saved file is only ever read by the parser for the version it declares.
+ * Version 2 added its branch here rather than a migration framework, exactly
+ * as this boundary was designed to accept it; a future version 3 adds another
+ * branch the same way. The format constant is imported from the export
+ * contract so the two sides of one public promise cannot drift apart.
  *
  * The discriminator is read leniently on purpose: a file with no `format` at
  * all is not a malformed Fitness App export, it is a different file, and saying
@@ -26,9 +30,12 @@ export function parseDataExport(
     const document = asObject(parseJson(text));
     if (document['format'] !== dataExportFormat)
       throw new DataRestoreError('unsupported-format');
-    if (document['formatVersion'] !== dataRestorePolicy.supportedFormatVersion)
-      throw new DataRestoreError('unsupported-format-version');
-    return ok(parseDataExportV1(document, currentLocalCalendarDate));
+    const formatVersion = document['formatVersion'];
+    if (formatVersion === 1)
+      return ok(parseDataExportV1(document, currentLocalCalendarDate));
+    if (formatVersion === dataRestorePolicy.currentFormatVersion)
+      return ok(parseDataExportV2(document, currentLocalCalendarDate));
+    throw new DataRestoreError('unsupported-format-version');
   } catch (error: unknown) {
     return err(
       isDataRestoreError(error)

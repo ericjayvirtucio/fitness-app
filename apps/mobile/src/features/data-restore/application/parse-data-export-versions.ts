@@ -66,9 +66,9 @@ import {
 } from './restore-data';
 
 /**
- * The version 1 parser.
+ * The version 1 and version 2 parsers.
  *
- * It reads the public export contract section by section and produces domain
+ * They read the public export contract section by section and produce domain
  * records. Nothing is copied straight through: canonical amounts become
  * measurements, occurrence triples are checked against each other by the domain
  * constructors that already own that rule, and an unknown optional nutrient
@@ -77,6 +77,13 @@ import {
  * Section order matters in one place only: the exercise catalog is read before
  * the planner, because a planned exercise must resolve to a restored definition
  * and takes its prescription shape from that definition's logging mode.
+ *
+ * Version 2 differs from version 1 in exactly one place: a recorded set may
+ * carry `repsInReserve`. Every other section is identical, so both versions
+ * share this module's section readers and differ only in the
+ * `readRepsInReserve` function each entry point supplies to `readSet`. This is
+ * a parameter for one field, not a migration framework — see
+ * `parse-data-export.ts` for the version dispatch that selects between them.
  */
 
 const prescriptionKinds = Object.freeze([
@@ -91,9 +98,34 @@ const quantityKinds = Object.freeze(['mass', 'volume'] as const);
 
 const sessionStatuses = Object.freeze(['active', 'completed'] as const);
 
+/** Version 1 files never recorded reps in reserve. */
 export function parseDataExportV1(
   document: JsonObject,
   currentLocalCalendarDate: string,
+): ParsedDataExport {
+  return parseWorkoutCompatibleDocument(
+    document,
+    currentLocalCalendarDate,
+    () => null,
+  );
+}
+
+/** Version 2 adds `repsInReserve` to a recorded set, still optional. */
+export function parseDataExportV2(
+  document: JsonObject,
+  currentLocalCalendarDate: string,
+): ParsedDataExport {
+  return parseWorkoutCompatibleDocument(
+    document,
+    currentLocalCalendarDate,
+    readRepsInReserve,
+  );
+}
+
+function parseWorkoutCompatibleDocument(
+  document: JsonObject,
+  currentLocalCalendarDate: string,
+  readSetRepsInReserve: (source: JsonObject) => number | null,
 ): ParsedDataExport {
   const generatedAt = readGeneratedAt(member(document, 'generatedAt'));
   readApplicationMetadata(objectMember(document, 'application'));
@@ -105,6 +137,7 @@ export function parseDataExportV1(
   const hydration = readHydrationSection(objectMember(document, 'hydration'));
   const sessions = readWorkoutSessionsSection(
     objectMember(document, 'workoutSessions'),
+    readSetRepsInReserve,
   );
 
   const data: RestoreData = Object.freeze({
@@ -445,7 +478,10 @@ function readPlannedExercise(
   );
 }
 
-function readWorkoutSessionsSection(source: JsonObject): Readonly<{
+function readWorkoutSessionsSection(
+  source: JsonObject,
+  readSetRepsInReserve: (source: JsonObject) => number | null,
+): Readonly<{
   activeSession: WorkoutSession | null;
   completedSessions: readonly WorkoutSession[];
 }> {
@@ -458,13 +494,15 @@ function readWorkoutSessionsSection(source: JsonObject): Readonly<{
     // The contract holds a single slot, so more than one active session cannot
     // be expressed. A session claiming to be active anywhere else is rejected.
     activeSession: asNullable(member(source, 'activeSession'), (value) =>
-      readSession(value, 'active', scope),
+      readSession(value, 'active', scope, readSetRepsInReserve),
     ),
     completedSessions: Object.freeze(
       asArray(
         member(source, 'completedSessions'),
         dataRestorePolicy.maximumCompletedSessions,
-      ).map((value) => readSession(value, 'completed', scope)),
+      ).map((value) =>
+        readSession(value, 'completed', scope, readSetRepsInReserve),
+      ),
     ),
   });
 }
@@ -479,6 +517,7 @@ function readSession(
   value: unknown,
   expectedStatus: WorkoutSessionStatus,
   scope: SessionIdentityScope,
+  readSetRepsInReserve: (source: JsonObject) => number | null,
 ): WorkoutSession {
   const source = asObject(value);
   const status = asEnum(member(source, 'status'), sessionStatuses);
@@ -493,7 +532,9 @@ function readSession(
         member(source, 'exercises'),
         dataRestorePolicy.maximumExercisesPerSession,
       )
-        .map((exercise) => readSessionExercise(exercise, scope))
+        .map((exercise) =>
+          readSessionExercise(exercise, scope, readSetRepsInReserve),
+        )
         .sort(byPosition),
       id: claimId(scope.sessionIds, asId(member(source, 'id'))),
       name: asString(member(source, 'name')),
@@ -523,6 +564,7 @@ function readSession(
 function readSessionExercise(
   value: unknown,
   scope: SessionIdentityScope,
+  readSetRepsInReserve: (source: JsonObject) => number | null,
 ): WorkoutSessionExercise {
   const source = asObject(value);
   const loggingModeSnapshot = asEnum(
@@ -545,7 +587,9 @@ function readSessionExercise(
         member(source, 'sets'),
         dataRestorePolicy.maximumSetsPerSessionExercise,
       )
-        .map((set) => readSet(set, loggingModeSnapshot, scope.setIds))
+        .map((set) =>
+          readSet(set, loggingModeSnapshot, scope.setIds, readSetRepsInReserve),
+        )
         .sort(byPosition),
       sourceExerciseDefinitionId: asId(member(source, 'sourceExerciseId')),
       sourcePlannedExerciseId: asNullable(
@@ -560,15 +604,26 @@ function readSet(
   value: unknown,
   loggingMode: ExerciseLoggingMode,
   seen: Set<string>,
+  readSetRepsInReserve: (source: JsonObject) => number | null,
 ): WorkoutSet {
   const source = asObject(value);
   return required(
     WorkoutSet.create({
       id: claimId(seen, asId(member(source, 'id'))),
       position: asInteger(member(source, 'position')),
+      repsInReserve: readSetRepsInReserve(source),
       result: readResult(member(source, 'result'), loggingMode),
     }),
   );
+}
+
+/**
+ * Version 2's one addition: an optional integer, structurally checked here
+ * and range/eligibility checked by the domain constructor that already owns
+ * that rule.
+ */
+function readRepsInReserve(source: JsonObject): number | null {
+  return asNullable(member(source, 'repsInReserve'), asInteger);
 }
 
 function readBodyMeasurementsSection(

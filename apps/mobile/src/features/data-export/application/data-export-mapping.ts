@@ -160,6 +160,7 @@ export function toExportedWorkoutSession(
       sets: exercise.sets.map((set) => ({
         id: set.id.value,
         position: set.position,
+        repsInReserve: set.repsInReserve,
         result: toExportedResult(set.result),
       })),
       sourceExerciseId: exercise.sourceExerciseDefinitionId.value,

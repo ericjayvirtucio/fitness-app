@@ -128,7 +128,7 @@ describe('parseDataExport', () => {
 
   it('rejects an unsupported format version', () => {
     expectRejection(
-      buildExport({ formatVersion: 2 }),
+      buildExport({ formatVersion: 3 }),
       'unsupported-format-version',
     );
   });
@@ -254,6 +254,125 @@ describe('parseDataExport', () => {
     expectRejection(
       buildExport({ workoutPlanner: { plannedWorkouts } }),
       'too-many-records',
+    );
+  });
+});
+
+describe('parseDataExport version 2 (reps in reserve)', () => {
+  function versionTwoExport(setOverrides: Json = {}): Json {
+    return buildExport({
+      formatVersion: 2,
+      workoutSessions: {
+        activeSession: null,
+        completedSessions: [
+          buildCompletedSession({
+            exercises: [
+              buildSessionExercise({
+                sets: [
+                  {
+                    id: ids.sessionSet,
+                    position: 0,
+                    result: buildResult(),
+                    ...setOverrides,
+                  },
+                ],
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+  }
+
+  it('reads a version 2 export with no reps-in-reserve estimate', () => {
+    const { data } = parse(versionTwoExport({ repsInReserve: null }));
+
+    expect(
+      data.completedSessions[0]?.exercises[0]?.sets[0]?.repsInReserve,
+    ).toBeNull();
+  });
+
+  it('reads a version 2 export recording zero reps in reserve', () => {
+    const { data } = parse(versionTwoExport({ repsInReserve: 0 }));
+
+    expect(
+      data.completedSessions[0]?.exercises[0]?.sets[0]?.repsInReserve,
+    ).toBe(0);
+  });
+
+  it('reads a version 2 export recording a nonzero reps-in-reserve estimate', () => {
+    const { data } = parse(versionTwoExport({ repsInReserve: 4 }));
+
+    expect(
+      data.completedSessions[0]?.exercises[0]?.sets[0]?.repsInReserve,
+    ).toBe(4);
+  });
+
+  it('treats a version 1 set as recording no reps-in-reserve estimate, even if present', () => {
+    const document = buildExport();
+    const set = (
+      (
+        (document['workoutSessions'] as Json)['completedSessions'] as Json[]
+      )[0]?.['exercises'] as Json[]
+    )[0]?.['sets'] as Json[];
+    if (set[0]) set[0]['repsInReserve'] = 7;
+
+    const { data } = parse(document);
+
+    expect(
+      data.completedSessions[0]?.exercises[0]?.sets[0]?.repsInReserve,
+    ).toBeNull();
+  });
+
+  it('rejects a negative reps-in-reserve value', () => {
+    expectRejection(versionTwoExport({ repsInReserve: -1 }), 'invalid-record');
+  });
+
+  it('rejects a reps-in-reserve value above the accepted range', () => {
+    expectRejection(versionTwoExport({ repsInReserve: 11 }), 'invalid-record');
+  });
+
+  it('rejects a fractional reps-in-reserve value', () => {
+    expectRejection(
+      versionTwoExport({ repsInReserve: 2.5 }),
+      'invalid-structure',
+    );
+  });
+
+  it('rejects a reps-in-reserve value of the wrong type', () => {
+    expectRejection(
+      versionTwoExport({ repsInReserve: '2' }),
+      'invalid-structure',
+    );
+  });
+
+  it('rejects reps-in-reserve recorded on a duration-only set', () => {
+    expectRejection(
+      buildExport({
+        formatVersion: 2,
+        workoutSessions: {
+          activeSession: null,
+          completedSessions: [
+            buildCompletedSession({
+              exercises: [
+                buildSessionExercise({
+                  loggingModeSnapshot: 'duration',
+                  plannedPrescriptionSnapshot: null,
+                  sets: [
+                    {
+                      id: ids.sessionSet,
+                      position: 0,
+                      repsInReserve: 2,
+                      result: { durationSeconds: 60, kind: 'duration' },
+                    },
+                  ],
+                }),
+              ],
+            }),
+          ],
+        },
+      }),
+      'invalid-record',
     );
   });
 });
