@@ -47,25 +47,25 @@ every feature a fitness application could have is built.
 
 ## Phase table
 
-| Phase                                | Status           | Outcome                                                                                                                                                                    | Prerequisites                                                                | Supporting documents                                                                                                                                                               |
-| ------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Offline foundations               | Complete         | Every domain (profile, goals/energy, nutrition, hydration, workouts, body measurement) reads and writes fully offline, with export, restore, erasure, and safe replacement | —                                                                            | Specs 0001–0026, ADRs 0001–0021                                                                                                                                                    |
-| 2. Product coherence                 | Complete         | Every screen states exactly what it computed; workouts are correctable, deletable, addable, and renameable by their owner; history periods govern their own lists          | Phase 1                                                                      | Specs 0031, 0032, 0035–0040, ADRs 0022, 0025–0030                                                                                                                                  |
-| 3a. One visual identity              | Complete         | One deliberate, contrast-proven visual identity; no screen loses a stated value                                                                                            | Phase 2                                                                      | [Specification 0041](../specs/0041-the-app-has-one-visual-identity.md)                                                                                                             |
-| 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                            |
-| 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md) |
-| 4. Training depth                    | **Current**      | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing, shipped) — see "Training depth direction" below for remaining candidates                               |
-| 5. Nutrition depth                   | Planned          | A real food database behind the existing catalog, barcode entry, macro targets derived from existing goal/energy calculations                                              | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Open question: sourcing product data without inheriting a share-alike obligation on a derived database                                                                             |
-| 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                  |
-| 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                               |
-| 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                   |
+| Phase                                | Status           | Outcome                                                                                                                                                                    | Prerequisites                                                                | Supporting documents                                                                                                                                                                                                                    |
+| ------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Offline foundations               | Complete         | Every domain (profile, goals/energy, nutrition, hydration, workouts, body measurement) reads and writes fully offline, with export, restore, erasure, and safe replacement | —                                                                            | Specs 0001–0026, ADRs 0001–0021                                                                                                                                                                                                         |
+| 2. Product coherence                 | Complete         | Every screen states exactly what it computed; workouts are correctable, deletable, addable, and renameable by their owner; history periods govern their own lists          | Phase 1                                                                      | Specs 0031, 0032, 0035–0040, ADRs 0022, 0025–0030                                                                                                                                                                                       |
+| 3a. One visual identity              | Complete         | One deliberate, contrast-proven visual identity; no screen loses a stated value                                                                                            | Phase 2                                                                      | [Specification 0041](../specs/0041-the-app-has-one-visual-identity.md)                                                                                                                                                                  |
+| 3b. Schema synchronization readiness | Complete         | Every owned table carries update time, tombstone, revision, and originating device; a local outbox records unsent changes; nothing leaves the device                       | Phase 3a (paying the migration cost once, before further tables exist)       | [Specification 0042](../specs/0042-schema-synchronization-readiness.md), [ADR 0032](decisions/0032-schema-synchronization-readiness.md)                                                                                                 |
+| 3c. A usable exercise library        | Complete         | Library ships empty and offers 215 curated definitions across a starter and an expanded pack; deletions of imported definitions are recoverable without discarding edits   | Phase 3b (tombstone model had to exist first)                                | [Specification 0027](../specs/0027-starter-exercise-library.md), [0043](../specs/0043-expanded-exercise-library.md), [0044](../specs/0044-deliberate-exercise-pack-restoration.md)                                                      |
+| 4. Training depth                    | Complete         | Separates a log of what happened from a tool that informs what to do next                                                                                                  | Phases 1–3                                                                   | [Specification 0045](../specs/0045-foreground-rest-timing.md) (rest timing), [Specification 0046](../specs/0046-record-reps-in-reserve.md) (reps in reserve) — see "Training depth direction" below for remaining unapproved candidates |
+| 5. Nutrition depth                   | Planned          | A real food database behind the existing catalog, barcode entry, macro targets derived from existing goal/energy calculations                                              | Phase 4 (stated sequencing in `PRODUCT.md`, not a hard technical dependency) | Open question: sourcing product data without inheriting a share-alike obligation on a derived database                                                                                                                                  |
+| 6. Energy balance                    | Planned, blocked | Intake measured against expenditure, derived on-device                                                                                                                     | Phases 4 and 5 both reaching sufficient depth                                | Neither pillar alone can express this; explicit dependency stated in `PRODUCT.md`                                                                                                                                                       |
+| 7. Cloud services                    | Planned          | Authentication, authoritative server behavior, reconciliation of the local outbox                                                                                          | Phase 3b                                                                     | No specification yet                                                                                                                                                                                                                    |
+| 8. Portfolio / release readiness     | Optional         | Not yet justified by repository evidence                                                                                                                                   | —                                                                            | Recorded here so it is considered, not scheduled                                                                                                                                                                                        |
 
 ## Dependency diagram
 
 ```mermaid
 flowchart LR
     A["1-2. Offline foundations +\nproduct coherence (complete)"] --> B["3. Visual identity,\nsync readiness, exercise\nlibrary (complete)"]
-    B --> D["4. Training depth (current)"]
+    B --> D["4. Training depth (complete)"]
     D --> E["5. Nutrition depth (planned)"]
     E --> F["6. Energy balance (planned, blocked)"]
     B --> G["7. Cloud services (planned)"]
@@ -96,11 +96,17 @@ Stated as outcomes, not task lists. A phase exits when:
   losing edits. _(Met — Specs 0041, 0042, 0043, 0044.)_
 - **4. Training depth** — a person can see more than a bare log of sets: at
   minimum, a way to observe how a session's effort or pacing behaved without
-  the application asserting a fact it did not record. _(Not yet met.
-  Sprint 46 shipped rest timing — [Specification 0045](../specs/0045-foreground-rest-timing.md)
+  the application asserting a fact it did not record. _(Met. Sprint 46
+  shipped rest timing — [Specification 0045](../specs/0045-foreground-rest-timing.md)
   — as Phase 4's first capability, but a forward-looking rest countdown is
-  not an observation of how a session's effort or pacing behaved, so this
-  exit criterion is not satisfied by it alone.)_
+  not itself an observation of a session's effort or pacing. Sprint 47
+  shipped optional reps-in-reserve recording —
+  [Specification 0046](../specs/0046-record-reps-in-reserve.md) — which is:
+  a person-reported observation of how a repetition-based set's effort
+  behaved, attached to the set it describes. [ADR 0034](decisions/0034-reps-in-reserve-is-a-recorded-observation.md)
+  records why this is a recorded fact rather than the kind of derived
+  estimate this codebase excludes elsewhere. This satisfies the exit
+  criterion.)_
 - **5. Nutrition depth** — logging a food item finds it in a real database
   most of the time, and a person has a macro target derived from their own
   goal and energy configuration. _(Not yet met.)_
@@ -113,12 +119,18 @@ Stated as outcomes, not task lists. A phase exits when:
 
 ## Training depth direction (provisional)
 
-The candidates named in `PRODUCT.md` are: rest timing within a session,
+The candidates named in `PRODUCT.md` were: rest timing within a session,
 effort recorded as reserve or exertion, estimated one-repetition maximum,
 grouped sets or supersets, and progression schemes. **Rest timing shipped in
-Sprint 46 as [Specification 0045](../specs/0045-foreground-rest-timing.md)**;
-the remaining four are not approved scope. Recording them here is not a
-promise any will ship in this form, this order, or at all.
+Sprint 46 as [Specification 0045](../specs/0045-foreground-rest-timing.md)**,
+and **reps in reserve shipped in Sprint 47 as
+[Specification 0046](../specs/0046-record-reps-in-reserve.md)**. That
+satisfied Phase 4's exit criterion (see above), so the phase is complete.
+Estimated one-repetition maximum, grouped sets or supersets, progression
+schemes, and rate of perceived exertion (RPE) remain unapproved candidates
+that a later phase or a future sprint may propose on their own review;
+recording them here is not a promise any will ship in this form, this order,
+or at all.
 
 **Rest timing shipped first**, based on Sprint 45's repository-based
 discovery:
@@ -138,25 +150,62 @@ discovery:
   state, any notification or alarm, any background timer, any auto-advance
   behavior. These remain excluded until a future sprint explicitly proposes
   and justifies them.
-- **Why not the other four candidates first:**
-  - _Effort as RIR/RPE_ — every prior specification that named it (0012,
-    0013, 0032, 0035) listed it as excluded; it adds a subjective, contested
-    field to a codebase whose stated principle is correctness before
-    novelty and deterministic behavior over guesses.
-  - _Estimated one-repetition maximum_ — already considered and rejected by
-    [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
-    which states plainly that an estimate "is not a recorded fact."
-    Reopening it would require a new ADR superseding that decision, not an
-    extension of it.
-  - _Grouped sets or supersets_ — the largest blast radius of the five: it
-    changes the ordering model shared by the Planner, active Sessions,
-    completed history, and personal records simultaneously, per
-    [offline-workout-sessions.md](architecture/offline-workout-sessions.md).
-  - _Progression schemes_ — structurally blocked. The Planner is documented
-    as one recurring week with no multi-week program
-    ([offline-workout-planner.md](architecture/offline-workout-planner.md)),
-    and a progression scheme needs history across weeks the Planner does not
-    yet model.
+
+**Reps in reserve shipped second**, based on Sprint 47's repository-based
+discovery, which revisited the reasoning below and found it did not survive
+scrutiny — see
+[ADR 0034](decisions/0034-reps-in-reserve-is-a-recorded-observation.md) for
+the full argument:
+
+- **Dependencies:** one additive, nullable, `CHECK`-constrained column on
+  `workout_set` (migration 13), and an export-format version increment to 2.
+- **Shipped outcome:** a person can optionally record, on any
+  repetition-based set, their own estimate (0–10) of how many additional
+  repetitions they believed they could have performed. Absence is preserved
+  as `null`, never zero, and the estimate travels with the set through
+  correction, export, restore, and safe replacement.
+- **Why this was previously sequenced after rest timing rather than
+  approved outright:** Sprints 12, 13, 32, and 35 each named RIR or RPE and
+  excluded it from their own narrower scope, and Sprint 45's discovery read
+  that pattern as a stronger, blanket objection — "it adds a subjective,
+  contested field to a codebase whose stated principle is correctness before
+  novelty and deterministic behavior over guesses" — which appeared to put it
+  in the same category [ADR 0017](decisions/0017-deterministic-workout-personal-records.md)
+  already rejected (estimated one-repetition maximum, refused because "it is
+  not a recorded fact"). Sprint 47 examined that apparent conflict directly:
+  an estimated one-repetition maximum is a value the _application_ computes
+  from a lighter set; reps in reserve is a value the _person_ reports about
+  themselves, which the application transcribes and validates but never
+  infers. ADR 0017's "not a recorded fact" describes the first case, not the
+  second. RPE is not reopened by this reasoning — its externally anchored
+  scale was not evaluated here — and remains excluded.
+- **Major exclusions (held for this version):** RPE; fractional, negative, or
+  above-range RIR; RIR-based personal records, comparisons, or analytics; a
+  default or copied-forward RIR; RIR on a duration, distance, or
+  distance-and-duration result, or on `ExerciseDefinition` or a planned
+  prescription. These remain excluded until a future sprint explicitly
+  proposes and justifies them.
+
+**Why not the remaining candidates first:**
+
+- _Estimated one-repetition maximum_ — already considered and rejected by
+  [ADR 0017](decisions/0017-deterministic-workout-personal-records.md),
+  which states plainly that an estimate "is not a recorded fact."
+  Reopening it would require a new ADR superseding that decision, not an
+  extension of it.
+- _Grouped sets or supersets_ — the largest blast radius of the remaining
+  candidates: it changes the ordering model shared by the Planner, active
+  Sessions, completed history, and personal records simultaneously, per
+  [offline-workout-sessions.md](architecture/offline-workout-sessions.md).
+- _Progression schemes_ — structurally blocked. The Planner is documented
+  as one recurring week with no multi-week program
+  ([offline-workout-planner.md](architecture/offline-workout-planner.md)),
+  and a progression scheme needs history across weeks the Planner does not
+  yet model.
+- _RPE_ — not reopened by Sprint 47's reasoning above; a future sprint
+  proposing it starts from [ADR 0034](decisions/0034-reps-in-reserve-is-a-recorded-observation.md)'s
+  stated line rather than from the blanket exclusion this document
+  previously recorded.
 
 [Specification 0045](../specs/0045-foreground-rest-timing.md) documents rest
 timing in full. No implementation specification exists for the remaining
@@ -205,6 +254,20 @@ goal are recorded here — not every edit to this file.
   countdown does not provide. The remaining four Training Depth candidates
   (effort as RIR/RPE, estimated one-repetition maximum, grouped sets or
   supersets, progression schemes) remain provisional and unapproved.
+- **2026-08-26 — Sprint 47.** Optional reps-in-reserve (RIR) recording
+  shipped as [Specification 0046](../specs/0046-record-reps-in-reserve.md):
+  a person can optionally record, on any repetition-based set, their own
+  0–10 estimate of how many additional repetitions they believed they could
+  have performed, persisted through correction, export (format version 2),
+  restore, and safe replacement. [ADR 0034](decisions/0034-reps-in-reserve-is-a-recorded-observation.md)
+  records why this is a recorded self-report rather than the kind of derived
+  estimate [ADR 0017](decisions/0017-deterministic-workout-personal-records.md)
+  already excludes, correcting Sprint 45's discovery note that had read RIR
+  as categorically excluded. Phase 4's exit criterion — an observation of a
+  session's effort or pacing — is met by this capability, so **Phase 4 is now
+  Complete**. Estimated one-repetition maximum, grouped sets or supersets,
+  progression schemes, and RPE remain unapproved candidates for a later
+  phase.
 
 ## Authoritative references
 
