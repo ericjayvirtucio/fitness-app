@@ -18,3 +18,7 @@ export function formatBmiCategory(category: BmiCategory): string {
 export function formatDailyEnergy(energy: Energy): string {
   return `${Math.round(energy.in('kilocalorie')).toLocaleString('en-US')} kcal/day`;
 }
+
+export function formatMacronutrientGrams(grams: number): string {
+  return `${Math.round(grams).toLocaleString('en-US')} g`;
+}
