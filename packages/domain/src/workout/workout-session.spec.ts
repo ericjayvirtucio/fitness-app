@@ -36,6 +36,7 @@ function sessionExercise() {
   const set = WorkoutSet.create({
     id: id(2),
     position: 0,
+    repsInReserve: null,
     result: RepetitionResult.valid(8),
   });
   if (!set.isSuccess) throw new Error('Invalid fixture');
@@ -52,6 +53,95 @@ function sessionExercise() {
   if (!exercise.isSuccess) throw new Error('Invalid fixture');
   return exercise.value;
 }
+
+describe('WorkoutSet reps in reserve', () => {
+  function repetitionSet(repsInReserve: unknown) {
+    return WorkoutSet.create({
+      id: id(2),
+      position: 0,
+      repsInReserve,
+      result: RepetitionResult.valid(8),
+    });
+  }
+
+  it('accepts an absent estimate', () => {
+    expect(repetitionSet(null).isSuccess).toBe(true);
+  });
+
+  it('accepts zero, the lower bound', () => {
+    const result = repetitionSet(0);
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) expect(result.value.repsInReserve).toBe(0);
+  });
+
+  it('accepts ten, the upper bound', () => {
+    const result = repetitionSet(10);
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) expect(result.value.repsInReserve).toBe(10);
+  });
+
+  it('accepts a representative interior value', () => {
+    const result = repetitionSet(4);
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) expect(result.value.repsInReserve).toBe(4);
+  });
+
+  it('rejects a negative value', () => {
+    expect(repetitionSet(-1).isSuccess).toBe(false);
+  });
+
+  it('rejects a value above the accepted range', () => {
+    expect(repetitionSet(11).isSuccess).toBe(false);
+  });
+
+  it('rejects a fractional value', () => {
+    expect(repetitionSet(2.5).isSuccess).toBe(false);
+  });
+
+  it('rejects a non-numeric value', () => {
+    expect(repetitionSet('2').isSuccess).toBe(false);
+  });
+
+  it('rejects an estimate on a duration result', () => {
+    const result = WorkoutSet.create({
+      id: id(2),
+      position: 0,
+      repsInReserve: 3,
+      result: DurationResult.valid(
+        (() => {
+          const duration = Duration.create(60, 'second');
+          if (!duration.isSuccess) throw new Error('Invalid fixture');
+          return duration.value;
+        })(),
+      ),
+    });
+    expect(result.isSuccess).toBe(false);
+  });
+
+  it('accepts a null estimate on a duration result', () => {
+    const result = WorkoutSet.create({
+      id: id(2),
+      position: 0,
+      repsInReserve: null,
+      result: DurationResult.valid(
+        (() => {
+          const duration = Duration.create(60, 'second');
+          if (!duration.isSuccess) throw new Error('Invalid fixture');
+          return duration.value;
+        })(),
+      ),
+    });
+    expect(result.isSuccess).toBe(true);
+  });
+
+  it('round-trips through reconstruction', () => {
+    const set = repetitionSet(6);
+    if (!set.isSuccess) throw new Error('Invalid fixture');
+    const rebuilt = WorkoutSet.create({ ...set.value });
+    expect(rebuilt.isSuccess).toBe(true);
+    if (rebuilt.isSuccess) expect(rebuilt.value.repsInReserve).toBe(6);
+  });
+});
 
 describe('WorkoutSession', () => {
   const base = {
@@ -101,6 +191,7 @@ describe('WorkoutSession', () => {
     const set = WorkoutSet.create({
       id: id(2),
       position: 0,
+      repsInReserve: null,
       result: RepetitionResult.valid(8),
     });
     if (!set.isSuccess) throw new Error('Invalid fixture');
@@ -133,9 +224,19 @@ describe('WorkoutSession completed correction', () => {
     return result.value;
   }
 
-  function set(index: number, result: WorkoutResult, position: number) {
+  function set(
+    index: number,
+    result: WorkoutResult,
+    position: number,
+    repsInReserve: number | null = null,
+  ) {
     return unwrap(
-      WorkoutSet.create({ id: generatedId(index), position, result }),
+      WorkoutSet.create({
+        id: generatedId(index),
+        position,
+        repsInReserve,
+        result,
+      }),
     );
   }
 

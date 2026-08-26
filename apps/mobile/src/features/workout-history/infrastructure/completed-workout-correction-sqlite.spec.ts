@@ -1,4 +1,9 @@
-import { createWorkoutResult, DomainId, Mass } from '@fitness/domain';
+import {
+  createWorkoutResult,
+  DomainId,
+  Mass,
+  WorkoutSet,
+} from '@fitness/domain';
 import type {
   DatabaseConnection,
   DatabaseParameters,
@@ -57,6 +62,7 @@ type SetRow = Readonly<{
   id: string;
   position: number;
   repetitions: number | null;
+  reps_in_reserve: number | null;
   resistance_grams: number | null;
   result_kind: string;
   workout_session_exercise_id: string;
@@ -189,7 +195,16 @@ describe('Completed workout set correction on a real database', () => {
   }
 
   function overstatedFingerprint() {
-    return fingerprintRecordedSet(resistanceResult(600, 8));
+    return fingerprintRecordedSet(
+      unwrap(
+        WorkoutSet.create({
+          id: unwrap(DomainId.create('99999999-9999-4999-8999-999999999999')),
+          position: 0,
+          repsInReserve: null,
+          result: resistanceResult(600, 8),
+        }),
+      ),
+    );
   }
 
   function assertCorrected(outcome: CompletedSetCorrectionOutcome) {
@@ -204,6 +219,7 @@ describe('Completed workout set correction on a real database', () => {
     const outcome = await useCase.editSet({
       exerciseId: before.exercise.id,
       expected: overstatedFingerprint(),
+      repsInReserve: 2,
       result: resistanceResult(60, 8),
       sessionId: before.session.id,
       setId: before.sets[0]?.id,
@@ -230,9 +246,10 @@ describe('Completed workout set correction on a real database', () => {
     expect(after.sets.map((row) => row.position)).toEqual([0, 1]);
     expect(after.sets[0]?.resistance_grams).toBe(60_000);
     expect(after.sets[0]?.repetitions).toBe(8);
+    expect(after.sets[0]?.reps_in_reserve).toBe(2);
     expect(after.sets[1]).toEqual(before.sets[1]);
     expect(await orphanCount()).toBe(0);
-    expect(await database.getVersion()).toBe(12);
+    expect(await database.getVersion()).toBe(13);
   });
 
   it('reconstructs the corrected aggregate from stored rows', async () => {
@@ -240,6 +257,7 @@ describe('Completed workout set correction on a real database', () => {
     await useCase.editSet({
       exerciseId: before.exercise.id,
       expected: overstatedFingerprint(),
+      repsInReserve: null,
       result: resistanceResult(60, 8),
       sessionId: before.session.id,
       setId: before.sets[0]?.id,
@@ -272,6 +290,7 @@ describe('Completed workout set correction on a real database', () => {
     await useCase.editSet({
       exerciseId: before.exercise.id,
       expected: overstatedFingerprint(),
+      repsInReserve: null,
       result: resistanceResult(60, 8),
       sessionId: before.session.id,
       setId: before.sets[0]?.id,
@@ -288,6 +307,7 @@ describe('Completed workout set correction on a real database', () => {
     assertCorrected(
       await useCase.addSet({
         exerciseId: before.exercise.id,
+        repsInReserve: null,
         result: resistanceResult(50, 10),
         sessionId: before.session.id,
       }),
@@ -345,7 +365,16 @@ describe('Completed workout set correction on a real database', () => {
     const remaining = await identifiers();
     const outcome = await useCase.deleteSet({
       exerciseId: remaining.exercise.id,
-      expected: fingerprintRecordedSet(resistanceResult(60, 6)),
+      expected: fingerprintRecordedSet(
+        unwrap(
+          WorkoutSet.create({
+            id: unwrap(DomainId.create('99999999-9999-4999-8999-999999999998')),
+            position: 0,
+            repsInReserve: null,
+            result: resistanceResult(60, 6),
+          }),
+        ),
+      ),
       sessionId: remaining.session.id,
       setId: remaining.sets[0]?.id,
     });
@@ -365,6 +394,7 @@ describe('Completed workout set correction on a real database', () => {
       useCase.editSet({
         exerciseId: before.exercise.id,
         expected: overstatedFingerprint(),
+        repsInReserve: null,
         result: resistanceResult(60, 8),
         sessionId: before.session.id,
         setId: before.sets[0]?.id,
@@ -377,6 +407,6 @@ describe('Completed workout set correction on a real database', () => {
     expect(after.exercise).toEqual(before.exercise);
     expect(after.sets).toEqual(before.sets);
     expect(await orphanCount()).toBe(0);
-    expect(await database.getVersion()).toBe(12);
+    expect(await database.getVersion()).toBe(13);
   });
 });

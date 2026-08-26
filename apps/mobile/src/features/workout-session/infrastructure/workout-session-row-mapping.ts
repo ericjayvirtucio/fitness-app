@@ -49,6 +49,7 @@ export type SetRow = Readonly<{
   id: string;
   position: number;
   repetitions: number | null;
+  reps_in_reserve: number | null;
   resistance_grams: number | null;
   result_kind: WorkoutResult['kind'];
   workout_session_exercise_id: string;
@@ -136,6 +137,7 @@ function mapSet(row: SetRow, loggingMode: ExerciseLoggingMode): WorkoutSet {
   const set = WorkoutSet.create({
     id: requiredId(row.id),
     position: row.position,
+    repsInReserve: row.reps_in_reserve,
     result: result.value,
   });
   return set.isSuccess ? set.value : corrupt();

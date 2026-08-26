@@ -23,18 +23,29 @@ function resistanceQualifier(loggingMode: ExerciseLoggingMode): string {
   return '';
 }
 
+/**
+ * `repsInReserve` is the person's own estimate, never a fact the application
+ * derived, so it is appended as a plain trailing label rather than woven into
+ * the sentence describing what was mechanically recorded.
+ */
 export function formatWorkoutResult(
   result: WorkoutResult,
   unitSystem: UnitSystem,
   loggingMode: ExerciseLoggingMode,
+  repsInReserve?: number | null,
 ): string {
   const massUnit = unitSystem === 'metric' ? 'kilogram' : 'pound';
   const massLabel = unitSystem === 'metric' ? 'kg' : 'lb';
   const distanceUnit = unitSystem === 'metric' ? 'kilometer' : 'mile';
   const distanceLabel = unitSystem === 'metric' ? 'km' : 'mi';
-  if (result.kind === 'repetitions') return `${result.repetitions} reps`;
+  const suffix =
+    repsInReserve === null || repsInReserve === undefined
+      ? ''
+      : ` · RIR ${repsInReserve}`;
+  if (result.kind === 'repetitions')
+    return `${result.repetitions} reps${suffix}`;
   if (result.kind === 'resistance-and-repetitions')
-    return `${resistanceQualifier(loggingMode)}${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}`;
+    return `${resistanceQualifier(loggingMode)}${result.resistance.in(massUnit)} ${massLabel} × ${result.repetitions}${suffix}`;
   if (result.kind === 'duration')
     return formatDuration(result.duration.seconds);
   if (result.kind === 'distance')

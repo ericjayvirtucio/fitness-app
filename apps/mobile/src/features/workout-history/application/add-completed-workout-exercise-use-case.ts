@@ -39,6 +39,7 @@ export type CompletedExerciseAdditionOutcome =
 export type AddCompletedExerciseInput = Readonly<{
   definitionId: unknown;
   expected: CompletedWorkoutLifecycle;
+  repsInReserve: number | null;
   result: WorkoutResult;
   sessionId: unknown;
 }>;
@@ -97,6 +98,7 @@ export class AddCompletedWorkoutExerciseUseCase {
       const recorded = WorkoutSet.create({
         id: requiredId(this.generateId()),
         position: 0,
+        repsInReserve: input.repsInReserve,
         result: input.result,
       });
       if (!recorded.isSuccess) return refused('invalid-result');

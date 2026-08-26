@@ -12,6 +12,13 @@ import { dataExportFormatVersion } from '../../data-export/application/data-expo
  * new numbers, so a record the application can create can always be restored.
  */
 export const dataRestorePolicy = Object.freeze({
+  /**
+   * The newest format version this build writes and reads. Version 1 is also
+   * accepted — see the dispatch in `parse-data-export.ts` — so this is
+   * deliberately not named "supported": both versions are supported, and only
+   * one of them is current.
+   */
+  currentFormatVersion: dataExportFormatVersion,
   maximumBodyWeightCheckIns: 200_000,
   maximumCompletedSessions: 50_000,
   maximumExercises: 20_000,
@@ -24,5 +31,4 @@ export const dataRestorePolicy = Object.freeze({
   maximumPlannedWorkouts: 7,
   maximumSetsPerSessionExercise: workoutSessionPolicy.maximumSetsPerExercise,
   maximumStringLength: 4096,
-  supportedFormatVersion: dataExportFormatVersion,
 });

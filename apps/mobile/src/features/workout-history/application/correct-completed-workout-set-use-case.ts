@@ -44,18 +44,26 @@ export type RecordedSetFingerprint = Readonly<{
   durationSeconds: number | null;
   kind: WorkoutResult['kind'];
   repetitions: number | null;
+  repsInReserve: number | null;
   resistanceGrams: number | null;
 }>;
 
+/**
+ * Reps in reserve is part of what a set records now, so a screen holding a
+ * stale fingerprint must not silently overwrite a value someone else changed,
+ * exactly as it already could not for the mechanical result.
+ */
 export function fingerprintRecordedSet(
-  result: WorkoutResult,
+  set: WorkoutSet,
 ): RecordedSetFingerprint {
+  const { result } = set;
   return Object.freeze({
     distanceMillimeters:
       'distance' in result ? result.distance.millimeters : null,
     durationSeconds: 'duration' in result ? result.duration.seconds : null,
     kind: result.kind,
     repetitions: 'repetitions' in result ? result.repetitions : null,
+    repsInReserve: set.repsInReserve,
     resistanceGrams: 'resistance' in result ? result.resistance.grams : null,
   });
 }
@@ -63,6 +71,7 @@ export function fingerprintRecordedSet(
 export type EditRecordedSetInput = Readonly<{
   exerciseId: unknown;
   expected: RecordedSetFingerprint;
+  repsInReserve: number | null;
   result: WorkoutResult;
   sessionId: unknown;
   setId: unknown;
@@ -70,6 +79,7 @@ export type EditRecordedSetInput = Readonly<{
 
 export type AddMissingSetInput = Readonly<{
   exerciseId: unknown;
+  repsInReserve: number | null;
   result: WorkoutResult;
   sessionId: unknown;
 }>;
@@ -106,6 +116,7 @@ export class CorrectCompletedWorkoutSetUseCase {
         const corrected = WorkoutSet.create({
           id: target.id,
           position: target.position,
+          repsInReserve: input.repsInReserve,
           result: input.result,
         });
         if (!corrected.isSuccess) return refused('invalid-result');
@@ -125,6 +136,7 @@ export class CorrectCompletedWorkoutSetUseCase {
       const added = WorkoutSet.create({
         id: requiredId(this.generateId()),
         position: exercise.sets.length,
+        repsInReserve: input.repsInReserve,
         result: input.result,
       });
       return added.isSuccess
@@ -194,22 +206,23 @@ function withTargetSet(
   if (!id.isSuccess) return refused('set-not-found');
   const target = exercise.sets.find((set) => set.id.equals(id.value));
   if (target === undefined) return refused('set-not-found');
-  return matchesFingerprint(target.result, expected)
+  return matchesFingerprint(target, expected)
     ? change(target)
     : refused('changed');
 }
 
 function matchesFingerprint(
-  result: WorkoutResult,
+  set: WorkoutSet,
   expected: RecordedSetFingerprint,
 ): boolean {
-  const actual = fingerprintRecordedSet(result);
+  const actual = fingerprintRecordedSet(set);
   return (
     actual.kind === expected.kind &&
     actual.repetitions === expected.repetitions &&
     actual.resistanceGrams === expected.resistanceGrams &&
     actual.durationSeconds === expected.durationSeconds &&
-    actual.distanceMillimeters === expected.distanceMillimeters
+    actual.distanceMillimeters === expected.distanceMillimeters &&
+    actual.repsInReserve === expected.repsInReserve
   );
 }
 
@@ -223,6 +236,7 @@ function renumber(sets: readonly WorkoutSet[]): CorrectedSets {
     const rebuilt = WorkoutSet.create({
       id: set.id,
       position,
+      repsInReserve: set.repsInReserve,
       result: set.result,
     });
     if (!rebuilt.isSuccess) return refused('invalid-result');

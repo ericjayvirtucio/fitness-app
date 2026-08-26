@@ -94,9 +94,10 @@ function entry(): BodyWeightEntry {
 
 describe('body weight persistence', () => {
   it('creates the forward-only table and one ordered index', async () => {
-    // The synchronization-readiness migration is appended after this one, so
-    // this is the second-to-last migration rather than the last.
-    const migration = migrations.at(-2);
+    // The synchronization-readiness and reps-in-reserve migrations are
+    // appended after this one, so this is the third-to-last migration rather
+    // than the last.
+    const migration = migrations.at(-3);
     if (!migration) throw new Error('Missing migration');
     expect(migration).toMatchObject({
       description: 'Add historical body weight check-ins.',

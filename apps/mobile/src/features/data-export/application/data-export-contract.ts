@@ -14,15 +14,21 @@ import type {
 } from '@fitness/domain';
 
 /**
- * Version 1 of the public export contract.
+ * Version 2 of the public export contract.
  *
  * This is a compatibility promise to whoever reads a saved file, so it is
  * deliberately independent of the SQLite migration version and of internal
  * table, column, and class names. Any change to the shape below increments
  * `dataExportFormatVersion`.
+ *
+ * Version 2 adds one field, `ExportedWorkoutSet.repsInReserve`. Every other
+ * shape is unchanged from version 1. `parse-data-export.ts` still reads
+ * version 1 files, mapping their sets to an absent reps-in-reserve
+ * observation, exactly as a person's own installation always did before this
+ * field existed.
  */
 export const dataExportFormat = 'fitness-app-data-export';
-export const dataExportFormatVersion = 1;
+export const dataExportFormatVersion = 2;
 
 export const dataExportMediaType = 'application/json';
 export const dataExportUniformTypeIdentifier = 'public.json';
@@ -162,6 +168,13 @@ export type ExportedPlannedWorkout = Readonly<{
 export type ExportedWorkoutSet = Readonly<{
   id: string;
   position: number;
+  /**
+   * The person's own estimate of how many more repetitions they believed
+   * they could have performed. `null` means no estimate was recorded — never
+   * zero repetitions in reserve. Present only for `repetitions` and
+   * `resistance-and-repetitions` results; always `null` otherwise.
+   */
+  repsInReserve: number | null;
   result: ExportedResult;
 }>;
 

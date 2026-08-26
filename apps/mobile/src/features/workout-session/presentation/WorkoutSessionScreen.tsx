@@ -85,7 +85,10 @@ export function WorkoutSessionScreen({
     );
 
   const refresh = async () => setSession(await useCases.getActive.execute());
-  const saveSet = async (result: WorkoutResult) => {
+  const saveSet = async (
+    result: WorkoutResult,
+    repsInReserve: number | null,
+  ) => {
     if (!editor) return;
     const outcome = editor.set
       ? await useCases.mutations.updateSet(
@@ -93,11 +96,13 @@ export function WorkoutSessionScreen({
           editor.exerciseId,
           editor.set.id.value,
           result,
+          repsInReserve,
         )
       : await useCases.mutations.addSet(
           session.id.value,
           editor.exerciseId,
           result,
+          repsInReserve,
         );
     if (!outcome.isSuccess) throw new Error('Set was rejected');
     setEditor(undefined);
@@ -173,6 +178,7 @@ export function WorkoutSessionScreen({
                     set.result,
                     unitSystem,
                     exercise.loggingModeSnapshot,
+                    set.repsInReserve,
                   )}
                 </AppText>
                 <AppButton
@@ -217,7 +223,12 @@ export function WorkoutSessionScreen({
             ))}
             {editor?.exerciseId === exercise.id.value ? (
               <WorkoutSetForm
-                {...(editor.set ? { initial: editor.set.result } : {})}
+                {...(editor.set
+                  ? {
+                      initial: editor.set.result,
+                      initialRepsInReserve: editor.set.repsInReserve,
+                    }
+                  : {})}
                 loggingMode={exercise.loggingModeSnapshot}
                 onCancel={() => setEditor(undefined)}
                 onSave={saveSet}

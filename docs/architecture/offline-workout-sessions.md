@@ -151,3 +151,30 @@ rather than removing it; abandoning a never-completed active session remains
 an unconditional hard delete, matching this document's own "Discard deletes
 the active aggregate" (ADR 0008) — a session is not queued for a future sync
 until it is completed. No synchronization exists yet.
+
+## Reps in reserve
+
+A repetition-based `WorkoutSet` (result kind `repetitions` or
+`resistance-and-repetitions`) can optionally carry `repsInReserve: number |
+null` — the person's own estimate of how many additional repetitions they
+believed they could have performed, from 0 through 10. `null` means no
+estimate, and is never treated as zero. `WorkoutSet.create` rejects a non-null
+value on a duration, distance, or distance-and-duration result, so eligibility
+is enforced once, at construction, rather than by every caller separately.
+[ADR 0034](../decisions/0034-reps-in-reserve-is-a-recorded-observation.md)
+records why this is a recorded fact — what the person reported — rather than
+the kind of derived estimate excluded elsewhere in this document's history.
+
+Migration 13 adds one nullable, `CHECK`-constrained `reps_in_reserve` column to
+`workout_set`. It needs no data migration: a pre-existing row has no value for
+the new column and is read back as `NULL`, which already satisfies the
+constraint. Every write path above that rewrites a set's row — session
+insertion, `replace`, and `correctCompleted` — carries the value through
+unchanged, because this schema's convention is whole-child-set rewrite rather
+than a per-column `UPDATE`; no new write path was added for this field.
+`workout_set` gains no synchronization-readiness metadata of its own, exactly
+as before: it remains a child row with no independent sync identity, and a
+write that changes it still advances its parent session's revision through the
+existing `queueRevision` call. See
+[Specification 0046](../../specs/0046-record-reps-in-reserve.md) for form,
+display, correction, export, and restore behavior.

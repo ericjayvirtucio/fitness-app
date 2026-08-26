@@ -83,8 +83,8 @@ live in `application/persistence/export-paging.ts`. Each page is turned into
 text immediately by `JsonDocumentWriter`, so the export never holds lifetime
 history twice.
 
-Text chunks are joined and written once. A streaming writer is not used in
-version 1: five years of heavy use is roughly 12 to 18 MB of JSON, and managing
+Text chunks are joined and written once. A streaming writer is not used: five
+years of heavy use is roughly 12 to 18 MB of JSON, and managing
 a file handle across an exclusive transaction and a cancellation path is not
 justified at that size. If measured exports approach 25 MB, the escalation is a
 writable stream behind the unchanged `DataExportFileWriter` port.
@@ -98,7 +98,7 @@ The document is one UTF-8 JSON file with a fixed member order:
 ```json
 {
   "format": "fitness-app-data-export",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "generatedAt": "2026-08-11T09:15:04.123Z",
   "application": { "name": "Fitness App", "version": "0.0.0" },
   "profile": null,
@@ -133,7 +133,7 @@ internal search key such as a normalized name appears in the file.
 | `exerciseCatalog.exercises`         | `name`, `equipment`, `primaryMuscleGroup`, `loggingMode`, `notes`, `isFavorite`                                       |
 | `workoutPlanner.plannedWorkouts`    | `weekday`, `name`, ordered exercises with `exerciseId` and `prescription`                                             |
 | `workoutSessions.activeSession`     | the single active session, or `null`                                                                                  |
-| `workoutSessions.completedSessions` | completed sessions with exercise snapshots and individual sets                                                        |
+| `workoutSessions.completedSessions` | completed sessions with exercise snapshots and individual sets, each with an optional `repsInReserve`                 |
 | `bodyMeasurements.weightCheckIns`   | `massGrams`, `note`, occurrence triple                                                                                |
 
 ### Canonical units
@@ -221,12 +221,19 @@ is not promised, because `generatedAt` legitimately differs.
 
 ### Versioning
 
-`format` is the constant `fitness-app-data-export`. `formatVersion` is the
-integer `1` and is a public compatibility contract, deliberately independent of
-the SQLite migration version. Any contract change increments it; one integer
-with one meaning is preferred over a compatibility matrix. `application.version`
-is metadata only. No migration framework exists for a version that does not
-exist yet.
+`format` is the constant `fitness-app-data-export`. `formatVersion` is a
+public compatibility contract, deliberately independent of the SQLite
+migration version. Any contract change increments it; one integer with one
+meaning is preferred over a compatibility matrix. `application.version` is
+metadata only.
+
+`formatVersion` is `2` as of
+[Specification 0046](../../specs/0046-record-reps-in-reserve.md), which added
+one field: `workoutSessions.*.exercises.*.sets.*.repsInReserve`
+(`number | null`). Every other section is unchanged from version 1. No
+migration framework exists beyond the version-dispatch branch this change
+added to the restore side — see
+[offline data restore](offline-data-restore.md).
 
 ## File handling
 

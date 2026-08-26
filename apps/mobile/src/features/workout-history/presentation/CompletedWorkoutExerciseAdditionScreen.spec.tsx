@@ -53,6 +53,7 @@ function completedSession() {
     WorkoutSet.create({
       id: requiredId(2),
       position: 0,
+      repsInReserve: null,
       result: RepetitionResult.valid(12),
     }),
   );
@@ -228,6 +229,7 @@ describe('CompletedWorkoutExerciseAdditionScreen', () => {
         completedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4) + 600_000,
         startedAtEpochMilliseconds: Date.UTC(2026, 7, 8, 4),
       },
+      repsInReserve: null,
       result: RepetitionResult.valid(12),
       sessionId: uuids[0],
     });

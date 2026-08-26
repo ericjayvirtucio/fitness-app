@@ -27,7 +27,10 @@ presentation issues no SQL.
 
 ## What a correction may change
 
-Only the actual set results of an existing completed session exercise. Removing
+Only the actual set results — and, since
+[Specification 0046](../../specs/0046-record-reps-in-reserve.md), each
+repetition-based set's optional reps-in-reserve estimate — of an existing
+completed session exercise. Removing
 a whole session exercise is a separate workflow with its own use case and its own
 confirmation; see
 [completed session exercise removal](completed-session-exercise-removal.md).
@@ -127,6 +130,10 @@ The use case compares them against the stored row inside the transaction and
 refuses the correction as changed if they differ, so a screen left open while
 another correction happened cannot silently overwrite the newer fact. This needs
 no timestamp, revision column, or version counter.
+`RecordedSetFingerprint` — and the values `fingerprintRecordedSet` reads to
+build it — cover reps-in-reserve alongside the mechanical result, so a set
+whose estimate changed underneath an open screen is refused as changed exactly
+as a set whose repetition count changed always was.
 
 The refusals are: the workout no longer exists, it is no longer completed, the
 exercise is gone, the set is gone, the set changed, the correction would empty the

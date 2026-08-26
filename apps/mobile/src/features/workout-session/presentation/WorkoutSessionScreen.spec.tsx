@@ -49,8 +49,15 @@ function id(index: number) {
   return unwrap(DomainId.create(uuids[index] ?? ''));
 }
 
-function recordedSet(index: number, position: number, result: WorkoutResult) {
-  return unwrap(WorkoutSet.create({ id: id(index), position, result }));
+function recordedSet(
+  index: number,
+  position: number,
+  result: WorkoutResult,
+  repsInReserve: number | null = null,
+) {
+  return unwrap(
+    WorkoutSet.create({ id: id(index), position, repsInReserve, result }),
+  );
 }
 
 const twentyKilograms = () => unwrap(Mass.create(20, 'kilogram'));

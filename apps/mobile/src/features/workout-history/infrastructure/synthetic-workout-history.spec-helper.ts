@@ -34,6 +34,7 @@ export type SyntheticSet = Readonly<{
   distanceMillimeters?: number;
   durationSeconds?: number;
   repetitions?: number;
+  repsInReserve?: number;
   resistanceGrams?: number;
 }>;
 
@@ -123,6 +124,7 @@ export class SyntheticWorkoutHistory {
             WorkoutSet.create({
               id: this.nextId(),
               position: setPosition,
+              repsInReserve: set.repsInReserve ?? null,
               result: buildResult(input.loggingMode, set),
             }),
           ),

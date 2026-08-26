@@ -50,6 +50,7 @@ function completedSession(
     WorkoutSet.create({
       id: id(setId),
       position: 0,
+      repsInReserve: null,
       result: ResistanceRepetitionResult.valid(
         unwrap(Mass.create(600, 'kilogram')),
         8,
@@ -248,8 +249,10 @@ describe('CompletedWorkoutSetCorrectionScreen', () => {
           durationSeconds: null,
           kind: 'resistance-and-repetitions',
           repetitions: 8,
+          repsInReserve: null,
           resistanceGrams: 600_000,
         },
+        repsInReserve: null,
         sessionId,
         setId,
       }),

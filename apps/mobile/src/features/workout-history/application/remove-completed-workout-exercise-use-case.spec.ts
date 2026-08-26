@@ -38,6 +38,7 @@ function recordedSet(value: string, repetitions: number) {
     WorkoutSet.create({
       id: id(value),
       position: 0,
+      repsInReserve: null,
       result: RepetitionResult.valid(repetitions),
     }),
   );

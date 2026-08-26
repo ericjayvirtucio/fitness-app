@@ -12,7 +12,7 @@ Profile route
   → DataRestoreScreen
   → GetRestoreTargetUseCase        → capability stored-data probes
   → SelectDataRestoreFileUseCase   → DataRestoreFileSource → expo-file-system
-  → ParseDataExportUseCase (pure)  → version dispatch → version 1 parser
+  → ParseDataExportUseCase (pure)  → version dispatch → version 1 or 2 parser
                                    → domain reconstruction
                                    → referential validation → restore preview
   → RestoreDataExportUseCase
@@ -33,25 +33,46 @@ format must not be coupled to mutable domain classes.
 
 ## What restore accepts
 
-Exactly the version 1 contract produced by
+The version 1 or version 2 contract produced by
 [offline data export](offline-data-export.md):
 
 ```json
 { "format": "fitness-app-data-export", "formatVersion": 1 }
 ```
 
-The `format` and `formatVersion` constants are imported from the export
-contract module, so one public promise has one definition. The `Exported*`
-TypeScript interfaces are deliberately **not** used as parse targets: they
-describe what this application writes, not what an arbitrary file contains.
+or
+
+```json
+{ "format": "fitness-app-data-export", "formatVersion": 2 }
+```
+
+The `format` constant and the current `formatVersion` are imported from the
+export contract module, so one public promise has one definition; version 1
+is accepted through an explicit `=== 1` branch independent of that constant.
+The `Exported*` TypeScript interfaces are deliberately **not** used as parse
+targets: they describe what this application writes, not what an arbitrary
+file contains.
 
 Compatibility is never inferred from the application version, the SQLite
 migration version, the file name, the media type, or the file extension. The
 picker filters on `application/json` only to make selection easier.
 
 An unsupported version is reported as such. There is no upcasting and no
-format-migration framework; a future version 2 adds a branch at the dispatch
-boundary in `parse-data-export.ts`.
+format-migration framework. [Specification 0046](../../specs/0046-record-reps-in-reserve.md)
+added version 2's branch at the dispatch boundary in `parse-data-export.ts`,
+exactly where this document already said a future version would add one; a
+future version 3 adds another branch the same way.
+
+Version 1 and version 2 differ in exactly one field —
+`ExportedWorkoutSet.repsInReserve`, absent from version 1 and optional
+(`number | null`) in version 2 — so both versions share every section reader
+in `parse-data-export-versions.ts` (renamed from `parse-data-export-v1.ts`
+when version 2 was added) and differ only in the function each entry point
+supplies for reading that one field: version 1 supplies a function that
+always returns `null`, version 2 supplies one that reads and structurally
+validates the source value. A version 1 file's sets are always restored with
+`repsInReserve: null`, even if a stray `repsInReserve` key is present in the
+source, because version 1's reader ignores that key unconditionally.
 
 ## Trust boundary and validation
 
@@ -64,10 +85,10 @@ no parsed primitive reaches SQL.
 | --------------------------------- | -------------------------------- |
 | picker result and size            | `SelectDataRestoreFileUseCase`   |
 | decoding, JSON, format, version   | `parseDataExport`                |
-| sections, keys, primitives, enums | `parse-data-export-v1.ts`        |
+| sections, keys, primitives, enums | `parse-data-export-versions.ts`  |
 | bounds and duplicate identifiers  | `data-restore-parsing.ts`        |
 | business invariants               | existing domain constructors     |
-| references across records         | `parse-data-export-v1.ts`        |
+| references across records         | `parse-data-export-versions.ts`  |
 | emptiness                         | `StoredDataProbe` per capability |
 
 Everything except the final emptiness recheck completes before the write
@@ -290,7 +311,7 @@ the documentation.
   which ADR 0014 also deferred, was designed separately in
   [ADR 0016](../decisions/0016-atomic-local-data-replacement.md) and reuses this
   capability's parser, repositories, and insertion order unchanged.
-- Only `formatVersion` 1 is accepted.
+- Only `formatVersion` 1 or 2 is accepted.
 - Encrypted or compressed archives are not supported.
 - Restoration issues one statement per record, so a very large history is bound
   by transaction throughput. Batching stays available behind the unchanged

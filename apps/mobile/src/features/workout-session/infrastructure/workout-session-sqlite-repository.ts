@@ -384,8 +384,8 @@ export class WorkoutSessionSqliteRepository implements WorkoutSessionRepository 
           `INSERT INTO workout_set (
             id, workout_session_exercise_id, position, result_kind,
             repetitions, resistance_grams, duration_seconds,
-            distance_millimeters
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            distance_millimeters, reps_in_reserve
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           setParameters(exercise.id, set),
         );
       }
@@ -461,5 +461,6 @@ function setParameters(exerciseId: DomainId, set: WorkoutSet) {
     'resistance' in result ? result.resistance.grams : null,
     'duration' in result ? result.duration.seconds : null,
     'distance' in result ? result.distance.millimeters : null,
+    set.repsInReserve,
   ];
 }

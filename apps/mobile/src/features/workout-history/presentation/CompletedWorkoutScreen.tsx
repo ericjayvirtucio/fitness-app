@@ -149,7 +149,7 @@ export function CompletedWorkoutScreen({
     void useCases.correctSet
       .deleteSet({
         exerciseId: exercise.id.value,
-        expected: fingerprintRecordedSet(set.result),
+        expected: fingerprintRecordedSet(set),
         sessionId: session.id.value,
         setId: set.id.value,
       })
@@ -281,6 +281,7 @@ export function CompletedWorkoutScreen({
                     set.result,
                     unitSystem,
                     exercise.loggingModeSnapshot,
+                    set.repsInReserve,
                   )}
                 </AppText>
                 {onCorrectSet ? (

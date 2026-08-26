@@ -163,13 +163,20 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
-Sprint 46: Foreground Rest Timing. During an active Workout Session, a
-person can start an optional, dismissible rest countdown — 60, 90, 120, or
-180 seconds — after a set saves successfully. It runs entirely in the
-foreground, states remaining time plainly, announces completion once, and
-holds no persisted state, notification, alarm, or background timer; losing
-it by leaving the screen or closing the app never affects a recorded set.
-This is Phase 4's (Training Depth) first shipped capability. Sprint 44:
+Sprint 47: Optional Reps in Reserve. On any repetition-based recorded set,
+a person can optionally record their own estimate — 0 through 10 — of how
+many more repetitions they believed they could have performed. It is never
+required, an omitted estimate stays absent rather than becoming zero, and it
+travels with the set through correction, export (now format version 2),
+restore, and safe replacement. This completes Phase 4 (Training Depth): a
+session's effort is now something a person can observe, not just a bare log
+of mechanical results. Sprint 46: Foreground Rest Timing. During an active
+Workout Session, a person can start an optional, dismissible rest countdown
+— 60, 90, 120, or 180 seconds — after a set saves successfully. It runs
+entirely in the foreground, states remaining time plainly, announces
+completion once, and holds no persisted state, notification, alarm, or
+background timer; losing it by leaving the screen or closing the app never
+affects a recorded set. Sprint 44:
 Deliberate Exercise Pack Restoration. The Exercise Library now offers two
 curated packs a person can add in deliberate, independent actions —
 twenty-six starter definitions and a further hundred eighty-nine from an

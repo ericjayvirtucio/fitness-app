@@ -36,8 +36,15 @@ function id(value: string) {
   return unwrap(DomainId.create(value));
 }
 
-function set(value: string, position: number, result: WorkoutResult) {
-  return unwrap(WorkoutSet.create({ id: id(value), position, result }));
+function set(
+  value: string,
+  position: number,
+  result: WorkoutResult,
+  repsInReserve: number | null = null,
+) {
+  return unwrap(
+    WorkoutSet.create({ id: id(value), position, repsInReserve, result }),
+  );
 }
 
 function completedSession(
@@ -138,7 +145,7 @@ function repetitions(value: number) {
 function currentFingerprint(session: WorkoutSession, index: number) {
   const target = session.exercises[0]?.sets[index];
   if (!target) throw new Error('Invalid fixture');
-  return fingerprintRecordedSet(target.result);
+  return fingerprintRecordedSet(target);
 }
 
 function corrected(outcome: CompletedSetCorrectionOutcome) {
@@ -163,6 +170,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         await useCase.editSet({
           exerciseId,
           expected: currentFingerprint(stored, 0),
+          repsInReserve: 3,
           result: repetitions(5),
           sessionId,
           setId: firstSetId,
@@ -176,6 +184,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       ]);
       expect(sets.map((entry) => entry.position)).toEqual([0, 1]);
       expect(sets[0]?.result).toMatchObject({ repetitions: 5 });
+      expect(sets[0]?.repsInReserve).toBe(3);
       expect(session.status).toBe('completed');
       expect(session.completedAtEpochMilliseconds).toBe(completedAt);
       expect(session.startedAtEpochMilliseconds).toBe(startedAt);
@@ -201,6 +210,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       const outcome = await useCase.editSet({
         exerciseId,
         expected: currentFingerprint(stored, 0),
+        repsInReserve: null,
         result: loaded,
         sessionId,
         setId: firstSetId,
@@ -215,7 +225,10 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
 
       const outcome = await useCase.editSet({
         exerciseId,
-        expected: fingerprintRecordedSet(RepetitionResult.valid(99)),
+        expected: fingerprintRecordedSet(
+          set(firstSetId, 0, RepetitionResult.valid(99)),
+        ),
+        repsInReserve: null,
         result: repetitions(5),
         sessionId,
         setId: firstSetId,
@@ -233,6 +246,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       const first = await useCase.editSet({
         exerciseId,
         expected,
+        repsInReserve: null,
         result: repetitions(5),
         sessionId,
         setId: firstSetId,
@@ -240,6 +254,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       const second = await useCase.editSet({
         exerciseId,
         expected,
+        repsInReserve: null,
         result: repetitions(5),
         sessionId,
         setId: firstSetId,
@@ -258,6 +273,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         useCase.editSet({
           exerciseId,
           expected: currentFingerprint(stored, 0),
+          repsInReserve: null,
           result: repetitions(5),
           sessionId,
           setId: firstSetId,
@@ -274,7 +290,12 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       const { useCase } = fixture();
 
       const session = corrected(
-        await useCase.addSet({ exerciseId, result: repetitions(4), sessionId }),
+        await useCase.addSet({
+          exerciseId,
+          repsInReserve: 2,
+          result: repetitions(4),
+          sessionId,
+        }),
       );
 
       const sets = session.exercises[0]?.sets ?? [];
@@ -285,6 +306,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
       ]);
       expect(sets.map((entry) => entry.position)).toEqual([0, 1, 2]);
       expect(sets[2]?.result).toMatchObject({ repetitions: 4 });
+      expect(sets[2]?.repsInReserve).toBe(2);
     });
 
     it('refuses to exceed the maximum number of recorded sets', async () => {
@@ -301,6 +323,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
 
       const outcome = await useCase.addSet({
         exerciseId,
+        repsInReserve: null,
         result: repetitions(4),
         sessionId,
       });
@@ -392,6 +415,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         refusal(
           await useCase.addSet({
             exerciseId,
+            repsInReserve: null,
             result: repetitions(4),
             sessionId,
           }),
@@ -412,6 +436,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         refusal(
           await useCase.addSet({
             exerciseId,
+            repsInReserve: null,
             result: repetitions(4),
             sessionId,
           }),
@@ -425,6 +450,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         refusal(
           await useCase.addSet({
             exerciseId,
+            repsInReserve: null,
             result: repetitions(4),
             sessionId: 'not-a-uuid',
           }),
@@ -439,6 +465,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
         refusal(
           await useCase.addSet({
             exerciseId: '550e8400-e29b-41d4-a716-446655440099',
+            repsInReserve: null,
             result: repetitions(4),
             sessionId,
           }),
@@ -454,6 +481,7 @@ describe('CorrectCompletedWorkoutSetUseCase', () => {
           await useCase.editSet({
             exerciseId,
             expected: currentFingerprint(stored, 0),
+            repsInReserve: null,
             result: repetitions(5),
             sessionId,
             setId: '550e8400-e29b-41d4-a716-446655440098',

@@ -189,7 +189,9 @@ function session(status: 'active' | 'completed'): WorkoutSession {
       resistance: required(Mass.create(100_000, 'gram')),
     }),
   );
-  const set = required(WorkoutSet.create({ id: id('7'), position: 0, result }));
+  const set = required(
+    WorkoutSet.create({ id: id('7'), position: 0, repsInReserve: 3, result }),
+  );
   const exercise = required(
     WorkoutSessionExercise.create({
       exerciseNameSnapshot: 'E2E Back Squat',
@@ -295,7 +297,7 @@ describe('DataExportSerializer', () => {
     >;
 
     expect(document.format).toBe(dataExportFormat);
-    expect(document.formatVersion).toBe(1);
+    expect(document.formatVersion).toBe(2);
     expect(dataExportFormatVersion).not.toBe(migrations.length);
   });
 
@@ -303,7 +305,7 @@ describe('DataExportSerializer', () => {
     expect(serializeEmpty().text).toBe(
       `{
   "format": "fitness-app-data-export",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "generatedAt": "2026-08-11T09:15:04.123Z",
   "application": {
     "name": "Fitness App",
@@ -396,6 +398,11 @@ describe('DataExportSerializer', () => {
         'workoutSessions.completedSessions.0.exercises.0.sets.0.result.resistanceGrams',
       ),
     ).toBe(100_000);
+    expect(
+      at(
+        'workoutSessions.completedSessions.0.exercises.0.sets.0.repsInReserve',
+      ),
+    ).toBe(3);
     expect(at('bodyMeasurements.weightCheckIns.0.massGrams')).toBe(82_400);
   });
 

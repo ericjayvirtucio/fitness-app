@@ -184,6 +184,6 @@ describe('Narrowed exercise catalog reads on a real database', () => {
         database.getAll<CountRow>(`SELECT COUNT(*) AS total FROM ${table}`),
       ).resolves.toEqual([{ total: 0 }]);
     }
-    await expect(database.getVersion()).resolves.toBe(12);
+    await expect(database.getVersion()).resolves.toBe(13);
   });
 });

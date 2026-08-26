@@ -2,6 +2,9 @@
 
 - Status: Approved
 - Date: 2026-08-05
+- Amended: 2026-08-26, to note that "RPE/RIR," excluded below, now has an
+  approved recorded-observation version. See
+  [Specification 0046](0046-record-reps-in-reserve.md).
 
 ## Objective and scope
 

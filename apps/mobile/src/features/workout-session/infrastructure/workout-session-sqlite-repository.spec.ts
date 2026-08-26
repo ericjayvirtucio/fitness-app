@@ -62,6 +62,7 @@ function session() {
   const set = WorkoutSet.create({
     id: id(setId),
     position: 0,
+    repsInReserve: null,
     result: RepetitionResult.valid(8),
   });
   if (!set.isSuccess) throw new Error('Invalid fixture');
@@ -150,6 +151,7 @@ describe('WorkoutSessionSqliteRepository', () => {
       null,
       null,
       null,
+      null,
     ]);
   });
 
@@ -193,6 +195,7 @@ describe('WorkoutSessionSqliteRepository', () => {
           id: setId,
           position: 0,
           repetitions: 8,
+          reps_in_reserve: 2,
           resistance_grams: null,
           result_kind: 'repetitions',
           workout_session_exercise_id: exerciseId,
@@ -205,7 +208,7 @@ describe('WorkoutSessionSqliteRepository', () => {
       now,
     ).getActive();
     expect(result).toMatchObject({
-      exercises: [{ sets: [{ result: { repetitions: 8 } }] }],
+      exercises: [{ sets: [{ repsInReserve: 2, result: { repetitions: 8 } }] }],
     });
   });
 
@@ -285,6 +288,7 @@ describe('WorkoutSessionSqliteRepository', () => {
       0,
       'repetitions',
       8,
+      null,
       null,
       null,
       null,

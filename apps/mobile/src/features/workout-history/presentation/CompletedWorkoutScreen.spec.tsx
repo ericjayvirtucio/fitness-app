@@ -53,8 +53,18 @@ function generatedId(suffix: string) {
   return result.value;
 }
 
-function recordedSet(index: number, position: number, result: WorkoutResult) {
-  const set = WorkoutSet.create({ id: requiredId(index), position, result });
+function recordedSet(
+  index: number,
+  position: number,
+  result: WorkoutResult,
+  repsInReserve: number | null = null,
+) {
+  const set = WorkoutSet.create({
+    id: requiredId(index),
+    position,
+    repsInReserve,
+    result,
+  });
   if (!set.isSuccess) throw new Error('Invalid fixture');
   return set.value;
 }
@@ -339,6 +349,7 @@ describe('CompletedWorkoutScreen', () => {
           durationSeconds: null,
           kind: 'repetitions',
           repetitions: 12,
+          repsInReserve: null,
           resistanceGrams: null,
         },
         sessionId: uuids[0],
