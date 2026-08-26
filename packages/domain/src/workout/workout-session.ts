@@ -12,30 +12,73 @@ import { isWorkoutResult, type WorkoutResult } from './workout-result';
 export const workoutSessionPolicy = Object.freeze({
   maximumExercises: 100,
   maximumNameLength: 80,
+  maximumRepsInReserve: 10,
   maximumSetsPerExercise: 100,
 });
 
 export type WorkoutSessionStatus = 'active' | 'completed';
+
+/**
+ * Whether a result kind can carry a reps-in-reserve observation.
+ *
+ * A result's kind already reflects whether its exercise's logging mode
+ * records repetitions (`isResultCompatible` below is the only place that
+ * relationship is established), so checking the kind here is equivalent to
+ * checking eligibility by logging mode without this class needing to know the
+ * exercise it belongs to.
+ */
+function isRepsInReserveEligible(kind: WorkoutResult['kind']): boolean {
+  return kind === 'repetitions' || kind === 'resistance-and-repetitions';
+}
 
 export class WorkoutSet {
   private constructor(
     readonly id: DomainId,
     readonly position: number,
     readonly result: WorkoutResult,
+    readonly repsInReserve: number | null,
   ) {
     Object.freeze(this);
   }
 
   static create(
-    input: Readonly<{ id: unknown; position: unknown; result: unknown }>,
+    input: Readonly<{
+      id: unknown;
+      position: unknown;
+      repsInReserve: unknown;
+      result: unknown;
+    }>,
   ) {
     if (!(input.id instanceof DomainId)) return invalidId('id');
     if (!isPosition(input.position))
       return invalid('position', 'Set position is invalid.');
     if (!isWorkoutResult(input.result))
       return invalid('result', 'Workout result is invalid.');
-    return ok(new WorkoutSet(input.id, input.position, input.result));
+    if (!isValidRepsInReserve(input.repsInReserve, input.result.kind))
+      return invalid('repsInReserve', 'Reps in reserve is invalid.');
+    return ok(
+      new WorkoutSet(
+        input.id,
+        input.position,
+        input.result,
+        input.repsInReserve,
+      ),
+    );
   }
+}
+
+function isValidRepsInReserve(
+  value: unknown,
+  kind: WorkoutResult['kind'],
+): value is number | null {
+  if (value === null) return true;
+  if (!isRepsInReserveEligible(kind)) return false;
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= workoutSessionPolicy.maximumRepsInReserve
+  );
 }
 
 export class WorkoutSessionExercise {

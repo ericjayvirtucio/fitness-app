@@ -254,6 +254,7 @@ function setRow() {
     id: setId,
     position: 0,
     repetitions: 8,
+    reps_in_reserve: null,
     resistance_grams: 60_000,
     result_kind: 'resistance-and-repetitions',
     workout_session_exercise_id: exerciseId,

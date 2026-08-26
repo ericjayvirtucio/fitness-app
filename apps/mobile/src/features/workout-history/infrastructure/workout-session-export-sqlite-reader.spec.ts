@@ -76,6 +76,7 @@ const setRow = {
   id: setId,
   position: 0,
   repetitions: 5,
+  reps_in_reserve: null,
   resistance_grams: 100_000,
   result_kind: 'resistance-and-repetitions',
   workout_session_exercise_id: exerciseId,

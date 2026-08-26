@@ -768,4 +768,19 @@ export const migrations: readonly Migration[] = [
     },
     version: 12,
   },
+  {
+    description:
+      'Add an optional reps-in-reserve observation to each recorded set.',
+    up: async (transaction) => {
+      await transaction.exec(`
+        ALTER TABLE workout_set ADD COLUMN reps_in_reserve INTEGER CHECK (
+          reps_in_reserve IS NULL OR (
+            reps_in_reserve BETWEEN 0 AND 10 AND
+            result_kind IN ('repetitions', 'resistance-and-repetitions')
+          )
+        )
+      `);
+    },
+    version: 13,
+  },
 ];
