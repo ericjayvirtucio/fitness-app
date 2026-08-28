@@ -3,8 +3,11 @@
 - Protocol fixed: 2026-08-26, before downloading or inspecting the evaluated
   release
 - Evaluation release: USDA FoodData Central April 2026 bulk downloads
-- Outcome: C — evidence is insufficient to approve FoodData Central
-- Decision governed by: [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md), [ADR 0036](decisions/0036-fooddata-central-coverage-remains-unproven.md), [ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
+- **Current outcome: B — FoodData Central fails the coverage evaluation**
+  (Sprint 52, executed 2026-08-28; see "Sprint 52: Independent sampled-coverage
+  evaluation" below). Supersedes Sprint 50's Outcome C, retained further down
+  as historical record.
+- Decision governed by: [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md), [ADR 0036](decisions/0036-fooddata-central-coverage-remains-unproven.md), [ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md), [ADR 0038](decisions/0038-fooddata-central-coverage-evaluation-fails.md)
 - Follow-up evaluation: [Sampling frame evaluation](nutrition-sampling-frame-evaluation.md) (Sprint 51)
 
 ## Question and decision rule
@@ -369,40 +372,259 @@ field subset, compression choice, market scope, or update design is approved.
 The raw measured sizes are sufficient to show that "bundle the CSV" is not the
 smallest responsible implementation.
 
-## Decision: Outcome C — evidence is insufficient
+## Sprint 50 decision (superseded): Outcome C — evidence is insufficient
 
-FoodData Central is **not approved** as Phase 5's sole food-data provider.
-Internal data quality is promising, especially FNDDS ordinary-food nutrient
-population and Branded energy/macro completeness, but the evaluation cannot
-answer the product question it fixed in advance: whether an independent set of
-foods and barcodes a person will actually try is found at the required rate.
+FoodData Central was **not approved** as Phase 5's sole food-data provider as
+of Sprint 50. Internal data quality was promising, especially FNDDS
+ordinary-food nutrient population and Branded energy/macro completeness, but
+the evaluation could not answer the product question fixed in advance:
+whether an independent set of foods and barcodes a person will actually try
+is found at the required rate, because no independent sampling frame or
+named launch market existed yet.
 
-FoodData Central remains a credible candidate and could still become a bounded
-source in a multi-source design, but this sprint does not justify that design
-yet. Introducing a provider abstraction before one source is approved would be
-speculative, and using Open Food Facts as a second source still carries ADR
-0035's unresolved legal question.
+Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md),
+[Sampling frame evaluation](nutrition-sampling-frame-evaluation.md)) resolved both prerequisites
+by defining the **United States (US)** as the initial market and approving the
+independent NHANES WWEIA and Open Food Facts US assortment sampling frames,
+leaving execution of the actual discovery measurement as the remaining step.
+**Sprint 52 executed that measurement; see below. This section is retained as
+the historical record of why Outcome C was chosen at the time, not as the
+current decision.**
 
-A better sample could materially change this decision. Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md),
-[Sampling frame evaluation](nutrition-sampling-frame-evaluation.md)) resolved the first
-two follow-up requirements by defining the **United States (US)** as the initial market
-and approving the independent NHANES WWEIA and Open Food Facts US assortment sampling frames.
-The remaining execution steps are:
+## Sprint 52: Independent sampled-coverage evaluation (executed)
 
-1. draw at least 385 ordinary-food queries, 385 branded-name queries, and 385
-   current barcodes per adoption stratum under this fixed protocol;
-2. publish only aggregate results and reviewer disagreements; and
-3. approve an implementation specification only if every predefined threshold
-   and lower-bound condition passes.
+- Execution date: 2026-08-28
+- Sampling seed: `20260827` (fixed before any real data was inspected, per ADR 0037)
+- Sampler: `scripts/sample-nutrition-frame.py`, `method_version` 2
+- Discovery evaluator: `scripts/evaluate-fooddata-central-discovery.py`, `method_version` 2 (see disclosed defect correction below)
+- Evaluated release: same USDA FoodData Central April 2026 bulk downloads as Sprint 50, re-verified byte-identical (same SHA-256 digests as recorded above) on 2026-08-28
+- **Outcome: B — FoodData Central fails the coverage evaluation**
 
-Qualified review of Open Food Facts's bundling obligations remains the other
-credible unblocker, but it is not the only one because the representative USDA
-study remains feasible in principle. Neither path is implemented or approved by
-this evaluation.
+### Source provenance for the independent sampling frames
+
+| Source                                                                                                                                  | Files                                                                                                                      | Retrieval date       | SHA-256                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| CDC/USDA NHANES 2021–2023, Dietary Interview – Individual Foods, Day 1                                                                  | `DR1IFF_L.xpt`                                                                                                             | 2026-08-28           | `97177395e5fd1322ec8cb72d271a3f8d46e6a83b1105f89f6ef6f39f156037b3`                                                           |
+| CDC/USDA NHANES 2021–2023, food-code crosswalk                                                                                          | `DRXFCD_L.xpt`                                                                                                             | 2026-08-28           | `1101ce9dd5b58f138a4f44c14de39925664dda401588c130f5281ad289dfa34c`                                                           |
+| USDA ARS FSRG, 2021–2023 FNDDS At A Glance – Foods and Beverages (food code → WWEIA category; `DRXFCD_L.xpt` carries no category field) | `fndds-foods-and-beverages.xlsx`                                                                                           | 2026-08-28           | `ae7e41d348ff0c9d63199c12746c9dfa8ee1444ce2efb32b824ae191814d7d15`                                                           |
+| Derived ordinary-food frequency table (`scripts/prepare-wweia-frequency-table.py`)                                                      | `wweia-frequency-table.csv`                                                                                                | derived 2026-08-28   | 3,987 distinct food codes; 100,116 total DR1IFF respondent-day rows; 172 distinct WWEIA categories; 100% crosswalk join rate |
+| Open Food Facts, full product export (US products filtered at sampling time via `countries_tags`)                                       | `en.openfoodfacts.org.products.csv.gz` (internally tab-delimited despite the `.csv` name — verified directly, not assumed) | 2026-08-28T01:47:09Z | `f72687ee8bc6522054fe69dbfda6b91902c16af1ec2e043cde27bc6c29ad8176`                                                           |
+
+**Scoping disclosures, not silent choices:**
+
+- The WWEIA frequency table uses only the NHANES 2021–2023 cycle, not a pooled
+  2017–March 2020 / 2021–2023 estimate — pooling cycles requires NHANES's own
+  combined-cycle sample-weight methodology, out of this sprint's scope. ADR
+  0037 names both cycles as acceptable; using one complete cycle is within
+  that approval.
+- `reporting_frequency` is the **unweighted** count of DR1IFF respondent-day
+  entries per food code, not a population-weighted prevalence estimate (which
+  would require merging NHANES demographic sample-weight files). This is
+  disclosed, not presented as population-weighted anywhere in this report.
+- NHANES/WWEIA dietary data is published only in SAS Transport (XPT) format;
+  no CSV alternative exists. `scripts/sas_xport.py` is a scoped,
+  standard-library-only reader for it (no new dependency), validated against
+  SAS's own published IBM-float reference vectors and against internal
+  consistency checks on the real files (plausible row/code counts, a 100%
+  crosswalk join rate) before being trusted.
+- Open Food Facts's own "CSV" export is internally tab-delimited; this was
+  verified directly against the downloaded bytes rather than assumed from the
+  file's `.csv` extension.
+
+### Matching protocol, frozen before this run
+
+The match, ambiguity, nutrition-usability, and nutrition-completeness
+definitions are exactly those already fixed above in this document (unchanged
+since Sprint 50/51). The discovery evaluator operationalizes them as:
+full-token-subset containment between the normalized query and a candidate
+(the eligibility gate that prevents a semantically wrong food from counting
+as a hit on partial overlap — e.g. a "chicken broth" query cannot match a
+"chicken breast" candidate, since "broth" is absent from the candidate),
+ranked by Jaccard token similarity among eligible candidates for top-five
+ordering and a 0.05-margin near-tie rule for ambiguity classification. Exact
+barcodes use canonical-GTIN-14 equality only, against the same latest-record,
+non-discontinued selection rule Sprint 50's profiler already used, with a
+same-date publication tie classified as ambiguous rather than arbitrarily
+resolved. All constants and the full implementation were written and unit
+tested against synthetic fixtures before any real archive or sample was
+touched (`scripts/tests/test_evaluate_fooddata_central_discovery.py`).
+
+### Disclosed post-hoc defect correction (method_version 1 → 2)
+
+The evaluator's first real run (`method_version` 1) additionally gated
+eligibility on a Jaccard score ≥ 0.6 on top of full token-subset containment.
+Cross-checking the branded-name stratum's "no match" results against the
+independently built, already-frozen exact-barcode index (a diagnostic lookup,
+not a re-scoring) found that **102 of 277 branded-name "no match" results
+were objectively present in FoodData Central under the same GTIN** — the
+Jaccard floor was rejecting them because FoodData Central's `brand_owner`
+field is frequently a verbose legal entity name (e.g. "Cooperative Region of
+Organic Producer Pool" for a store-brand steak) rather than a retail brand,
+which inflates the Jaccard denominator even though every query token is
+genuinely present. Full subset containment already provides the
+false-positive guard the floor was meant to add, so `method_version` 2
+removes the floor as an eligibility gate and keeps Jaccard only for ranking
+and ambiguity-tie detection among already-eligible candidates. This is a
+disclosed correction to the scoring **implementation**, made after
+identifying an objective defect via independent cross-validation — not a
+retroactive change to the ADR 0037 / eval-doc match definitions themselves,
+which never specified a token-similarity formula, and not a response to
+disliking the outcome: the exact-barcode stratum (pure GTIN equality, no
+Jaccard involved) and the ordinary-food stratum (already comfortably passing)
+are both numerically unchanged by this correction, and the branded-name
+stratum's own conclusion (fails) is also unchanged — only its reported margin
+moved. Both runs' full results are reported below for auditability.
+
+### Per-stratum results
+
+**Ordinary foods** (`method_version` 1 and 2 identical — the correction does not affect this stratum):
+
+| Measure                              |            Value |
+| ------------------------------------ | ---------------: |
+| Denominator                          |              385 |
+| Acceptable top-five matches          |              381 |
+| Ambiguous                            |                4 |
+| No match                             |                0 |
+| Discovery rate (point)               |           98.96% |
+| Discovery rate, Wilson 95% CI        | [97.36%, 99.60%] |
+| Nutrition-usable rate (of matches)   |           99.74% |
+| Nutrition-complete rate (of matches) |           98.69% |
+
+**Branded names** — `method_version` 1 (original, superseded) and `method_version` 2 (corrected, final):
+
+| Measure                              |    v1 (original) | v2 (corrected, final) |
+| ------------------------------------ | ---------------: | --------------------: |
+| Denominator                          |              385 |                   385 |
+| Acceptable top-five matches          |               80 |                   121 |
+| Ambiguous                            |               28 |                    54 |
+| No match                             |              277 |                   210 |
+| Discovery rate (point)               |           20.78% |                31.43% |
+| Discovery rate, Wilson 95% CI        | [17.02%, 25.11%] |      [26.99%, 36.23%] |
+| Nutrition-usable rate (of matches)   |           97.50% |                97.52% |
+| Nutrition-complete rate (of matches) |           78.75% |                80.17% |
+
+**Exact barcodes** (`method_version` 1 and 2 identical — pure GTIN equality, unaffected by the name-matching correction):
+
+| Measure                               |            Value |
+| ------------------------------------- | ---------------: |
+| Denominator                           |              385 |
+| Exact matches                         |              214 |
+| Ambiguous (same-date publication tie) |                0 |
+| No match                              |              171 |
+| Discovery rate (point)                |           55.58% |
+| Discovery rate, Wilson 95% CI         | [50.59%, 60.47%] |
+| Nutrition-usable rate (of matches)    |           97.20% |
+| Nutrition-complete rate (of matches)  |           81.31% |
+
+Branded-name and exact-barcode sample category distributions (Open Food
+Facts, unweighted retail assortment): 48 items in each of 7 categories and 49
+in beverages, summing to 385 per stratum, drawn independently from an
+Open Food Facts US pool of 385-per-category-target items after excluding
+254,188 US-market, valid-GTIN, named products that matched none of the 8
+fixed retail-category keyword groups (`excluded_uncategorized_count`,
+recorded rather than folded into an existing category). Ordinary-food sample
+category distribution spans all 172 distinct WWEIA categories present in the
+2021–2023 frequency table, each allocated 1–3 items by the deterministic
+quota-and-backfill rule, summing to exactly 385.
+
+### Threshold-by-threshold result (final, `method_version` 2)
+
+| Measure                         | Threshold           | Result                                         |       Status       |
+| ------------------------------- | ------------------- | ---------------------------------------------- | :----------------: |
+| Ordinary-food discovery         | ≥90%, CI lower >85% | 98.96%, CI lower 97.36%                        |      **Pass**      |
+| Branded-name discovery          | ≥80%, CI lower >75% | 31.43%, CI lower 26.99%                        |      **Fail**      |
+| Exact-barcode discovery         | ≥80%, CI lower >75% | 55.58%, CI lower 50.59%                        |      **Fail**      |
+| Nutrition-usable (all strata)   | ≥95% of matches     | 99.74% / 97.52% / 97.20%                       |      **Pass**      |
+| Nutrition-complete (all strata) | ≥80% of matches     | 98.69% / 80.17% / 81.31%                       |      **Pass**      |
+| Ambiguity / false-positive      | ≤5%                 | ordinary 1.04%; branded **14.03%**; barcode 0% | **Fail** (branded) |
+
+The three discovery thresholds are conjunctive adoption gates (ADR 0036):
+branded-name and exact-barcode discovery each independently fail by a wide
+margin — barcode discovery's result is a clean exact-match measurement
+entirely unaffected by the name-matching correction above, and its 95% CI
+upper bound (60.47%) does not even reach the 75% lower-bound requirement.
+Branded-name discovery additionally fails the ambiguity ceiling. One passing
+stratum cannot offset two failing, conjunctive ones.
+
+### Limitations and selection bias
+
+- **Ordinary-food circularity, disclosed rather than corrected.** FoodData
+  Central's bulk release republishes the same USDA FNDDS reference database
+  NHANES uses to assign food codes during dietary recalls. Query text drawn
+  from the WWEIA/FNDDS crosswalk is therefore close to guaranteed to appear
+  verbatim in FoodData Central's own FNDDS records, for reasons of data
+  lineage rather than measured real-world search quality. This was raised and
+  a decision made before running the evaluation: proceed exactly as ADR 0037
+  approved, without altering the frame, and disclose the relationship rather
+  than treat the 98.96% ordinary-food result as evidence of general
+  discoverability. The result should be read as "FoodData Central's own FNDDS
+  vocabulary is present in FoodData Central's own FNDDS data" — a
+  near-tautology — rather than as strong, independent proof that arbitrary
+  staple-food searches succeed at that rate. It does not affect the overall
+  Outcome B decision, which rests on the two failing, non-circular strata.
+- **Branded-name matcher's remaining strictness.** Even after the
+  `method_version` 2 correction, the matcher still requires full
+  token-subset containment, which will not recognize a true match if the two
+  sources' text diverges more than simple extra-token prefixing (different
+  word order, abbreviations, or unit/size phrasing). The 31.43% branded-name
+  result is therefore still plausibly a lower bound on FoodData Central's
+  true branded-name discoverability, not a precise point estimate — but the
+  margin to the 80% threshold (a further 48.6 percentage points) is far too
+  large for this to plausibly change the conclusion.
+- **Exact-barcode discovery is the cleanest, most decisive measurement in
+  this evaluation**: pure canonical-GTIN-14 equality against FoodData
+  Central's own already-deduplicated, latest-record Branded index, with no
+  scoring, ranking, or normalization judgment involved. Its failure is not
+  attributable to any matching-implementation choice.
+- **Open Food Facts assortment coverage, not consumer-purchase coverage.**
+  Per ADR 0037, the branded-name and barcode denominators are unweighted
+  retail-assortment coverage — which products exist in Open Food Facts's
+  crowdsourced US corpus — not a purchase-frequency-weighted sample. This
+  affects which products were eligible to be sampled, not whether a sampled
+  product is genuinely a real US retail item.
+- **US-market evidence only**, per ADR 0037; this evaluation makes no claim
+  about FoodData Central's suitability in any other market.
+- No row-level Open Food Facts, NHANES, or FoodData Central record is
+  reproduced anywhere in this document or in Git history; every number above
+  is an aggregate statistic recomputed from the committed scripts and the
+  publicly retrievable source archives.
+
+## Decision: Outcome B — FoodData Central fails
+
+**FoodData Central is not approved** as Phase 5's food-data provider.
+Branded-name discovery (31.43%, required ≥80% with CI lower bound >75%) and
+exact-barcode discovery (55.58%, required ≥80% with CI lower bound >75%) both
+fail decisively, and branded-name ambiguity (14.03%, required ≤5%) fails as
+well. These are conjunctive requirements: a person attempting to log a
+packaged product by name or barcode — a common real-world path this
+application must support — would not find it in FoodData Central "most of
+the time" under this evaluation's terms. The strong ordinary-food result does
+not offset this, both because it does not compensate for a failing
+conjunctive stratum and because it carries the disclosed FNDDS-circularity
+limitation above.
+
+FoodData Central's structural completeness (Sprint 50's internal profiling)
+and its strong ordinary-food/FNDDS performance remain genuinely useful facts
+about the dataset — this Outcome does not contradict them — but they do not
+establish that a person's actual branded-product or barcode search succeeds
+at the required rate, which is the question this evaluation was designed to
+answer.
+
+**Next unblocking path.** Per ADR 0035 and ADR 0036, qualified legal review of
+Open Food Facts's ODbL 1.0 / DbCL 1.0 bundling obligations remains the other
+named, still-active path to unblock Phase 5's food-database half — independent
+of this evaluation's result, since it addresses a different candidate source
+under a different constraint (licensing rather than measured coverage). A
+multi-source design (e.g. FoodData Central for ordinary foods, a second source
+for branded/barcode) is not justified by this sprint: it would need its own
+provenance, conflict, and update-policy review, and no second source is
+currently approved to pair it with.
 
 ## Product and ownership consequences
 
-- Phase 5 remains **Current**: Sprint 49 met only the macro-target half.
+- Phase 5 remains **Current**: Sprint 49 met only the macro-target half; the
+  food-database half remains unmet, now with a completed (not merely
+  insufficient-evidence) provider evaluation on record.
 - Phase 6 remains blocked on Phase 5 reaching sufficient depth.
 - `NutritionProvenance` remains `'provided' | 'estimated'`; no provider value is
   added prematurely.
@@ -413,3 +635,40 @@ this evaluation.
   repository history.
 - No production file, runtime dependency, network client, cache, scanner, schema,
   migration, export format, restore path, or erasure behavior changes.
+
+## Reproduction (Sprint 52 execution)
+
+Raw archives, the derived WWEIA frequency table, the Open Food Facts export,
+and all per-item sample rows stay outside Git, exactly as ADR 0037 requires.
+Reproducing the aggregate results in the tables above requires re-acquiring
+the same dated sources (hashes above) and running, in order:
+
+```text
+python3 scripts/prepare-wweia-frequency-table.py \
+  --dr1iff <DR1IFF_L.xpt> \
+  --food-code-crosswalk <fndds-foods-and-beverages.xlsx> \
+  --output <wweia-frequency-table.csv> \
+  --summary-output <wweia-frequency-table.summary.json>
+
+python3 scripts/sample-nutrition-frame.py \
+  --wweia-csv <wweia-frequency-table.csv> \
+  --off-dump <en.openfoodfacts.org.products.csv.gz> \
+  --seed 20260827 \
+  --sample-size 385 \
+  --samples-output <samples-raw.json> \
+  --summary-output <samples-summary.json>
+
+python3 scripts/evaluate-fooddata-central-discovery.py \
+  --samples <samples-raw.json> \
+  --foundation <FoodData_Central_foundation_food_csv_2026-04-30.zip> \
+  --fndds <FoodData_Central_survey_food_csv_2024-10-31.zip> \
+  --branded <FoodData_Central_branded_food_csv_2026-04-30.zip> \
+  --output <discovery-evaluation.json>
+```
+
+Open Food Facts's export is internally tab-delimited despite its `.csv` name;
+either rename the local copy to end in `.tsv.gz` before passing it as
+`--off-dump`, or otherwise ensure the sampler's extension-based format
+detection sees the correct delimiter. The fixed seed (`20260827`) and the
+frozen matching constants make every step deterministic and independently
+reproducible from the dated sources without committing any of them.

@@ -8,6 +8,15 @@ Extracts reproducible, stratified evaluation samples from independent nutrition 
 
 Follows ADR 0037 and docs/nutrition-sampling-frame-evaluation.md.
 Uses standard library only. Compatible with Python 3.9+.
+
+method_version 2 corrects Sprint 52's confirmed defects in the original
+sampler (deterministic top-N-by-frequency instead of weighted random
+sampling, an unused RNG, an 8-category 385/8=384 shortfall with no
+backfill, broken TSV detection, silent uncategorized-item bias into
+canned_preserved, silent missing-input skipping, and no proof a stratum
+reached its target size). The ADR-approved frame selection and thresholds
+are unchanged; only the sampler's faithfulness to that approved methodology
+is corrected, per Sprint 52's allowance for defect corrections.
 """
 
 from __future__ import annotations
@@ -15,18 +24,32 @@ from __future__ import annotations
 import argparse
 import csv
 import gzip
-import hashlib
-import io
 import json
-import math
 import os
 import random
-import re
 import sys
-import zipfile
 from collections import Counter, defaultdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
+from nutrition_eval_lib import (
+    InsufficientSampleFrameError,
+    allocate_quota,
+    derive_seed,
+    normalize_gtin,
+    sha256,
+    weighted_sample_without_replacement,
+)
+
+METHOD_VERSION = 2
+
+# Real-world Open Food Facts exports carry free-text fields (e.g.
+# ingredients_text) well past Python's 128 KiB csv default; raise the limit
+# rather than truncate or drop rows. sys.maxsize can raise OverflowError on
+# some platforms' C long, so fall back to a still-generous fixed value.
+try:
+    csv.field_size_limit(sys.maxsize)
+except OverflowError:
+    csv.field_size_limit(10_000_000)
 
 STANDARD_RETAIL_CATEGORIES = (
     "dairy",
@@ -40,50 +63,8 @@ STANDARD_RETAIL_CATEGORIES = (
 )
 
 
-def sha256(path: str) -> str:
-    digest = hashlib.sha256()
-    with open(path, "rb") as source:
-        while chunk := source.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def gtin_check_digit_is_valid(value: str) -> bool:
-    if len(value) not in (8, 12, 13, 14) or not value.isdigit():
-        return False
-    digits = [int(character) for character in value]
-    payload = digits[:-1]
-    total = sum(
-        digit * (3 if (len(payload) - index) % 2 == 1 else 1)
-        for index, digit in enumerate(payload)
-    )
-    expected = (10 - total % 10) % 10
-    return expected == digits[-1]
-
-
-def normalize_gtin(value: str) -> Optional[str]:
-    stripped = value.strip()
-    if not gtin_check_digit_is_valid(stripped):
-        return None
-    return stripped.zfill(14)
-
-
-def wilson_score_interval(successes: int, total: int, confidence: float = 0.95) -> Tuple[float, float, float]:
-    """Computes the point estimate and Wilson score 95% confidence interval."""
-    if total == 0:
-        return 0.0, 0.0, 0.0
-    p_hat = successes / total
-    z = 1.95996  # 95% two-sided z-score
-    denominator = 1 + (z ** 2) / total
-    center = (p_hat + (z ** 2) / (2 * total)) / denominator
-    spread = (z * math.sqrt((p_hat * (1 - p_hat) + (z ** 2) / (4 * total)) / total)) / denominator
-    lower = max(0.0, center - spread)
-    upper = min(1.0, center + spread)
-    return p_hat, lower, upper
-
-
-def categorize_product(categories_tags: str, product_name: str) -> str:
-    """Assigns an item to one of the 8 standard retail categories based on taxonomy tags and keywords."""
+def categorize_product(categories_tags: str, product_name: str) -> Optional[str]:
+    """Assigns one of the 8 fixed retail categories, or None if none match."""
     text = (categories_tags + " " + product_name).lower()
     if any(k in text for k in ("dairy", "milk", "cheese", "yogurt", "butter", "plant-based-milk")):
         return "dairy"
@@ -99,16 +80,30 @@ def categorize_product(categories_tags: str, product_name: str) -> str:
         return "prepared_frozen"
     if any(k in text for k in ("sauce", "dressing", "condiment", "ketchup", "mustard", "mayonnaise", "dip", "salsa", "oil", "vinegar")):
         return "condiments_sauces"
-    return "canned_preserved"
+    if any(k in text for k in ("can", "canned", "jar", "preserve", "pickle", "jam", "soup")):
+        return "canned_preserved"
+    return None
 
 
-def sample_wweia_ordinary(csv_path: str, sample_size: int, seed: int) -> List[Dict]:
+def detect_delimiter_and_format(path: str) -> Tuple[str, str]:
+    """Returns (format, delimiter); format is 'json' or 'csv'. Ignores a trailing .gz."""
+    name = path[:-3] if path.endswith(".gz") else path
+    if name.endswith(".jsonl") or name.endswith(".json"):
+        return "json", ""
+    if name.endswith(".csv"):
+        return "csv", ","
+    if name.endswith(".tsv"):
+        return "csv", "\t"
+    raise ValueError(f"unrecognized nutrition frame file extension: {path}")
+
+
+def sample_wweia_ordinary(csv_path: str, sample_size: int, rng: random.Random) -> List[Dict]:
     """
-    Samples unique food concepts from a WWEIA / NHANES frequency CSV.
+    Draws a stratified, frequency-weighted random sample of unique food
+    concepts from a WWEIA / NHANES frequency CSV.
     Expected columns: food_code, food_description, reporting_frequency, wweia_category_description
     """
-    rng = random.Random(seed)
-    items = []
+    items: List[Dict] = []
     with open(csv_path, "r", encoding="utf-8-sig") as source:
         reader = csv.DictReader(source)
         for row in reader:
@@ -125,191 +120,232 @@ def sample_wweia_ordinary(csv_path: str, sample_size: int, seed: int) -> List[Di
                     "food_code": food_code,
                     "query": description,
                     "category": category,
-                    "reporting_frequency": frequency,
+                    "reporting_frequency": max(frequency, 1),
                 })
 
     if not items:
-        raise ValueError(f"No valid ordinary food rows found in {csv_path}")
+        raise InsufficientSampleFrameError(f"no valid ordinary food rows found in {csv_path}")
 
-    # Sort deterministically
-    items.sort(key=lambda x: x["food_code"])
-    
-    selected_indices: Set[int] = set()
-    sampled = []
-    
-    # Stratified selection across categories
-    by_category = defaultdict(list)
-    for idx, item in enumerate(items):
-        by_category[item["category"]].append((idx, item))
-    
-    # Draw proportionally across categories
-    per_cat = max(1, sample_size // len(by_category))
-    for cat, cat_items in sorted(by_category.items()):
-        cat_items_sorted = sorted(cat_items, key=lambda x: x[1]["reporting_frequency"], reverse=True)
-        take = min(len(cat_items_sorted), per_cat)
-        for idx, item in cat_items_sorted[:take]:
-            if idx not in selected_indices:
-                selected_indices.add(idx)
-                sampled.append(item)
-            if len(sampled) >= sample_size:
-                break
-        if len(sampled) >= sample_size:
-            break
+    by_category: Dict[str, List[Dict]] = defaultdict(list)
+    for item in items:
+        by_category[item["category"]].append(item)
 
-    # If still below target, fill by overall frequency
-    if len(sampled) < sample_size:
-        remaining = [idx for idx in range(len(items)) if idx not in selected_indices]
-        remaining_sorted = sorted(remaining, key=lambda idx: items[idx]["reporting_frequency"], reverse=True)
-        for idx in remaining_sorted:
-            selected_indices.add(idx)
-            sampled.append(items[idx])
-            if len(sampled) >= sample_size:
-                break
+    pool_sizes = {category: len(entries) for category, entries in by_category.items()}
+    quota = allocate_quota(pool_sizes, sample_size)
 
-    return sampled[:sample_size]
+    sampled: List[Dict] = []
+    for category in sorted(quota):
+        take = quota[category]
+        if take == 0:
+            continue
+        entries = by_category[category]
+        weights = [entry["reporting_frequency"] for entry in entries]
+        sampled.extend(weighted_sample_without_replacement(entries, weights, take, rng))
+
+    if len(sampled) != sample_size:
+        raise AssertionError(
+            f"ordinary-food sample size {len(sampled)} does not equal requested {sample_size}"
+        )
+    return sampled
 
 
 def sample_openfoodfacts_us(
     input_path: str,
     branded_sample_size: int,
     barcode_sample_size: int,
-    seed: int,
-) -> Tuple[List[Dict], List[Dict]]:
+    branded_rng: random.Random,
+    barcode_rng: random.Random,
+) -> Tuple[List[Dict], List[Dict], int]:
     """
-    Parses Open Food Facts US export and draws stratified samples for branded names and barcodes.
-    Input can be .jsonl, .jsonl.gz, .csv, or .csv.gz.
+    Parses an Open Food Facts US export and draws stratified, unweighted
+    random samples for branded names and barcodes (OFF is an unweighted
+    retail-assortment frame; there is no consumption-frequency signal to
+    weight by).
+    Input can be .jsonl, .jsonl.gz, .csv, .csv.gz, .tsv, or .tsv.gz.
     """
-    rng = random.Random(seed)
-    
+    file_format, delimiter = detect_delimiter_and_format(input_path)
     open_func = gzip.open if input_path.endswith(".gz") else open
-    is_json = ".json" in input_path
-    
-    valid_by_category = defaultdict(list)
-    gtin_seen: Set[str] = set()
 
-    def process_record(record: dict):
+    valid_by_category: Dict[str, List[Dict]] = defaultdict(list)
+    gtin_seen: set = set()
+    excluded_uncategorized = 0
+
+    def process_record(record: dict) -> None:
+        nonlocal excluded_uncategorized
         raw_code = str(record.get("code", "")).strip()
         countries = str(record.get("countries_tags", record.get("countries", ""))).lower()
         if "united-states" not in countries and "en:us" not in countries and "usa" not in countries:
             return
-        
+
         norm_gtin = normalize_gtin(raw_code)
         if norm_gtin is None or norm_gtin in gtin_seen:
             return
-        
+
         brand = str(record.get("brands", "")).strip()
         product_name = str(record.get("product_name", record.get("product_name_en", ""))).strip()
         categories = str(record.get("categories_tags", record.get("categories", ""))).strip()
-        
+
         if not product_name or len(product_name) < 2:
             return
-        
+
         gtin_seen.add(norm_gtin)
-        cat = categorize_product(categories, product_name)
-        
-        query = f"{brand} {product_name}".strip() if brand and not product_name.lower().startswith(brand.lower()) else product_name
-        
-        entry = {
+        category = categorize_product(categories, product_name)
+        if category is None:
+            excluded_uncategorized += 1
+            return
+
+        query = (
+            f"{brand} {product_name}".strip()
+            if brand and not product_name.lower().startswith(brand.lower())
+            else product_name
+        )
+
+        valid_by_category[category].append({
             "raw_gtin": raw_code,
             "canonical_gtin": norm_gtin,
             "brand": brand,
             "product_name": product_name,
             "query": query,
-            "category": cat,
-        }
-        valid_by_category[cat].append(entry)
+            "category": category,
+        })
 
     with open_func(input_path, "rt", encoding="utf-8", errors="replace") as stream:
-        if is_json:
+        if file_format == "json":
             for line in stream:
                 line = line.strip()
                 if line:
                     try:
-                        data = json.loads(line)
-                        process_record(data)
+                        process_record(json.loads(line))
                     except json.JSONDecodeError:
                         continue
         else:
-            reader = csv.DictReader(stream, delimiter="\t" if "\t" in input_path else ",")
+            reader = csv.DictReader(stream, delimiter=delimiter)
             for row in reader:
                 process_record(row)
 
-    # Draw stratified samples for branded names
-    branded_samples = []
-    target_per_cat_branded = max(1, branded_sample_size // len(STANDARD_RETAIL_CATEGORIES))
-    for cat in STANDARD_RETAIL_CATEGORIES:
-        pool = sorted(valid_by_category[cat], key=lambda x: x["canonical_gtin"])
-        rng.shuffle(pool)
-        branded_samples.extend(pool[:target_per_cat_branded])
-    
-    # Draw stratified samples for barcodes (different slice)
-    barcode_samples = []
-    target_per_cat_barcode = max(1, barcode_sample_size // len(STANDARD_RETAIL_CATEGORIES))
-    for cat in STANDARD_RETAIL_CATEGORIES:
-        pool = sorted(valid_by_category[cat], key=lambda x: x["canonical_gtin"])
-        offset_pool = pool[target_per_cat_branded:] + pool[:target_per_cat_branded]
-        rng.shuffle(offset_pool)
-        barcode_samples.extend(offset_pool[:target_per_cat_barcode])
+    pool_sizes = {category: len(valid_by_category[category]) for category in STANDARD_RETAIL_CATEGORIES}
 
-    return branded_samples[:branded_sample_size], barcode_samples[:barcode_sample_size]
+    branded_quota = allocate_quota(pool_sizes, branded_sample_size)
+    barcode_quota = allocate_quota(pool_sizes, barcode_sample_size)
+
+    branded_samples: List[Dict] = []
+    for category in sorted(branded_quota):
+        take = branded_quota[category]
+        if take:
+            branded_samples.extend(branded_rng.sample(valid_by_category[category], take))
+
+    barcode_samples: List[Dict] = []
+    for category in sorted(barcode_quota):
+        take = barcode_quota[category]
+        if take:
+            barcode_samples.extend(barcode_rng.sample(valid_by_category[category], take))
+
+    if len(branded_samples) != branded_sample_size:
+        raise AssertionError(
+            f"branded-name sample size {len(branded_samples)} does not equal requested {branded_sample_size}"
+        )
+    if len(barcode_samples) != barcode_sample_size:
+        raise AssertionError(
+            f"barcode sample size {len(barcode_samples)} does not equal requested {barcode_sample_size}"
+        )
+
+    return branded_samples, barcode_samples, excluded_uncategorized
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Sample independent nutrition evaluation frames.")
-    parser.add_argument("--wweia-csv", help="Path to WWEIA / NHANES frequency CSV")
-    parser.add_argument("--off-dump", help="Path to Open Food Facts US JSONL/CSV (.gz supported)")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Sample independent nutrition evaluation frames (ADR 0037).")
+    parser.add_argument("--wweia-csv", required=True, help="Path to WWEIA / NHANES frequency CSV")
+    parser.add_argument("--off-dump", required=True, help="Path to Open Food Facts US export (.csv/.tsv/.jsonl, optionally .gz)")
     parser.add_argument("--seed", type=int, default=20260827, help="Random seed for reproducibility")
     parser.add_argument("--sample-size", type=int, default=385, help="Target sample size per stratum (default: 385)")
-    parser.add_argument("--output", required=True, help="Path to output JSON summary")
+    parser.add_argument("--samples-output", required=True, help="Path to write raw per-item sample rows (keep outside Git)")
+    parser.add_argument("--summary-output", required=True, help="Path to write the git-safe aggregate summary")
     args = parser.parse_args()
 
-    result = {
+    for label, path in (("--wweia-csv", args.wweia_csv), ("--off-dump", args.off_dump)):
+        if not os.path.exists(path):
+            sys.exit(f"error: {label} does not exist: {path}")
+
+    ordinary_rng = random.Random(derive_seed(args.seed, "ordinary"))
+    branded_rng = random.Random(derive_seed(args.seed, "branded"))
+    barcode_rng = random.Random(derive_seed(args.seed, "barcode"))
+
+    print(f"Sampling ordinary foods from {args.wweia_csv}...")
+    ordinary = sample_wweia_ordinary(args.wweia_csv, args.sample_size, ordinary_rng)
+
+    print(f"Sampling branded names and barcodes from {args.off_dump}...")
+    branded, barcodes, excluded_uncategorized = sample_openfoodfacts_us(
+        args.off_dump, args.sample_size, args.sample_size, branded_rng, barcode_rng,
+    )
+
+    wweia_hash = sha256(args.wweia_csv)
+    off_hash = sha256(args.off_dump)
+
+    raw = {
         "generator": "scripts/sample-nutrition-frame.py",
+        "method_version": METHOD_VERSION,
         "market": "United States (US)",
         "seed": args.seed,
         "target_sample_size_per_stratum": args.sample_size,
-        "strata": {},
+        "strata": {
+            "ordinary_foods": {
+                "source": "CDC/USDA NHANES WWEIA Dietary Recall Frequency",
+                "source_file_sha256": wweia_hash,
+                "samples": ordinary,
+            },
+            "branded_names": {
+                "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
+                "source_file_sha256": off_hash,
+                "samples": branded,
+            },
+            "exact_barcodes": {
+                "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
+                "source_file_sha256": off_hash,
+                "samples": barcodes,
+            },
+        },
     }
 
-    if args.wweia_csv and os.path.exists(args.wweia_csv):
-        print(f"Sampling ordinary foods from {args.wweia_csv}...")
-        ordinary = sample_wweia_ordinary(args.wweia_csv, args.sample_size, args.seed)
-        result["strata"]["ordinary_foods"] = {
-            "source": "CDC/USDA NHANES WWEIA Dietary Recall Frequency",
-            "source_file_sha256": sha256(args.wweia_csv),
-            "sample_count": len(ordinary),
-            "category_distribution": dict(sorted(Counter(x["category"] for x in ordinary).items())),
-            "samples": ordinary,
-        }
+    summary = {
+        "generator": "scripts/sample-nutrition-frame.py",
+        "method_version": METHOD_VERSION,
+        "market": "United States (US)",
+        "seed": args.seed,
+        "target_sample_size_per_stratum": args.sample_size,
+        "strata": {
+            "ordinary_foods": {
+                "source": "CDC/USDA NHANES WWEIA Dietary Recall Frequency",
+                "source_file_sha256": wweia_hash,
+                "sample_count": len(ordinary),
+                "category_distribution": dict(sorted(Counter(x["category"] for x in ordinary).items())),
+            },
+            "branded_names": {
+                "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
+                "source_file_sha256": off_hash,
+                "sample_count": len(branded),
+                "category_distribution": dict(sorted(Counter(x["category"] for x in branded).items())),
+                "excluded_uncategorized_count": excluded_uncategorized,
+            },
+            "exact_barcodes": {
+                "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
+                "source_file_sha256": off_hash,
+                "sample_count": len(barcodes),
+                "category_distribution": dict(sorted(Counter(x["category"] for x in barcodes).items())),
+                "excluded_uncategorized_count": excluded_uncategorized,
+            },
+        },
+    }
 
-    if args.off_dump and os.path.exists(args.off_dump):
-        print(f"Sampling branded names and barcodes from {args.off_dump}...")
-        branded, barcodes = sample_openfoodfacts_us(
-            args.off_dump,
-            args.sample_size,
-            args.sample_size,
-            args.seed,
-        )
-        result["strata"]["branded_names"] = {
-            "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
-            "source_file_sha256": sha256(args.off_dump),
-            "sample_count": len(branded),
-            "category_distribution": dict(sorted(Counter(x["category"] for x in branded).items())),
-            "samples": branded,
-        }
-        result["strata"]["exact_barcodes"] = {
-            "source": "Open Food Facts US Snapshot (Unweighted Retail Assortment Frame)",
-            "source_file_sha256": sha256(args.off_dump),
-            "sample_count": len(barcodes),
-            "category_distribution": dict(sorted(Counter(x["category"] for x in barcodes).items())),
-            "samples": barcodes,
-        }
-
-    with open(args.output, "w", encoding="utf-8") as dest:
-        json.dump(result, dest, indent=2, sort_keys=True)
+    with open(args.samples_output, "w", encoding="utf-8") as dest:
+        json.dump(raw, dest, indent=2, sort_keys=True)
         dest.write("\n")
 
-    print(f"Sampling metadata written to {args.output}")
+    with open(args.summary_output, "w", encoding="utf-8") as dest:
+        json.dump(summary, dest, indent=2, sort_keys=True)
+        dest.write("\n")
+
+    print(f"Raw samples written to {args.samples_output}")
+    print(f"Git-safe summary written to {args.summary_output}")
 
 
 if __name__ == "__main__":

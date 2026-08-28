@@ -90,7 +90,9 @@ evidence-insufficient coverage decision in [ADR
 (2026-08-27) defined the **United States (US)** as the approved initial launch
 market and approved the independent sampling frame strategy in [ADR
 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
-and the [sampling frame evaluation](nutrition-sampling-frame-evaluation.md). This
+and the [sampling frame evaluation](nutrition-sampling-frame-evaluation.md). Sprint 52
+(2026-08-28) executed that evaluation and found FoodData Central **fails** it — see
+[ADR 0038](decisions/0038-fooddata-central-coverage-evaluation-fails.md). This
 section restates the licensing and sourcing facts those decisions rest on.
 
 **USDA FoodData Central** — public-domain data published under CC0 1.0. No
@@ -111,8 +113,18 @@ and 80.95% contained all seven fields this application supports. FNDDS contained
 all seven for 5,431 of 5,432 searchable foods. These are internal completeness
 measures, not real-world discovery rates. No independent representative sample
 or named launch market existed, and 99.75% of selected Branded records were
-U.S.-labelled, so FoodData Central remains unapproved rather than being described
+U.S.-labelled, so FoodData Central remained unapproved rather than being described
 as globally or launch-market adequate.
+
+Sprint 52's [coverage evaluation](fooddata-central-coverage-evaluation.md) then
+executed the independent discovery measurement against 385 samples per stratum.
+Branded-name discovery (31.43%) and exact-barcode discovery (55.58%) both fell far
+short of the required 80% threshold, and branded-name ambiguity (14.03%) exceeded
+its 5% ceiling; ordinary-food discovery passed (98.96%) but carries a disclosed
+data-lineage caveat. **FoodData Central is not approved** ([ADR
+0038](decisions/0038-fooddata-central-coverage-evaluation-fails.md)) — its public-domain
+licensing remains a genuine advantage over Open Food Facts, but licensing terms alone
+do not establish that a person's search or scan actually finds the intended product.
 
 **Open Food Facts** — database structure licensed ODbL 1.0, individual
 records licensed under the Database Contents License (DbCL) 1.0, images
@@ -143,7 +155,8 @@ testing, while publishing only aggregate statistical metrics and committing no r
 or derived database to Git, is an analytical evaluation use permitted under ODbL 1.0 / DbCL
 1.0 that does not trigger copyleft obligations on the application codebase. Qualified
 legal review remains the requirement before any Open Food Facts data may be bundled in
-production.
+production — and, with FoodData Central having failed Sprint 52's coverage evaluation,
+this is now the sole remaining named path to unblock Phase 5's food-database half.
 
 ## Rules that follow
 
