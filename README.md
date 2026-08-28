@@ -163,6 +163,18 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
+Sprint 52: FoodData Central Coverage Evaluation Executed. The independent
+evaluation approved in Sprint 51 was run against 385 samples per stratum
+drawn from NHANES WWEIA (ordinary foods) and an Open Food Facts US snapshot
+(branded names and exact barcodes). Ordinary-food discovery passed (98.96%),
+but branded-name discovery (31.43%) and exact-barcode discovery (55.58%) both
+failed their required 80% thresholds by a wide margin, and branded-name
+ambiguity (14.03%) exceeded its 5% ceiling. **FoodData Central is not
+approved.** Phase 5 stays Current and Phase 6 stays blocked; qualified Open
+Food Facts legal review remains the named path to unblock the food-database
+half. See [ADR
+0038](docs/decisions/0038-fooddata-central-coverage-evaluation-fails.md) and
+the [coverage evaluation](docs/fooddata-central-coverage-evaluation.md).
 Sprint 51: Initial Nutrition Market and Representative Sampling Frame. The
 United States (US) was approved as the initial nutrition-data launch market,
 aligning directly with the pure domain nutrient model (FDA Nutrition Facts
