@@ -163,6 +163,14 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
+Sprint 53: Open Food Facts Licensing Review Packet. Authored a counsel-ready
+technical and licensing review packet covering proposed data flows, SQLite
+storage isolation, exclusion of CC BY-SA product images, and 15 concrete legal
+questions under ODbL 1.0 and DbCL 1.0. Recorded Outcome C (evidence remains
+unavailable/incomplete pending external legal opinion) in ADR 0039. Open Food
+Facts remains unapproved; Phase 5 stays Current and Phase 6 stays blocked. See
+[ADR 0039](docs/decisions/0039-open-food-facts-licensing-boundary-review-packet.md)
+and the [licensing review packet](docs/open-food-facts-licensing-review-packet.md).
 Sprint 52: FoodData Central Coverage Evaluation Executed. The independent
 evaluation approved in Sprint 51 was run against 385 samples per stratum
 drawn from NHANES WWEIA (ordinary foods) and an Open Food Facts US snapshot
@@ -182,7 +190,7 @@ vocabulary), American English terminology, and UPC-A barcode standards.
 Independent sampling frames were approved: CDC/USDA NHANES WWEIA dietary recall
 frequency data for ordinary foods, and an Open Food Facts US snapshot as an
 unweighted retail assortment frame for branded product names and exact barcodes.
-The Sprint 50 acceptance thresholds remain fixed. FoodData Central remains
+The Sprint 50 acceptance thresholds remain fixed. FoodData Central remained
 unapproved pending execution of the external evaluation against these frames;
 Phase 5 stays Current and Phase 6 stays blocked. See [ADR
 0037](docs/decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)

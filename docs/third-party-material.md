@@ -92,7 +92,11 @@ market and approved the independent sampling frame strategy in [ADR
 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
 and the [sampling frame evaluation](nutrition-sampling-frame-evaluation.md). Sprint 52
 (2026-08-28) executed that evaluation and found FoodData Central **fails** it — see
-[ADR 0038](decisions/0038-fooddata-central-coverage-evaluation-fails.md). This
+[ADR 0038](decisions/0038-fooddata-central-coverage-evaluation-fails.md). Sprint 53
+(2026-08-28) authored the counsel-ready licensing review packet
+([docs/open-food-facts-licensing-review-packet.md](open-food-facts-licensing-review-packet.md))
+and recorded Outcome C in [ADR
+0039](decisions/0039-open-food-facts-licensing-boundary-review-packet.md). This
 section restates the licensing and sourcing facts those decisions rest on.
 
 **USDA FoodData Central** — public-domain data published under CC0 1.0. No
@@ -126,26 +130,54 @@ data-lineage caveat. **FoodData Central is not approved** ([ADR
 licensing remains a genuine advantage over Open Food Facts, but licensing terms alone
 do not establish that a person's search or scan actually finds the intended product.
 
-**Open Food Facts** — database structure licensed ODbL 1.0, individual
-records licensed under the Database Contents License (DbCL) 1.0, images
-separately under CC BY-SA
-([world.openfoodfacts.org/terms-of-use](https://world.openfoodfacts.org/terms-of-use),
-accessed 2026-08-26). Broad international coverage and the barcode data a
-scanner needs. The obligation is share-alike on a _derived database_:
-combining Open Food Facts data into another database obliges releasing that
-resulting database under the same terms, and attribution to Open Food
-Facts with a link back is required regardless. **Whether shipping a
-filtered, non-further-redistributable subset inside a distributed mobile
-application counts as "distributing the database" in the sense that
-triggers this obligation on that bundled subset is not addressed by Open
-Food Facts's own terms or API FAQ** — this is not an assumption this
-repository is declining to research further; it is a gap in the source's
-own published documentation, and ADR 0035 names qualified legal review as
-the way to close it. Querying it live over the network avoids building a
-derived database at build time, at the cost of barcode lookup requiring
-connectivity, which lands directly against the offline-first philosophy —
-so live querying is not treated here as a way around the licensing
-question, only as a different trade against a different principle.
+**Open Food Facts** — database structure licensed under the Open Database
+License (ODbL) 1.0 ([opendatacommons.org/licenses/odbl/1.0/](https://opendatacommons.org/licenses/odbl/1.0/),
+accessed 2026-08-28), individual records licensed under the Database Contents
+License (DbCL) 1.0 ([opendatacommons.org/licenses/dbcl/1.0/](https://opendatacommons.org/licenses/dbcl/1.0/),
+accessed 2026-08-28), and product images licensed separately under Creative
+Commons Attribution-ShareAlike (CC BY-SA 2.0 / 3.0 / 4.0;
+[world.openfoodfacts.org/terms-of-use](https://world.openfoodfacts.org/terms-of-use),
+accessed 2026-08-28).
+
+Open Food Facts offers broad international coverage and the barcode data a scanner
+needs. ODbL 1.0 §4.4 imposes a share-alike obligation on a _Derivative Database_
+that is **Publicly Conveyed**: combining, filtering, or transforming Open Food
+Facts data into another database that is then publicly conveyed obliges offering
+that resulting database under ODbL 1.0 along with corresponding source scripts,
+and attribution and notice are required under ODbL 1.0 §4.3 regardless. **Whether
+shipping a filtered, non-further-redistributable subset inside a distributed
+mobile application counts as "Publicly Conveying" the database in the sense that
+triggers this obligation on that bundled subset is not addressed by Open Food
+Facts's own terms or API FAQ** — this is a gap in the source's own published
+documentation, not an assumption this repository is declining to research
+further, and ADR 0035 names qualified legal review as the way to close it.
+
+Sprint 53 authored the counsel-ready [licensing review
+packet](open-food-facts-licensing-review-packet.md), which structures the legal
+analysis across 15 concrete distribution questions the packet poses to counsel —
+it proposes, but does not settle, an architecture built around:
+
+1. **Physical Storage Isolation**: A filtered SQLite database artifact
+   (`off_us_nutrition.sqlite`), logically and physically distinct from compiled
+   application code, on the theory that it would be a Collective Database /
+   Produced Work rather than a work into which ODbL's terms propagate — a
+   classification the packet poses to counsel rather than asserts.
+2. **User Data Independence**: Person-owned catalog items and diary snapshots
+   copied into a private database with a distinct provenance value (`'provider'`,
+   which does not yet exist in the shipped `NutritionProvenance` enum and would be
+   added only once a sourcing direction is approved); deleting or updating
+   provider data would never touch user history.
+3. **100% Image Exclusion**: Product images completely excluded from the
+   application, eliminating CC BY-SA image obligations, trademark risks, and
+   massive storage costs.
+4. **Proposed Source Offering**: Offering the filtered database artifact and
+   build scripts on a public repository/CDN as one candidate way to satisfy ODbL
+   1.0 §4.4.a–c without open-sourcing application code — the packet poses this to
+   counsel as Question 7 rather than concluding it is sufficient.
+
+None of this is approved architecture. It is the shape of the question put to
+counsel, recorded here so the constraint a future implementation must satisfy is
+traceable once an opinion is received.
 
 Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md))
 approved an Open Food Facts United States dated snapshot strictly as an **external,
@@ -153,10 +185,15 @@ unweighted retail assortment evaluation frame** for testing FoodData Central dis
 Using an external snapshot to extract query terms and barcode check values for benchmark
 testing, while publishing only aggregate statistical metrics and committing no raw records
 or derived database to Git, is an analytical evaluation use permitted under ODbL 1.0 / DbCL
-1.0 that does not trigger copyleft obligations on the application codebase. Qualified
-legal review remains the requirement before any Open Food Facts data may be bundled in
-production — and, with FoodData Central having failed Sprint 52's coverage evaluation,
-this is now the sole remaining named path to unblock Phase 5's food-database half.
+1.0 that does not trigger copyleft obligations on the application codebase.
+
+Qualified legal review remains the requirement before any Open Food Facts data
+may be bundled or downloaded in production. Sprint 53 recorded **Outcome C** in
+[ADR 0039](decisions/0039-open-food-facts-licensing-boundary-review-packet.md):
+**Open Food Facts remains unapproved** pending an external qualified legal
+opinion. With FoodData Central having failed Sprint 52's coverage evaluation,
+this legal review is now the sole named path to unblock Phase 5's food-database
+half.
 
 ## Rules that follow
 
