@@ -60,7 +60,7 @@ flowchart TD
     end
 
     subgraph UserStorage["User Data Sandbox (Private & Owned)"]
-        H --> I["nutrition_catalog_item\n(provenance: 'provider')"]
+        H --> I["nutrition_catalog_item\n(provenance: proposed 'provider' value)"]
         H --> J["nutrition_consumption_entry\n(snapshot of facts)"]
         H --> K["sync_outbox / Export Format 2\n(User Data Only)"]
     end
@@ -103,7 +103,7 @@ The derivation script applies the following strict filtering criteria:
 
 1. **Search / Scan**: The user enters a search term or scans a barcode. The app queries `off_us_nutrition.sqlite`.
 2. **Selection**: The user reviews search results and selects a food item.
-3. **Instantiation & Snapshot Copy**: The application domain creates an immutable, validated `NutritionFacts` instance, with `provenance` marked as `'provider'` (distinguishing it from user-authored `'provided'` or AI `'estimated'`).
+3. **Instantiation & Snapshot Copy**: The application domain creates an immutable, validated `NutritionFacts` instance, with `provenance` marked using a proposed `'provider'` value (distinguishing it from the two values the shipped `NutritionProvenance` enum currently defines, `'provided'` and `'estimated'`). Adding `'provider'` to that enum is domain-model work belonging to a later, separately reviewed implementation sprint, not to Sprint 53.
 4. **Local Write**: The item is copied into the user's private database:
    - If added to reusable catalog: inserted into `nutrition_catalog_item`.
    - If logged to diary: inserted as an independent snapshot in `nutrition_consumption_entry`.

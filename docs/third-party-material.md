@@ -140,29 +140,44 @@ Commons Attribution-ShareAlike (CC BY-SA 2.0 / 3.0 / 4.0;
 accessed 2026-08-28).
 
 Open Food Facts offers broad international coverage and the barcode data a scanner
-needs. ODbL 1.0 §4.4 imposes a share-alike obligation on any Publicly Conveyed
-_Derivative Database_: combining, filtering, or transforming Open Food Facts data
-into another database obliges offering that resulting database under ODbL 1.0
-along with corresponding source scripts. Attribution and notice are required
-under ODbL 1.0 §4.3.
+needs. ODbL 1.0 §4.4 imposes a share-alike obligation on a _Derivative Database_
+that is **Publicly Conveyed**: combining, filtering, or transforming Open Food
+Facts data into another database that is then publicly conveyed obliges offering
+that resulting database under ODbL 1.0 along with corresponding source scripts,
+and attribution and notice are required under ODbL 1.0 §4.3 regardless. **Whether
+shipping a filtered, non-further-redistributable subset inside a distributed
+mobile application counts as "Publicly Conveying" the database in the sense that
+triggers this obligation on that bundled subset is not addressed by Open Food
+Facts's own terms or API FAQ** — this is a gap in the source's own published
+documentation, not an assumption this repository is declining to research
+further, and ADR 0035 names qualified legal review as the way to close it.
 
 Sprint 53 authored the counsel-ready [licensing review
 packet](open-food-facts-licensing-review-packet.md), which structures the legal
-analysis across 15 concrete distribution questions and establishes strict
-architectural constraints:
+analysis across 15 concrete distribution questions the packet poses to counsel —
+it proposes, but does not settle, an architecture built around:
 
-1. **Physical Storage Isolation**: The filtered SQLite database artifact
-   (`off_us_nutrition.sqlite`) is logically and physically distinct from compiled
-   application code (Collective Database / Produced Work).
+1. **Physical Storage Isolation**: A filtered SQLite database artifact
+   (`off_us_nutrition.sqlite`), logically and physically distinct from compiled
+   application code, on the theory that it would be a Collective Database /
+   Produced Work rather than a work into which ODbL's terms propagate — a
+   classification the packet poses to counsel rather than asserts.
 2. **User Data Independence**: Person-owned catalog items and diary snapshots
-   are copied into a private database with explicit `'provider'` provenance;
-   deleting or updating provider data never touches user history.
-3. **100% Image Exclusion**: Product images are completely excluded from the
+   copied into a private database with a distinct provenance value (`'provider'`,
+   which does not yet exist in the shipped `NutritionProvenance` enum and would be
+   added only once a sourcing direction is approved); deleting or updating
+   provider data would never touch user history.
+3. **100% Image Exclusion**: Product images completely excluded from the
    application, eliminating CC BY-SA image obligations, trademark risks, and
    massive storage costs.
-4. **Source Offering Compliance**: Offering the filtered database artifact and
-   build scripts on a public repository/CDN satisfies ODbL 1.0 §4.4.a–c without
-   open-sourcing application code.
+4. **Proposed Source Offering**: Offering the filtered database artifact and
+   build scripts on a public repository/CDN as one candidate way to satisfy ODbL
+   1.0 §4.4.a–c without open-sourcing application code — the packet poses this to
+   counsel as Question 7 rather than concluding it is sufficient.
+
+None of this is approved architecture. It is the shape of the question put to
+counsel, recorded here so the constraint a future implementation must satisfy is
+traceable once an opinion is received.
 
 Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md))
 approved an Open Food Facts United States dated snapshot strictly as an **external,
