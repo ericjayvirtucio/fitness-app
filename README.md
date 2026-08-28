@@ -163,6 +163,18 @@ to export, restore, and replacement are documented in
 
 ## Current status
 
+Sprint 51: Initial Nutrition Market and Representative Sampling Frame. The
+United States (US) was approved as the initial nutrition-data launch market,
+aligning directly with the pure domain nutrient model (FDA Nutrition Facts
+vocabulary), American English terminology, and UPC-A barcode standards.
+Independent sampling frames were approved: CDC/USDA NHANES WWEIA dietary recall
+frequency data for ordinary foods, and an Open Food Facts US snapshot as an
+unweighted retail assortment frame for branded product names and exact barcodes.
+The Sprint 50 acceptance thresholds remain fixed. FoodData Central remains
+unapproved pending execution of the external evaluation against these frames;
+Phase 5 stays Current and Phase 6 stays blocked. See [ADR
+0037](docs/decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
+and the [sampling frame evaluation](docs/nutrition-sampling-frame-evaluation.md).
 Sprint 50: Nutrition Data Coverage Evaluation. FoodData Central's April 2026
 bulk release was profiled under thresholds fixed before evaluation. Its internal
 nutrition completeness is promising, but ordinary-food, branded-name, and exact-

@@ -86,7 +86,11 @@ and recorded the licensing decision in [ADR
 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md).
 Sprint 50 profiled FoodData Central's current bulk release and recorded the
 evidence-insufficient coverage decision in [ADR
-0036](decisions/0036-fooddata-central-coverage-remains-unproven.md). This
+0036](decisions/0036-fooddata-central-coverage-remains-unproven.md). Sprint 51
+(2026-08-27) defined the **United States (US)** as the approved initial launch
+market and approved the independent sampling frame strategy in [ADR
+0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
+and the [sampling frame evaluation](nutrition-sampling-frame-evaluation.md). This
 section restates the licensing and sourcing facts those decisions rest on.
 
 **USDA FoodData Central** — public-domain data published under CC0 1.0. No
@@ -130,6 +134,16 @@ derived database at build time, at the cost of barcode lookup requiring
 connectivity, which lands directly against the offline-first philosophy —
 so live querying is not treated here as a way around the licensing
 question, only as a different trade against a different principle.
+
+Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md))
+approved an Open Food Facts United States dated snapshot strictly as an **external,
+unweighted retail assortment evaluation frame** for testing FoodData Central discovery.
+Using an external snapshot to extract query terms and barcode check values for benchmark
+testing, while publishing only aggregate statistical metrics and committing no raw records
+or derived database to Git, is an analytical evaluation use permitted under ODbL 1.0 / DbCL
+1.0 that does not trigger copyleft obligations on the application codebase. Qualified
+legal review remains the requirement before any Open Food Facts data may be bundled in
+production.
 
 ## Rules that follow
 

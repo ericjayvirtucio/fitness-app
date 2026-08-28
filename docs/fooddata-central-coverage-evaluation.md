@@ -4,7 +4,8 @@
   release
 - Evaluation release: USDA FoodData Central April 2026 bulk downloads
 - Outcome: C — evidence is insufficient to approve FoodData Central
-- Decision governed by: [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md)
+- Decision governed by: [ADR 0035](decisions/0035-nutrition-provenance-and-unapproved-food-data-sourcing.md), [ADR 0036](decisions/0036-fooddata-central-coverage-remains-unproven.md), [ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md)
+- Follow-up evaluation: [Sampling frame evaluation](nutrition-sampling-frame-evaluation.md) (Sprint 51)
 
 ## Question and decision rule
 
@@ -34,9 +35,9 @@ The evaluation keeps these populations separate:
 3. **Barcode-based branded products:** current retail packages with a
    independently observed GTIN, UPC-A, EAN-13, or EAN-8.
 4. **Initial-market products:** products sampled from the application's approved
-   launch market. The repository does not currently name that market, so no
-   release decision may claim this population has been tested until the product
-   direction names it.
+   launch market. Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md),
+   [Sampling frame evaluation](nutrition-sampling-frame-evaluation.md)) approved the
+   **United States (US)** as the initial nutrition launch market.
 5. **Products outside FoodData Central's strongest documented markets:** a
    separate stratum that prevents United States coverage from being described
    as global coverage.
@@ -382,15 +383,16 @@ yet. Introducing a provider abstraction before one source is approved would be
 speculative, and using Open Food Facts as a second source still carries ADR
 0035's unresolved legal question.
 
-A better sample could materially change this decision. The smallest responsible
-follow-up is:
+A better sample could materially change this decision. Sprint 51 ([ADR 0037](decisions/0037-initial-nutrition-market-and-independent-sampling-frame.md),
+[Sampling frame evaluation](nutrition-sampling-frame-evaluation.md)) resolved the first
+two follow-up requirements by defining the **United States (US)** as the initial market
+and approving the independent NHANES WWEIA and Open Food Facts US assortment sampling frames.
+The remaining execution steps are:
 
-1. name the application's initial market;
-2. acquire or commission an independent, dated sampling frame for that market;
-3. draw at least 385 ordinary-food queries, 385 branded-name queries, and 385
+1. draw at least 385 ordinary-food queries, 385 branded-name queries, and 385
    current barcodes per adoption stratum under this fixed protocol;
-4. publish only aggregate results and reviewer disagreements; and
-5. approve an implementation specification only if every predefined threshold
+2. publish only aggregate results and reviewer disagreements; and
+3. approve an implementation specification only if every predefined threshold
    and lower-bound condition passes.
 
 Qualified review of Open Food Facts's bundling obligations remains the other
