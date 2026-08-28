@@ -573,10 +573,32 @@ Run commands from the repository root and use the pinned pnpm version. Do not ru
 ### The iOS Simulator does not open
 
 Open Xcode once to accept its license and install an iOS Simulator runtime. Verify
-the active command-line tools with `xcode-select -p`, then rerun an explicit iOS
-QA command. The wrapper opens Simulator automatically. If several simulators are
-already booted, pass `--device <udid>`. On a non-macOS host, defer iOS verification
-to macOS.
+the active command-line tools with `xcode-select -p`, then rerun
+`pnpm --filter @fitness/mobile start -- --ios`, which opens Simulator
+automatically. If several simulators are already booted, pass
+`--device <udid>`. On a non-macOS host, defer iOS verification to macOS.
+
+### Expo Go says "Could not connect to the server"
+
+This means Metro bound to a loopback address Expo Go cannot reach, not that the
+dev server crashed. It happens when `start` is run with `--localhost` (or
+`--offline`) on a machine where Node resolves the bare hostname `localhost` to
+`::1` (IPv6) only: Metro then listens on `[::1]:8081`, but the `exp://` URL
+handed to the simulator uses the IPv4 literal `127.0.0.1`, so nothing answers
+on it. Confirm this is what happened with
+`lsof -iTCP:8081 -sTCP:LISTEN -P -n` — an entry showing only `TCP [::1]:8081`
+and no `127.0.0.1:8081` confirms the mismatch.
+
+Fix it by starting with the default LAN host mode instead of `--localhost`:
+
+```bash
+pnpm --filter @fitness/mobile start -- --ios --lan
+```
+
+`--lan` binds every interface, so both the IPv4 and IPv6 loopback addresses
+resolve, and it is already the default when no `--host`/`--localhost`/`--tunnel`
+flag is passed — the failure only appears if something explicitly requests
+localhost-only binding.
 
 ### Android does not open
 
